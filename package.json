@@ -1,0 +1,39 @@
+{
+  "name": "@softchoice-corp/wwt-showcase",
+  "version": "0.0.0",
+  "private": true,
+  "license": "PROPRIETARY",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:demo": "pnpm --filter @softchoice-corp/wwt-demo dev",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "forge": "turbo forge && pnpm format"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "dotenv-cli": "^8.0.0",
+    "eslint": "^9.20.1",
+    "prettier": "^3.5.1",
+    "prettier-plugin-prisma": "^5.0.0",
+    "prettier-plugin-tailwindcss": "^0.6.12",
+    "turbo": "^2.4.2",
+    "typescript": "5.8.3"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@softchoice-corp/forge-generator": "^1.0.4",
+    "@softchoice-corp/forge-templates-api": "^1.0.5",
+    "wait-port": "^1.1.0"
+  }
+}

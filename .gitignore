@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.pnpm-store
+dist
+.next
+out
+tmp
+.turbo
+/apps/**/.next
+/apps/**/dist
+/packages/**/dist
+.DS_Store
