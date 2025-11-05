@@ -11,7 +11,6 @@
  * - Aside card: pricing, availability, primary CTA
  */
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 
 import Link from "next/link";
@@ -23,10 +22,8 @@ import { Separator } from "@workspace/ui/shadcn/separator";
 
 import {
   CalendarDaysIcon,
-  FlagIcon,
   MapPinIcon,
   Share2Icon,
-  TicketIcon,
   DownloadIcon,
   ClockIcon,
   HotelIcon,
@@ -39,10 +36,12 @@ import { RegistrationSummaryCard } from "@/components/events/RegistrationSummary
 import { findEventById, listEvents } from "@/data/event-categories";
 import { buildEventGalleryImages } from "./image-gallery";
 
+type EventPageParams = {
+  eventId: string;
+};
+
 type EventPageProps = {
-  params: {
-    eventId: string;
-  };
+  params?: Promise<EventPageParams>;
 };
 
 export async function generateStaticParams() {
@@ -52,7 +51,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: EventPageProps): Promise<Metadata> {
-  const event = findEventById(decodeURIComponent(params.eventId));
+  const resolvedParams = params ? await params : null;
+  const eventId = resolvedParams?.eventId ? decodeURIComponent(resolvedParams.eventId) : null;
+  const event = eventId ? findEventById(eventId) : null;
   if (!event) {
     return {
       title: "Event not found",
@@ -65,8 +66,13 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   };
 }
 
-export default function EventPage({ params }: EventPageProps) {
-  const eventId = decodeURIComponent(params.eventId);
+export default async function EventPage({ params }: EventPageProps) {
+  const resolvedParams = params ? await params : null;
+  if (!resolvedParams) {
+    notFound();
+  }
+
+  const eventId = decodeURIComponent(resolvedParams.eventId);
   const event = findEventById(eventId);
 
   if (!event) {
@@ -314,25 +320,5 @@ export default function EventPage({ params }: EventPageProps) {
         </aside>
       </section>
     </main>
-  );
-}
-
-type StatusItemProps = {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  helper?: string;
-};
-
-function StatusItem({ icon, label, value, helper }: StatusItemProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="mt-1">{icon}</div>
-      <div className="space-y-1">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground/70">{label}</p>
-        <p className="text-foreground text-base font-semibold">{value}</p>
-        {helper ? <p className="text-xs">{helper}</p> : null}
-      </div>
-    </div>
   );
 }

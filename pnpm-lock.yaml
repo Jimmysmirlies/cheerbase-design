@@ -20,12 +20,6 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@19.1.0)
-      '@softchoice-corp/forge-generator':
-        specifier: ^1.0.4
-        version: 1.0.4
-      '@softchoice-corp/forge-templates-api':
-        specifier: ^1.0.5
-        version: 1.0.5
       wait-port:
         specifier: ^1.1.0
         version: 1.1.0
@@ -325,11 +319,6 @@ packages:
   '@babel/types@7.27.6':
     resolution: {integrity: sha512-ETyHEk2VHHvl9b9jZP5IHPavHYk57EhanlRRuae9XCpb/j5bDCbPPMOBfCWhnl/7EDJz0jEMCi/RhccCE8r1+Q==}
     engines: {node: '>=6.9.0'}
-
-  '@commander-js/extra-typings@11.1.0':
-    resolution: {integrity: sha512-GuvZ38d23H+7Tz2C9DhzCepivsOsky03s5NI+KCy7ke1FNUvsJ2oO47scQ9YaGGhgjgNW5OYYNSADmbjcSoIhw==}
-    peerDependencies:
-      commander: 11.1.x
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1195,16 +1184,6 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
-  '@softchoice-corp/forge-generator@1.0.4':
-    resolution: {integrity: sha512-4M9GNvMGTnMdKU3mtcENDjLnEKINk0z4UiFlY/DQzXatwo5GSIsL17EquMYwxcR4O6IPJi1CTaV50hmjG77Bnw==, tarball: https://npm.pkg.github.com/download/@softchoice-corp/forge-generator/1.0.4/61403458735f99775aeeac1fefef359c6e2014f8}
-    hasBin: true
-
-  '@softchoice-corp/forge-templates-api@1.0.2':
-    resolution: {integrity: sha512-D4FuMgRcX0HKGe7sc59MB5yVX5E7c0wNQd6F9Ub/wIA6r5tSYPtYbokCVZm9zHhhf8QK5Qpw/uwOESK30lTnPQ==, tarball: https://npm.pkg.github.com/download/@softchoice-corp/forge-templates-api/1.0.2/4b986753589cdef18202b7064a4d8b11c5fee659}
-
-  '@softchoice-corp/forge-templates-api@1.0.5':
-    resolution: {integrity: sha512-Q/AbuDeZy1NfBxtuelTJ14YrZ7PrjQMznuQleA1amefHfFZuFqlQk/emS8l+HF0E0E72Ya6JPw15bDDSFamg6g==, tarball: https://npm.pkg.github.com/download/@softchoice-corp/forge-templates-api/1.0.5/3b4d57a6e56d57888466d34a53639ad277a7aa3d}
-
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
@@ -1687,10 +1666,6 @@ packages:
   commander@10.0.1:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
     engines: {node: '>=14'}
-
-  commander@11.1.0:
-    resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
-    engines: {node: '>=16'}
 
   commander@9.5.0:
     resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
@@ -2423,16 +2398,8 @@ packages:
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
 
-  json-schema@0.4.0:
-    resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
-
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
-
-  json5@2.2.3:
-    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
-    engines: {node: '>=6'}
-    hasBin: true
 
   jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
@@ -3546,10 +3513,6 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@commander-js/extra-typings@11.1.0(commander@11.1.0)':
-    dependencies:
-      commander: 11.1.0
-
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
@@ -4381,19 +4344,6 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@softchoice-corp/forge-generator@1.0.4':
-    dependencies:
-      '@commander-js/extra-typings': 11.1.0(commander@11.1.0)
-      '@softchoice-corp/forge-templates-api': 1.0.2
-      commander: 11.1.0
-      json-schema: 0.4.0
-      json5: 2.2.3
-      lodash: 4.17.21
-
-  '@softchoice-corp/forge-templates-api@1.0.2': {}
-
-  '@softchoice-corp/forge-templates-api@1.0.5': {}
-
   '@standard-schema/utils@0.3.0': {}
 
   '@swc/counter@0.1.3': {}
@@ -4953,8 +4903,6 @@ snapshots:
     optional: true
 
   commander@10.0.1: {}
-
-  commander@11.1.0: {}
 
   commander@9.5.0: {}
 
@@ -5828,11 +5776,7 @@ snapshots:
 
   json-schema-traverse@0.4.1: {}
 
-  json-schema@0.4.0: {}
-
   json-stable-stringify-without-jsonify@1.0.1: {}
-
-  json5@2.2.3: {}
 
   jsonfile@6.1.0:
     dependencies:

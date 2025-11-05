@@ -1,12 +1,12 @@
 {
-  "name": "@softchoice-corp/wwt-showcase",
+  "name": "@cheerbase/wwt-showcase",
   "version": "0.0.0",
   "private": true,
   "license": "PROPRIETARY",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "dev:demo": "pnpm --filter @softchoice-corp/wwt-demo dev",
+    "dev:demo": "pnpm --filter @cheerbase/wwt-demo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "forge": "turbo forge && pnpm format"
@@ -32,8 +32,6 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@softchoice-corp/forge-generator": "^1.0.4",
-    "@softchoice-corp/forge-templates-api": "^1.0.5",
     "wait-port": "^1.1.0"
   }
 }

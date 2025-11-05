@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { EventCard, Hero, HeroSlide, OrganizerCard, QuickFilterRail } from "@/components/ui";
 import OrganizersSection from "@/components/sections/OrganizersSection";
 import EventCategoriesSection from "@/components/sections/EventCategoriesSection";

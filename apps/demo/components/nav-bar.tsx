@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
 'use client'
 
 /**
@@ -33,16 +32,6 @@ import { useRouter } from 'next/navigation'
 import { AuthDialog } from '@/components/auth-dialog'
 import { getGlassCardStyle } from '@/components/ui/glass-card-style'
 
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
 type NavBarProps = {
   showSearch?: boolean
   mode?: 'default' | 'clubs'
@@ -60,7 +49,9 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
       if (stored === 'club_owner' || stored === 'organizer') {
         setRole(stored)
       }
-    } catch (_) {}
+    } catch {
+      // localStorage is not available (e.g., SSR or privacy mode)
+    }
   }, [])
 
   return (
@@ -128,7 +119,9 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
                       onClick={() => {
                         try {
                           localStorage.removeItem('demoRole')
-                        } catch (_) {}
+                        } catch {
+                          // Ignore storage access errors
+                        }
                         setRole(null)
                         router.push('/')
                       }}
@@ -187,7 +180,9 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
                       onClick={() => {
                         try {
                           localStorage.removeItem('demoRole')
-                        } catch (_) {}
+                        } catch {
+                          // Ignore storage access errors
+                        }
                         setRole(null)
                         router.push('/')
                       }}
@@ -209,7 +204,9 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
         onDemoLogin={nextRole => {
           try {
             localStorage.setItem('demoRole', nextRole)
-          } catch (_) {}
+          } catch {
+            // Ignore storage access errors
+          }
           setRole(nextRole)
           setAuthModalOpen(false)
           // Stay on the current page for club owners; route organizers to events

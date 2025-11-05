@@ -153,7 +153,9 @@ export default function UploadRosterDialog() {
                   </p>
                   {duplicate ? (
                     <div className="mt-2 space-y-2">
-                      <p className="text-amber-600">A team named "{firstTeamValue}" already exists.</p>
+                      <p className="text-amber-600">
+                        A team named &ldquo;{firstTeamValue}&rdquo; already exists.
+                      </p>
                       <div className="flex gap-2 text-xs">
                         <label className="inline-flex items-center gap-2">
                           <input

@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { CheckCircle2Icon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 import { Button } from '@workspace/ui/shadcn/button'
-import { cn } from '@workspace/ui/lib/utils'
 
 type HeroAction = {
   label: string

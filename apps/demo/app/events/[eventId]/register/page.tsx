@@ -10,14 +10,21 @@ import { demoRosters } from '@/data/club/members'
 import { demoTeams } from '@/data/club/teams'
 import { findEventById } from '@/data/event-categories'
 
-type RegisterPageProps = {
-  params: {
-    eventId: string
-  }
+type RegisterPageParams = {
+  eventId: string
 }
 
-export default function RegisterEventPage({ params }: RegisterPageProps) {
-  const eventId = decodeURIComponent(params.eventId)
+type RegisterPageProps = {
+  params?: Promise<RegisterPageParams>
+}
+
+export default async function RegisterEventPage({ params }: RegisterPageProps) {
+  const resolvedParams = params ? await params : null
+  if (!resolvedParams) {
+    notFound()
+  }
+
+  const eventId = decodeURIComponent(resolvedParams.eventId)
   const event = findEventById(eventId)
 
   if (!event) {

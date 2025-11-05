@@ -16,8 +16,6 @@ import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UsersIcon, ReceiptIcon, SettingsIcon } from "lucide-react";
 import TeamDetails from "@/components/club/TeamDetails";
-import { Button } from "@workspace/ui/shadcn/button";
-import { ArrowLeftIcon } from "lucide-react";
 import { NavBar } from "@/components/nav-bar";
 import TeamsSection from "@/components/club/TeamsSection";
 import RegistrationsSection from "@/components/club/RegistrationsSection";

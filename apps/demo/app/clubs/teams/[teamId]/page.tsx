@@ -10,7 +10,7 @@
  * - Team header: name, division, counts, Team Settings dialog
  * - Tabs: Coaches | Athletes | Reservists | Chaperones
  */
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { NavBar } from "@/components/nav-bar";
 import TeamDetails from "@/components/club/TeamDetails";
