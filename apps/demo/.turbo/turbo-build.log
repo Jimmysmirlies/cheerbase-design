@@ -1,36 +1,59 @@
 
 
-> @softchoice-corp/wwt-demo@0.0.0 build /Users/jamessmirlies/Documents/Sportive/Showcase/apps/demo
+> @softchoice-corp/wwt-demo@0.0.0 build /Users/jamessmirlies/Documents/Sportive/cheerbase-design/apps/demo
 > next build
 
    [1m[38;2;173;127;168m▲ Next.js 15.3.3[39m[22m
    - Environments: .env.local
 
  [37m[1m [22m[39m Creating an optimized production build ...
-[31mFailed to compile.
-[39m
+ [32m[1m✓[22m[39m Compiled successfully in 3.0s
+[?25l [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G[?25h
+./app/clubs/page.tsx
+19:10  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Warning: 'ArrowLeftIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/clubs/teams/[teamId]/page.tsx
+13:20  Warning: 'useMemo' is defined but never used.  @typescript-eslint/no-unused-vars
+
 ./app/events/[eventId]/page.tsx
-Error:   [31m×[0m `ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a client component.
-    ╭─[[36;1;4m/Users/jamessmirlies/Documents/Sportive/Showcase/apps/demo/app/events/[eventId]/page.tsx[0m:44:1]
- [2m41[0m │     import { findEventById, listEvents } from "@/data/event-categories";
- [2m42[0m │     import { buildEventGalleryImages } from "./image-gallery";
- [2m43[0m │     
- [2m44[0m │ [35;1m╭[0m[35;1m─[0m[35;1m▶[0m const EventRegistrationDialog = dynamic(() => import("@/components/events/EventRegistrationDialog"), {
- [2m45[0m │ [35;1m│[0m     ssr: false,
- [2m46[0m │ [35;1m│[0m     loading: () => (
- [2m47[0m │ [35;1m│[0m       <Button size="lg" className="w-full" disabled>
- [2m48[0m │ [35;1m│[0m         Loading…
- [2m49[0m │ [35;1m│[0m       </Button>
- [2m50[0m │ [35;1m│[0m     ),
- [2m51[0m │ [35;1m╰[0m[35;1m─[0m[35;1m▶[0m });
- [2m52[0m │     
- [2m53[0m │     type EventPageProps = {
- [2m54[0m │       params: {
-    ╰────
+26:3  Warning: 'FlagIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+29:3  Warning: 'TicketIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+327:10  Warning: 'StatusItem' is defined but never used.  @typescript-eslint/no-unused-vars
 
-Import trace for requested module:
-./app/events/[eventId]/page.tsx
+./app/style-guide/components/page.tsx
+1:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
 
+./components/club/UploadRosterDialog.tsx
+156:66  Warning: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+156:83  Warning: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
 
-> Build failed because of webpack errors
-[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m
+./components/nav-bar.tsx
+1:1  Warning: Definition for rule 'jsx-a11y/label-has-associated-control' was not found.  jsx-a11y/label-has-associated-control
+36:1  Warning: Definition for rule 'jsx-a11y/label-has-associated-control' was not found.  jsx-a11y/label-has-associated-control
+38:1  Warning: Definition for rule 'jsx-a11y/label-has-associated-control' was not found.  jsx-a11y/label-has-associated-control
+40:1  Warning: Definition for rule 'jsx-a11y/label-has-associated-control' was not found.  jsx-a11y/label-has-associated-control
+42:1  Warning: Definition for rule 'jsx-a11y/label-has-associated-control' was not found.  jsx-a11y/label-has-associated-control
+44:1  Warning: Definition for rule 'jsx-a11y/label-has-associated-control' was not found.  jsx-a11y/label-has-associated-control
+63:14  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+63:17  Warning: Empty block statement.  no-empty
+131:34  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+131:37  Warning: Empty block statement.  no-empty
+190:34  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+190:37  Warning: Empty block statement.  no-empty
+212:20  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+212:23  Warning: Empty block statement.  no-empty
+
+./components/ui/hero.tsx
+10:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[?25l [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m Failed to compile.
+
+app/events/[eventId]/page.tsx
+Type error: Type 'EventPageProps' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ eventId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+
+[2K[1G[?25hNext.js build worker exited with code: 1 and signal: null
+[?25l [36m.[39m [?25h[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m
