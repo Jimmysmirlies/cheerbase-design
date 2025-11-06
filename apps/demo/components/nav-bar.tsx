@@ -77,7 +77,7 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
           <div className="flex flex-1 justify-center">
             {showSearch ? (
               <Input
-                className="w-full max-w-xl rounded-full px-5 py-3"
+                className="w-full max-w-xl"
                 placeholder="Search events or organizers"
                 type="search"
               />

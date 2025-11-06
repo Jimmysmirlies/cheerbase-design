@@ -16,14 +16,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@workspace/ui/shadcn/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
 import { Input } from '@workspace/ui/shadcn/input'
 import { Label } from '@workspace/ui/shadcn/label'
 import { RadioGroup, RadioGroupItem } from '@workspace/ui/shadcn/radio-group'
@@ -35,10 +28,8 @@ import {
   SelectValue,
 } from '@workspace/ui/shadcn/select'
 
-import { ChevronDownIcon, UploadIcon } from 'lucide-react'
-import { InfoIcon } from 'lucide-react'
+import { ChevronDownIcon, PenSquareIcon, SearchIcon, Trash2Icon, UploadIcon } from 'lucide-react'
 
-import { GlassCard } from '@/components/ui/glass-card'
 import type { Person, TeamRoster } from '@/types/club'
 import type { DivisionPricing } from '@/types/events'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
@@ -78,6 +69,7 @@ export type RegistrationFlowProps = {
   onConfirm?: (entries: RegistrationEntry[]) => void
 }
 
+// Section nickname: "Flow Shell" – orchestrates the primary registration workflow state.
 export function RegistrationFlow({
   divisionPricing,
   teams,
@@ -152,76 +144,67 @@ export function RegistrationFlow({
   }
 
   return (
-    <section className="space-y-8">
-      <GlassCard
-        showShadow={false}
-        className="border-border/40 bg-background/70 text-foreground flex flex-col gap-4 rounded-3xl border p-4 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <div className="grid grid-cols-[auto_1fr] items-start gap-3">
-          <InfoIcon className="text-foreground size-5 translate-y-[2px]" aria-hidden="true" />
-          <div className="space-y-1 text-sm">
-            <p className="font-semibold leading-snug">Register teams for this event</p>
-            <p className="text-foreground/80 leading-snug">
-              Choose divisions for this event and assign existing teams or upload roster files.
-            </p>
+    <section className="w-full">
+      <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start lg:gap-8 lg:space-y-0">
+        <div className="space-y-8">
+          {/* Flow Shell · Search + register */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-md">
+              <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+              <Input
+                type="search"
+                value={searchTerm}
+                onChange={event => setSearchTerm(event.target.value)}
+                placeholder="Search registered teams or participants"
+                className="w-full pl-9"
+              />
+            </div>
+            <Button type="button" variant="outline" onClick={() => setIsModalOpen(true)} disabled={!divisionOptions.length}>
+              Register team
+            </Button>
           </div>
-        </div>
-        <Button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          disabled={!divisionOptions.length}
-          className="sm:justify-self-end"
-        >
-          Register team
-        </Button>
-      </GlassCard>
 
-      {/* Actions: search */}
-      <div className="space-y-4">
-        <div className="space-y-1">
-          <h3 className="heading-4">Competition Division List</h3>
-          <p className="text-muted-foreground text-xs">
-            Search the queue and review teams grouped by division.
-          </p>
+          <DivisionQueueSection
+            entriesByDivision={groupedEntries}
+            filteredEntriesByDivision={filteredGroupedEntries}
+            allEntries={entries}
+            divisionOptions={divisionOptions}
+            searchTerm={sanitizedSearch}
+            onRemoveEntry={handleRemoveEntry}
+          />
+
+          <footer className="border-border/60 border-t pt-4">
+            <p className="text-muted-foreground text-xs">
+              Finalize once all divisions have assigned registrants.
+            </p>
+          </footer>
         </div>
-        <Input
-          type="search"
-          value={searchTerm}
-          onChange={event => setSearchTerm(event.target.value)}
-          placeholder="Search queued teams"
-          className="sm:max-w-sm"
-        />
-        <DivisionQueueSection
-          entriesByDivision={groupedEntries}
-          filteredEntriesByDivision={filteredGroupedEntries}
-          allEntries={entries}
-          divisionOptions={divisionOptions}
-          searchTerm={sanitizedSearch}
-          onRemoveEntry={handleRemoveEntry}
-        />
+
+        <aside className="mt-8 lg:mt-0 lg:sticky lg:top-24">
+          <div className="border-border/60 bg-background/70 rounded-2xl border">
+            <div className="border-border/60 space-y-1 border-b p-4">
+              <h3 className="text-sm font-semibold text-foreground">Pricing Breakdown</h3>
+              <p className="text-muted-foreground text-xs">
+                Totals update automatically based on early bird and regular rates.
+              </p>
+            </div>
+            <div className="p-4">
+              <PricingBreakdownPanel
+                entriesByDivision={groupedEntries}
+                divisionPricing={divisionPricing}
+              />
+              <Button
+                type="button"
+                className="mt-4 w-full"
+                onClick={handleConfirm}
+                disabled={!entries.length}
+              >
+                Finalize registration
+              </Button>
+            </div>
+          </div>
+        </aside>
       </div>
-
-      <div className="space-y-4">
-        <div className="space-y-1">
-          <h3 className="heading-4">Pricing Breakdown</h3>
-          <p className="text-muted-foreground text-xs">
-            Totals update automatically based on early bird and regular rates.
-          </p>
-        </div>
-        <PricingBreakdownPanel
-          entriesByDivision={groupedEntries}
-          divisionPricing={divisionPricing}
-        />
-      </div>
-
-      <footer className="border-border/60 flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-between">
-        <Button type="button" variant="outline" onClick={handleClear} disabled={!entries.length}>
-          Clear queue
-        </Button>
-        <Button type="button" onClick={handleConfirm} disabled={!entries.length}>
-          Submit registration
-        </Button>
-      </footer>
 
       <RegisterTeamModal
         open={isModalOpen}
@@ -328,15 +311,15 @@ function RegisterTeamModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl space-y-6">
-        <DialogHeader>
+      <DialogContent className="max-w-xl rounded-2xl gap-0">
+        <DialogHeader className="mb-6">
           <DialogTitle>Register a team</DialogTitle>
           <DialogDescription>
             Select the team source, assign a division, and confirm to add it to the queue.
           </DialogDescription>
         </DialogHeader>
 
-        <section className="space-y-4">
+        <section className="space-y-4 mb-6">
           <div className="space-y-2">
             <Label className="text-muted-foreground text-xs uppercase tracking-wide">
               Team source
@@ -387,11 +370,17 @@ function RegisterTeamModal({
                   <SelectValue placeholder="Choose a team" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  {filteredTeams.map(team => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
+                  {filteredTeams.length ? (
+                    filteredTeams.map(team => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="text-muted-foreground px-3 py-2 text-sm">
+                      There are no teams in this division.
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -437,7 +426,7 @@ function RegisterTeamModal({
           )}
         </section>
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+        <DialogFooter className="flex flex-col gap-2 pb-0 sm:flex-row sm:justify-between sm:pb-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -483,6 +472,7 @@ function SourceCard({
 }
 
 // --- Division queue --------------------------------------------------------
+// Section nickname: "Queue Explorer" – groups divisions and keeps empty states consistent.
 
 type DivisionQueueSectionProps = {
   entriesByDivision: Record<string, RegistrationEntry[]>
@@ -526,7 +516,7 @@ function DivisionQueueSection({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="space-y-6">
       {divisionsToRender.map(divisionName => {
         const divisionEntries =
           (searchTerm
@@ -534,31 +524,29 @@ function DivisionQueueSection({
             : entriesByDivision[divisionName]) ?? []
 
         return (
-          <div key={divisionName} className="border-border/60 bg-background rounded-2xl border">
-            <div className="border-border/60 flex items-center justify-between border-b px-4 py-3">
-              <p className="text-foreground text-sm font-semibold">{divisionName}</p>
-              <span className="text-muted-foreground text-xs">
+          <section key={divisionName} className="space-y-3 border-t border-border/60 pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-foreground">{divisionName}</p>
+              <span className="text-muted-foreground text-xs font-medium">
                 {divisionEntries.length} {divisionEntries.length === 1 ? 'team' : 'teams'}
               </span>
             </div>
-            <div className="px-4 pb-4 pt-3">
-              {divisionEntries.length ? (
-                <div className="space-y-2">
-                  {divisionEntries.map(entry => (
-                    <DivisionTeamRow
-                      key={entry.id}
-                      entry={entry}
-                      onRemove={() => onRemoveEntry(entry.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="border-border/60 text-muted-foreground rounded-2xl border border-dashed p-4 text-xs">
-                  No teams registered for this division yet.
-                </div>
-              )}
-            </div>
-          </div>
+            {divisionEntries.length ? (
+              <div className="space-y-2">
+                {divisionEntries.map(entry => (
+                  <DivisionTeamRow
+                    key={entry.id}
+                    entry={entry}
+                    onRemove={() => onRemoveEntry(entry.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="border-border/60 text-muted-foreground rounded-2xl border border-dashed p-4 text-xs">
+                No teams registered for this division yet.
+              </div>
+            )}
+          </section>
         )
       })}
     </div>
@@ -566,6 +554,7 @@ function DivisionQueueSection({
 }
 
 // --- Pricing breakdown -----------------------------------------------------
+// Section nickname: "Pricing Snapshot" – summarises totals and pricing tiers.
 
 type PricingBreakdownPanelProps = {
   entriesByDivision: Record<string, RegistrationEntry[]>
@@ -637,7 +626,7 @@ function PricingBreakdownPanel({ entriesByDivision, divisionPricing }: PricingBr
   const hasAnySummary = pricingSummary.length > 0
 
   return (
-    <div className="border-border/60 bg-background space-y-3 rounded-2xl border p-4 text-sm">
+    <div className="space-y-3 text-sm">
       {hasAnySummary ? (
         pricingSummary.map(item => (
           <div key={item.division} className="space-y-1">
@@ -652,9 +641,9 @@ function PricingBreakdownPanel({ entriesByDivision, divisionPricing }: PricingBr
           </div>
         ))
       ) : (
-        <p className="text-muted-foreground text-xs">
+        <div className="border-border/60 text-muted-foreground rounded-xl border border-dashed p-4 text-xs">
           Add teams to see pricing breakdown by division.
-        </p>
+        </div>
       )}
       {hasUnpricedDivision && (
         <p className="text-xs text-amber-600">
@@ -680,6 +669,7 @@ function PricingBreakdownPanel({ entriesByDivision, divisionPricing }: PricingBr
 }
 
 // --- Team row --------------------------------------------------------------
+// Section nickname: "Team Capsule" – expandable roster review per team entry.
 
 type DivisionTeamRowProps = {
   entry: RegistrationEntry
@@ -697,7 +687,9 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
     }
   }
 
-  const memberCount = entry.members?.length ?? entry.teamSize ?? 0
+  // Team Capsule · Raw roster data for the accordion.
+  const members = useMemo(() => entry.members ?? [], [entry.members])
+  const memberCount = members.length ? members.length : entry.teamSize ?? 0
   const secondaryLabel =
     entry.mode === 'existing'
       ? memberCount
@@ -723,50 +715,78 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={event => {
               event.stopPropagation()
               onRemove()
             }}
+            aria-label="Remove team"
           >
-            Remove
+            <Trash2Icon className="size-4" aria-hidden="true" />
           </Button>
-          <ChevronDownIcon
-            className={cn('size-4 transition-transform', expanded && 'rotate-180')}
-          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={event => {
+              event.stopPropagation()
+              toggleExpanded()
+            }}
+            aria-label={expanded ? 'Collapse team details' : 'Expand team details'}
+          >
+            <ChevronDownIcon
+              className={cn('size-4 transition-transform', expanded && 'rotate-180')}
+            />
+          </Button>
         </div>
       </div>
       {expanded && (
-        <div className="border-border/60 text-muted-foreground space-y-2 border-t px-4 py-3 text-xs">
-          {entry.members?.length ? (
-            <div className="overflow-hidden rounded-xl border">
-              <table className="w-full table-fixed text-left">
+        <div className="border-border/60 text-muted-foreground border-t text-xs">
+          {members.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto text-left">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2 font-medium">Name</th>
-                    <th className="px-3 py-2 font-medium">DOB</th>
-                    <th className="px-3 py-2 font-medium">Email</th>
-                    <th className="px-3 py-2 font-medium">Phone</th>
-                    <th className="px-3 py-2 text-right font-medium">Role</th>
+                    <th className="px-3 py-2 font-medium sm:px-4">Name</th>
+                    <th className="px-3 py-2 font-medium sm:px-4">DOB</th>
+                    <th className="px-3 py-2 font-medium sm:px-5">Email</th>
+                    <th className="px-3 py-2 font-medium sm:px-5">Phone</th>
+                    <th className="px-3 py-2 text-right font-medium sm:px-4">Role</th>
+                    <th className="px-3 py-2 text-right font-medium sm:px-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {entry.members.map((member, index) => (
+                  {members.map((member, index) => (
                     <tr key={`${entry.id}-member-${index}`} className="border-t">
-                      <td className="text-foreground px-3 py-2">{member.name}</td>
-                      <td className="px-3 py-2">{formatFriendlyDate(member.dob)}</td>
-                      <td className="px-3 py-2">{member.email ?? '—'}</td>
-                      <td className="px-3 py-2">{formatPhoneNumber(member.phone)}</td>
-                      <td className="text-muted-foreground px-3 py-2 text-right">{member.type}</td>
+                      <td className="text-foreground px-3 py-2 sm:px-4">{member.name}</td>
+                      <td className="px-3 py-2 sm:px-4">{formatFriendlyDate(member.dob)}</td>
+                      <td className="px-3 py-2 sm:px-5">{member.email ?? '—'}</td>
+                      <td className="px-3 py-2 sm:px-5">{formatPhoneNumber(member.phone)}</td>
+                      <td className="text-muted-foreground px-3 py-2 text-right sm:px-4">
+                        {member.type}
+                      </td>
+                      <td className="px-3 py-2 text-right sm:px-4">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={event => event.stopPropagation()}
+                          aria-label={`Edit ${member.name}`}
+                        >
+                          <PenSquareIcon className="size-4" aria-hidden="true" />
+                          <span className="sr-only">{`Edit ${member.name}`}</span>
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : entry.mode === 'existing' ? (
-            <p>Roster details will be pulled from your workspace once registration is submitted.</p>
+            <div className="p-4">
+              Roster details will be pulled from your workspace once registration is submitted.
+            </div>
           ) : (
-            <p>Roster file: {entry.fileName ?? 'Pending upload'}</p>
+            <div className="p-4">Roster file: {entry.fileName ?? 'Pending upload'}</div>
           )}
         </div>
       )}
