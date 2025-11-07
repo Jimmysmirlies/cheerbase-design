@@ -15,11 +15,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UsersIcon, ReceiptIcon, SettingsIcon } from "lucide-react";
-import TeamDetails from "@/components/club/TeamDetails";
-import { NavBar } from "@/components/nav-bar";
-import TeamsSection from "@/components/club/TeamsSection";
-import RegistrationsSection from "@/components/club/RegistrationsSection";
-import ClubSettingsSection from "@/components/club/ClubSettingsSection";
+import TeamDetails from "@/components/blocks/club-dashboard/TeamDetails";
+import { NavBar } from "@/components/blocks/layout/nav-bar";
+import TeamsSection from "@/components/blocks/club-dashboard/TeamsSection";
+import RegistrationsSection from "@/components/blocks/club-dashboard/RegistrationsSection";
+import ClubSettingsSection from "@/components/blocks/club-dashboard/ClubSettingsSection";
 
 type ClubView = "teams" | "registrations" | "settings";
 

@@ -18,7 +18,7 @@ import { CardContent, CardFooter } from '@workspace/ui/shadcn/card'
 import { CalendarDaysIcon, MapPinIcon, UsersIcon } from 'lucide-react'
 import Link from 'next/link'
 
-import { GlassCard } from '@/components/ui/glass-card'
+import { GlassCard } from '@/components/ui/glass/glass-card'
 
 type EventCardProps = {
   image: string

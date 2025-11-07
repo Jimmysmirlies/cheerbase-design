@@ -7,14 +7,14 @@
  * - Used inside the Clubs page (keeps sidebar persistent) and the standalone route.
  */
 import { useMemo, useState } from "react";
-import TeamHeaderCard from "@/components/club/TeamHeaderCard";
+import TeamHeaderCard from "./TeamHeaderCard";
 import { demoTeams } from "@/data/club/teams";
 import { demoRosters } from "@/data/club/members";
 import type { Person, TeamRoster } from "@/types/club";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/shadcn/tabs";
 import { Button } from "@workspace/ui/shadcn/button";
-import AddMemberDialog from "@/components/club/AddMemberDialog";
-import EditMemberDialog from "@/components/club/EditMemberDialog";
+import AddMemberDialog from "./AddMemberDialog";
+import EditMemberDialog from "./EditMemberDialog";
 import { usePersistentRoster } from "@/hooks/usePersistentRoster";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { downloadTextFile } from "@/utils/download";

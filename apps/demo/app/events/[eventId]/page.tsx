@@ -30,9 +30,9 @@ import {
   TrophyIcon,
 } from "lucide-react";
 
-import { NavBar } from "@/components/nav-bar";
+import { NavBar } from "@/components/blocks/layout/nav-bar";
 import { EventHeroCarousel } from "@/components/ui";
-import { RegistrationSummaryCard } from "@/components/events/RegistrationSummaryCard";
+import { RegistrationSummaryCard } from "@/components/blocks/event-landing/RegistrationSummaryCard";
 import { findEventById, listEvents } from "@/data/event-categories";
 import { buildEventGalleryImages } from "./image-gallery";
 

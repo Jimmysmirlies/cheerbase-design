@@ -17,11 +17,16 @@ export type Team = {
 
 export type Registration = {
   id: string;
+  eventId: string;
   eventName: string;
+  eventDate: string;
+  location: string;
   division: string;
   teamId: string;
   athletes: number;
   invoiceTotal: string; // demo currency string
+  paymentDeadline: string; // ISO string in demo
+  status?: "pending" | "paid";
 };
 
 export type MemberRole = "coach" | "athlete" | "reservist" | "chaperone";

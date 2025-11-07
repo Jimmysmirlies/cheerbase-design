@@ -11,7 +11,7 @@ import { Card, CardContent } from '@workspace/ui/shadcn/card'
 
 import { Layers as LayersIcon, Mars as MarsIcon, Users as UsersIcon } from 'lucide-react'
 
-import TeamSettingsDialog from '@/components/club/TeamSettingsDialog'
+import TeamSettingsDialog from './TeamSettingsDialog'
 
 type Props = {
   name: string

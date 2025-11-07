@@ -2,13 +2,13 @@
 // This file composes high‑level, reusable sections for the demo home.
 // It intentionally keeps data and UI responsibilities separate:
 //   - Data lives in `apps/demo/data/*`
-//   - Reusable sections live in `apps/demo/components/sections/*`
+//   - Reusable blocks live in `apps/demo/components/blocks/*`
 //   - Atomic UI primitives live in `apps/demo/components/ui/*` and shadcn in `packages/ui/src/shadcn/*`
 import Link from "next/link";
 import { Hero } from "@/components/ui";
-import { NavBar } from "@/components/nav-bar";
-import OrganizersSection from "@/components/sections/OrganizersSection";
-import EventCategoriesSection from "@/components/sections/EventCategoriesSection";
+import { NavBar } from "@/components/blocks/layout/nav-bar";
+import OrganizersSection from "@/components/blocks/event-landing/sections/OrganizersSection";
+import EventCategoriesSection from "@/components/blocks/event-landing/sections/EventCategoriesSection";
 import { organizers } from "@/data/organizers";
 import { eventCategories } from "@/data/event-categories";
 import { heroSlides } from "@/data/hero-slides";

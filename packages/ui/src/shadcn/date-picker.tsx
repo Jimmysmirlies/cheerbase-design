@@ -18,6 +18,9 @@ interface DatePickerProps {
   fromDate?: Date
   toDate?: Date
   className?: string
+  captionLayout?: React.ComponentProps<typeof Calendar>['captionLayout']
+  fromYear?: number
+  toYear?: number
 }
 
 export function DatePicker({
@@ -28,6 +31,9 @@ export function DatePicker({
   fromDate,
   toDate,
   className,
+  captionLayout = 'label',
+  fromYear,
+  toYear,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -54,6 +60,9 @@ export function DatePicker({
           fromDate={fromDate}
           toDate={toDate}
           disabled={disabled}
+          captionLayout={captionLayout}
+          fromYear={fromYear}
+          toYear={toYear}
         />
       </PopoverContent>
     </Popover>

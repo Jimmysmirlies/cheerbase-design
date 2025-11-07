@@ -24,3 +24,10 @@ export function formatPhoneNumber(value?: string) {
   return value;
 }
 
+export function formatCurrency(value: number, currency: string = "USD") {
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+  });
+}

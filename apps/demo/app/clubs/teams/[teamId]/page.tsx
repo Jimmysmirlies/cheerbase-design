@@ -12,8 +12,8 @@
  */
 import { Suspense } from "react";
 import { useParams } from "next/navigation";
-import { NavBar } from "@/components/nav-bar";
-import TeamDetails from "@/components/club/TeamDetails";
+import { NavBar } from "@/components/blocks/layout/nav-bar";
+import TeamDetails from "@/components/blocks/club-dashboard/TeamDetails";
 
 function DetailsInner() {
   const params = useParams<{ teamId: string }>();

@@ -10,9 +10,14 @@
  * - Placeholder table rows with an Edit action that will open a dialog in a later step.
  */
 import { Button } from "@workspace/ui/shadcn/button";
-import EditRegistrationDialog from "@/components/club/EditRegistrationDialog";
+import Link from "next/link";
 import { demoRegistrations } from "@/data/club/registrations";
 import { demoTeams } from "@/data/club/teams";
+import { demoRosters } from "@/data/club/members";
+import { findEventById } from "@/data/event-categories";
+import { formatCurrency, formatFriendlyDate } from "@/utils/format";
+import { resolveDivisionPricing } from "@/utils/pricing";
+import type { TeamRoster } from "@/types/club";
 
 export default function RegistrationsSection() {
   return (
@@ -29,7 +34,8 @@ export default function RegistrationsSection() {
               <th className="px-4 py-3 text-left font-medium">Event</th>
               <th className="px-4 py-3 text-left font-medium">Division</th>
               <th className="px-4 py-3 text-left font-medium">Team</th>
-              <th className="px-4 py-3 text-left font-medium">Athletes</th>
+              <th className="px-4 py-3 text-left font-medium">Payment deadline</th>
+              <th className="px-4 py-3 text-left font-medium">Participants</th>
               <th className="px-4 py-3 text-left font-medium">Invoice</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
@@ -37,18 +43,27 @@ export default function RegistrationsSection() {
           <tbody>
             {demoRegistrations.map((reg) => {
               const team = demoTeams.find((t) => t.id === reg.teamId);
+              const roster = demoRosters.find((r) => r.teamId === reg.teamId);
+              const participants = roster ? countRosterParticipants(roster) : reg.athletes;
+              const event = findEventById(reg.eventId);
+              const divisionPricing = event?.availableDivisions?.find((option) => option.name === reg.division);
+              const invoiceTotal =
+                divisionPricing && participants
+                  ? formatCurrency(participants * resolveDivisionPricing(divisionPricing).price)
+                  : reg.invoiceTotal;
+
               return (
                 <tr key={reg.id} className="border-t">
                   <td className="px-4 py-3">{reg.eventName}</td>
                   <td className="px-4 py-3">{reg.division}</td>
                   <td className="px-4 py-3">{team?.name ?? reg.teamId}</td>
-                  <td className="px-4 py-3">{reg.athletes}</td>
-                  <td className="px-4 py-3">{reg.invoiceTotal}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{formatFriendlyDate(reg.paymentDeadline)}</td>
+                  <td className="px-4 py-3">{participants}</td>
+                  <td className="px-4 py-3">{invoiceTotal}</td>
                   <td className="px-4 py-3 text-right">
-                    <EditRegistrationDialog
-                      trigger={<Button size="sm" variant="outline" type="button">Edit</Button>}
-                      reg={reg}
-                    />
+                    <Button size="sm" variant="outline" type="button" asChild>
+                      <Link href={`/clubs/registrations/${reg.id}`}>Edit</Link>
+                    </Button>
                   </td>
                 </tr>
               );
@@ -57,5 +72,14 @@ export default function RegistrationsSection() {
         </table>
       </div>
     </section>
+  );
+}
+
+function countRosterParticipants(roster: TeamRoster) {
+  return (
+    (roster.coaches?.length ?? 0) +
+    (roster.athletes?.length ?? 0) +
+    (roster.reservists?.length ?? 0) +
+    (roster.chaperones?.length ?? 0)
   );
 }

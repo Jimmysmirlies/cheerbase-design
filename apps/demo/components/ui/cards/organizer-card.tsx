@@ -20,7 +20,7 @@ type OrganizerCardProps = {
 
 import { Badge } from '@workspace/ui/shadcn/badge'
 
-import { GlassCard } from '@/components/ui/glass-card'
+import { GlassCard } from '@/components/ui/glass/glass-card'
 
 export function OrganizerCard({ name, region, visibility, accentGradient }: OrganizerCardProps) {
   const initials = name

@@ -5,8 +5,8 @@ import { Button } from '@workspace/ui/shadcn/button'
 
 import { UsersIcon } from 'lucide-react'
 
-import { PricingScrollButton } from '@/components/pricing-scroll-button'
-import { GlassCard } from '@/components/ui/glass-card'
+import { PricingScrollButton } from '@/components/blocks/event-landing/pricing-scroll-button'
+import { GlassCard } from '@/components/ui/glass/glass-card'
 
 import Link from 'next/link'
 

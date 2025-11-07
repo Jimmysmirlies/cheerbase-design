@@ -12,7 +12,7 @@
  */
 import { Button } from "@workspace/ui/shadcn/button";
 import { demoTeams } from "@/data/club/teams";
-import UploadRosterDialog from "@/components/club/UploadRosterDialog";
+import UploadRosterDialog from "./UploadRosterDialog";
 import { useRouter } from "next/navigation";
 
 export default function TeamsSection() {

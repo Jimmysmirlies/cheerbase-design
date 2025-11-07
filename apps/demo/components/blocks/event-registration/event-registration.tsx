@@ -12,61 +12,51 @@
  * - Queued teams panel with division-grouped cards and totals footer
  * - Footer actions to clear the queue or submit registrations
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
 import { Input } from '@workspace/ui/shadcn/input'
-import { Label } from '@workspace/ui/shadcn/label'
-import { RadioGroup, RadioGroupItem } from '@workspace/ui/shadcn/radio-group'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@workspace/ui/shadcn/select'
 
-import { ChevronDownIcon, PenSquareIcon, SearchIcon, Trash2Icon, UploadIcon } from 'lucide-react'
+import { ChevronDownIcon, PenSquareIcon, SearchIcon, Trash2Icon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
+import { GlassCard } from '@/components/ui/glass/glass-card'
 import type { Person, TeamRoster } from '@/types/club'
 import type { DivisionPricing } from '@/types/events'
-import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
+import { formatCurrency, formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
+import { resolveDivisionPricing } from '@/utils/pricing'
 
-const ROSTER_TEMPLATE_PATH = '/templates/team-roster-template.xlsx'
+import { FinalizeRegistrationDialog } from './finalize-registration-dialog'
+import { RegisterTeamModal } from './register-team-modal'
+import { RosterEditorDialog } from './roster-editor-dialog'
+import { DEFAULT_ROLE, RegistrationEntry, RegistrationMember, TeamOption } from './types'
 
-type TeamOption = {
-  id: string
-  name: string
-  division?: string
-  size?: number
-}
-
-type RegistrationMember = {
-  name: string
-  type: string
-  dob?: string
-  email?: string
-  phone?: string
-}
-
-type RegistrationEntry = {
-  id: string
-  division: string
-  mode: 'existing' | 'upload'
-  teamId?: string
-  teamName?: string
-  teamSize?: number
-  fileName?: string
-  members?: RegistrationMember[]
-}
+export type { TeamOption, RegistrationMember, RegistrationEntry } from './types'
 
 export type RegistrationFlowProps = {
   divisionPricing: DivisionPricing[]
   teams: TeamOption[]
   rosters?: TeamRoster[]
+  initialEntries?: RegistrationEntry[]
   onConfirm?: (entries: RegistrationEntry[]) => void
+  finalizeConfig?: Partial<FinalizeConfig>
+}
+
+type FinalizeConfig = {
+  ctaLabel: string
+  dialogTitle: string
+  dialogDescription: string
+  dialogConfirmLabel: string
+  redirectPath: string
+}
+
+const DEFAULT_FINALIZE_CONFIG: FinalizeConfig = {
+  ctaLabel: 'Finalize registration',
+  dialogTitle: 'Review and confirm',
+  dialogDescription: 'Double-check division totals and roster counts before submitting.',
+  dialogConfirmLabel: 'Submit registration',
+  redirectPath: '/clubs?view=registrations',
 }
 
 // Section nickname: "Flow Shell" – orchestrates the primary registration workflow state.
@@ -74,7 +64,9 @@ export function RegistrationFlow({
   divisionPricing,
   teams,
   rosters,
+  initialEntries = [],
   onConfirm,
+  finalizeConfig,
 }: RegistrationFlowProps) {
   const divisionOptions = useMemo(
     () => Array.from(new Set(divisionPricing.map(option => option.name))).filter(Boolean),
@@ -88,9 +80,19 @@ export function RegistrationFlow({
     }, {})
   }, [rosters])
 
-  const [entries, setEntries] = useState<RegistrationEntry[]>([])
+  const [entries, setEntries] = useState<RegistrationEntry[]>(initialEntries)
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false)
+
+  const router = useRouter()
+  const resolvedFinalizeConfig = useMemo<FinalizeConfig>(
+    () => ({
+      ...DEFAULT_FINALIZE_CONFIG,
+      ...(finalizeConfig ?? {}),
+    }),
+    [finalizeConfig]
+  )
 
   const sanitizedSearch = searchTerm.trim().toLowerCase()
 
@@ -134,13 +136,46 @@ export function RegistrationFlow({
     setEntries(prev => prev.filter(entry => entry.id !== id))
   }
 
-  const handleClear = () => {
-    setEntries([])
+  const handleUpdateEntryMembers = (id: string, members: RegistrationMember[]) => {
+    const sanitizedMembers = members.filter(member => {
+      const content = [
+        member.name?.trim(),
+        member.email?.trim(),
+        member.phone?.trim(),
+        member.dob?.trim(),
+        member.type?.trim(),
+      ]
+      return content.some(Boolean)
+    })
+
+    setEntries(prev =>
+      prev.map(entry =>
+        entry.id === id
+          ? {
+              ...entry,
+              members: sanitizedMembers.map(member => ({
+                ...member,
+                name: member.name?.trim() || 'Unnamed',
+                email: member.email?.trim() || undefined,
+                phone: member.phone?.trim() || undefined,
+                dob: member.dob?.trim() || undefined,
+                type: member.type?.trim() || DEFAULT_ROLE,
+              })),
+              teamSize: sanitizedMembers.length,
+            }
+          : entry
+      )
+    )
   }
 
   const handleConfirm = () => {
+    if (!entries.length) return
     onConfirm?.(entries)
     setEntries([])
+    setIsFinalizeDialogOpen(false)
+    if (resolvedFinalizeConfig.redirectPath) {
+      router.push(resolvedFinalizeConfig.redirectPath)
+    }
   }
 
   return (
@@ -171,6 +206,7 @@ export function RegistrationFlow({
             divisionOptions={divisionOptions}
             searchTerm={sanitizedSearch}
             onRemoveEntry={handleRemoveEntry}
+            onUpdateEntryMembers={handleUpdateEntryMembers}
           />
 
           <footer className="border-border/60 border-t pt-4">
@@ -181,28 +217,20 @@ export function RegistrationFlow({
         </div>
 
         <aside className="mt-8 lg:mt-0 lg:sticky lg:top-24">
-          <div className="border-border/60 bg-background/70 rounded-2xl border">
-            <div className="border-border/60 space-y-1 border-b p-4">
-              <h3 className="text-sm font-semibold text-foreground">Pricing Breakdown</h3>
-              <p className="text-muted-foreground text-xs">
-                Totals update automatically based on early bird and regular rates.
-              </p>
-            </div>
-            <div className="p-4">
-              <PricingBreakdownPanel
-                entriesByDivision={groupedEntries}
-                divisionPricing={divisionPricing}
-              />
-              <Button
-                type="button"
-                className="mt-4 w-full"
-                onClick={handleConfirm}
-                disabled={!entries.length}
-              >
-                Finalize registration
-              </Button>
-            </div>
-          </div>
+          <GlassCard className="rounded-3xl border-none p-4 shadow-lg">
+            <PricingBreakdownPanel
+              entriesByDivision={groupedEntries}
+              divisionPricing={divisionPricing}
+            />
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => setIsFinalizeDialogOpen(true)}
+              disabled={!entries.length}
+            >
+              {resolvedFinalizeConfig.ctaLabel}
+            </Button>
+          </GlassCard>
         </aside>
       </div>
 
@@ -213,261 +241,22 @@ export function RegistrationFlow({
         teams={teamOptions}
         onSubmit={handleAddEntry}
       />
+      <FinalizeRegistrationDialog
+        open={isFinalizeDialogOpen}
+        onOpenChange={setIsFinalizeDialogOpen}
+        pricingPanel={
+          <PricingBreakdownPanel
+            entriesByDivision={groupedEntries}
+            divisionPricing={divisionPricing}
+          />
+        }
+        title={resolvedFinalizeConfig.dialogTitle}
+        description={resolvedFinalizeConfig.dialogDescription}
+        confirmLabel={resolvedFinalizeConfig.dialogConfirmLabel}
+        onConfirm={handleConfirm}
+        confirmDisabled={!entries.length}
+      />
     </section>
-  )
-}
-
-// --- Modal -----------------------------------------------------------------
-
-type RegisterTeamModalProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  divisions: string[]
-  teams: TeamOption[]
-  onSubmit: (entry: RegistrationEntry) => void
-}
-
-function RegisterTeamModal({
-  open,
-  onOpenChange,
-  divisions,
-  teams,
-  onSubmit,
-}: RegisterTeamModalProps) {
-  const [source, setSource] = useState<'existing' | 'upload'>('existing')
-  const [division, setDivision] = useState<string>(divisions[0] ?? '')
-  const [teamId, setTeamId] = useState<string>('')
-  const [uploadTeamName, setUploadTeamName] = useState('')
-  const [file, setFile] = useState<File | null>(null)
-
-  useEffect(() => {
-    if (open) {
-      setSource('existing')
-      setDivision(divisions[0] ?? '')
-      setTeamId('')
-      setUploadTeamName('')
-      setFile(null)
-    }
-  }, [open, divisions])
-
-  const filteredTeams = division
-    ? teams.filter(team => !team.division || team.division === division)
-    : teams
-
-  const canSubmit = Boolean(division && (source === 'existing' ? teamId : file))
-
-  const handleSubmit = () => {
-    if (!canSubmit) return
-
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `entry-${Date.now()}`
-
-    if (source === 'existing') {
-      const team = teams.find(t => t.id === teamId)
-      if (!team) return
-      onSubmit({
-        id,
-        division,
-        mode: 'existing',
-        teamId: team.id,
-        teamName: team.name,
-        teamSize: team.size,
-      })
-    } else {
-      onSubmit({
-        id,
-        division,
-        mode: 'upload',
-        teamName: uploadTeamName || file?.name || 'Imported roster',
-        fileName: file?.name,
-      })
-    }
-
-    onOpenChange(false)
-  }
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const response = await fetch(ROSTER_TEMPLATE_PATH)
-      if (!response.ok) {
-        throw new Error('Failed to load roster template')
-      }
-
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'team-roster-template.xlsx'
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl rounded-2xl gap-0">
-        <DialogHeader className="mb-6">
-          <DialogTitle>Register a team</DialogTitle>
-          <DialogDescription>
-            Select the team source, assign a division, and confirm to add it to the queue.
-          </DialogDescription>
-        </DialogHeader>
-
-        <section className="space-y-4 mb-6">
-          <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs uppercase tracking-wide">
-              Team source
-            </Label>
-            <RadioGroup
-              value={source}
-              onValueChange={value => setSource(value as 'existing' | 'upload')}
-              className="grid gap-2 sm:grid-cols-2"
-            >
-              <SourceCard
-                value="existing"
-                selected={source === 'existing'}
-                title="Select existing team"
-                description="Use a roster already stored in your club workspace."
-              />
-              <SourceCard
-                value="upload"
-                selected={source === 'upload'}
-                title="Upload roster file"
-                description="Import a CSV or Excel roster using the template."
-              />
-            </RadioGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs uppercase tracking-wide">
-              Division
-            </Label>
-            <Select value={division} onValueChange={setDivision}>
-              <SelectTrigger className="w-full justify-between">
-                <SelectValue placeholder="Select division" />
-              </SelectTrigger>
-              <SelectContent>
-                {divisions.map(value => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {source === 'existing' ? (
-            <div className="space-y-2">
-              <Label className="text-muted-foreground text-xs uppercase tracking-wide">Team</Label>
-              <Select value={teamId} onValueChange={setTeamId}>
-                <SelectTrigger className="w-full justify-between">
-                  <SelectValue placeholder="Choose a team" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {filteredTeams.length ? (
-                    filteredTeams.map(team => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="text-muted-foreground px-3 py-2 text-sm">
-                      There are no teams in this division.
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs uppercase tracking-wide">
-                  Team name
-                </Label>
-                <Input
-                  value={uploadTeamName}
-                  onChange={event => setUploadTeamName(event.target.value)}
-                  placeholder="Enter team name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs uppercase tracking-wide">
-                  Roster file
-                </Label>
-                <label className="border-border/70 text-muted-foreground hover:border-primary/60 flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed p-6 text-center text-sm transition">
-                  <UploadIcon className="text-primary size-5" />
-                  <span>{file?.name ?? 'Drop a CSV or Excel file, or browse'}</span>
-                  <Input
-                    type="file"
-                    accept=".csv,.xlsx,.xls"
-                    className="sr-only"
-                    onChange={event => {
-                      const nextFile = event.target.files?.[0] ?? null
-                      setFile(nextFile)
-                    }}
-                  />
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void handleDownloadTemplate()}
-                >
-                  Download roster template
-                </Button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <DialogFooter className="flex flex-col gap-2 pb-0 sm:flex-row sm:justify-between sm:pb-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
-            Add team
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function SourceCard({
-  value,
-  selected,
-  title,
-  description,
-}: {
-  value: 'existing' | 'upload'
-  selected: boolean
-  title: string
-  description: string
-}) {
-  return (
-    <Label
-      htmlFor={`source-${value}`}
-      className={cn(
-        'focus-visible:outline-primary cursor-pointer rounded-2xl border p-4 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-        selected
-          ? 'border-primary shadow-primary/10 shadow-md'
-          : 'border-border/60 hover:border-primary/40'
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <RadioGroupItem id={`source-${value}`} value={value} className="mt-1" />
-        <div className="space-y-1">
-          <p className="text-foreground text-sm font-medium">{title}</p>
-          <p className="text-muted-foreground text-xs">{description}</p>
-        </div>
-      </div>
-    </Label>
   )
 }
 
@@ -481,6 +270,7 @@ type DivisionQueueSectionProps = {
   divisionOptions: string[]
   searchTerm: string
   onRemoveEntry: (id: string) => void
+  onUpdateEntryMembers: (id: string, members: RegistrationMember[]) => void
 }
 
 function DivisionQueueSection({
@@ -490,6 +280,7 @@ function DivisionQueueSection({
   divisionOptions,
   searchTerm,
   onRemoveEntry,
+  onUpdateEntryMembers,
 }: DivisionQueueSectionProps) {
   const baseDivisions = useMemo(() => {
     if (divisionOptions.length) {
@@ -538,6 +329,7 @@ function DivisionQueueSection({
                     key={entry.id}
                     entry={entry}
                     onRemove={() => onRemoveEntry(entry.id)}
+                    onUpdateMembers={members => onUpdateEntryMembers(entry.id, members)}
                   />
                 ))}
               </div>
@@ -674,12 +466,14 @@ function PricingBreakdownPanel({ entriesByDivision, divisionPricing }: PricingBr
 type DivisionTeamRowProps = {
   entry: RegistrationEntry
   onRemove: () => void
+  onUpdateMembers: (members: RegistrationMember[]) => void
 }
 
-function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
+function DivisionTeamRow({ entry, onRemove, onUpdateMembers }: DivisionTeamRowProps) {
   const [expanded, setExpanded] = useState(false)
+  const [editorOpen, setEditorOpen] = useState(false)
 
-  const toggleExpanded = () => setExpanded(prev => !prev)
+  const toggleExpanded = useCallback(() => setExpanded(prev => !prev), [])
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
@@ -687,8 +481,14 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
     }
   }
 
-  // Team Capsule · Raw roster data for the accordion.
   const members = useMemo(() => entry.members ?? [], [entry.members])
+  const handleSaveRoster = useCallback(
+    (updatedMembers: RegistrationMember[]) => {
+      onUpdateMembers(updatedMembers)
+      setEditorOpen(false)
+    },
+    [onUpdateMembers]
+  )
   const memberCount = members.length ? members.length : entry.teamSize ?? 0
   const secondaryLabel =
     entry.mode === 'existing'
@@ -729,6 +529,17 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
             size="icon"
             onClick={event => {
               event.stopPropagation()
+              setEditorOpen(true)
+            }}
+            aria-label="Edit roster"
+          >
+            <PenSquareIcon className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={event => {
+              event.stopPropagation()
               toggleExpanded()
             }}
             aria-label={expanded ? 'Collapse team details' : 'Expand team details'}
@@ -743,7 +554,7 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
         <div className="border-border/60 text-muted-foreground border-t text-xs">
           {members.length ? (
             <div className="overflow-x-auto">
-              <table className="w-full table-auto text-left">
+              <table className="w-full table-auto text-left text-[13px] lg:text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 font-medium sm:px-4">Name</th>
@@ -751,7 +562,6 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
                     <th className="px-3 py-2 font-medium sm:px-5">Email</th>
                     <th className="px-3 py-2 font-medium sm:px-5">Phone</th>
                     <th className="px-3 py-2 text-right font-medium sm:px-4">Role</th>
-                    <th className="px-3 py-2 text-right font-medium sm:px-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -762,19 +572,7 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
                       <td className="px-3 py-2 sm:px-5">{member.email ?? '—'}</td>
                       <td className="px-3 py-2 sm:px-5">{formatPhoneNumber(member.phone)}</td>
                       <td className="text-muted-foreground px-3 py-2 text-right sm:px-4">
-                        {member.type}
-                      </td>
-                      <td className="px-3 py-2 text-right sm:px-4">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={event => event.stopPropagation()}
-                          aria-label={`Edit ${member.name}`}
-                        >
-                          <PenSquareIcon className="size-4" aria-hidden="true" />
-                          <span className="sr-only">{`Edit ${member.name}`}</span>
-                        </Button>
+                        {member.type ?? '—'}
                       </td>
                     </tr>
                   ))}
@@ -790,16 +588,18 @@ function DivisionTeamRow({ entry, onRemove }: DivisionTeamRowProps) {
           )}
         </div>
       )}
+      <RosterEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        members={members}
+        teamName={entry.teamName ?? entry.fileName ?? 'Team'}
+        onSave={handleSaveRoster}
+      />
     </div>
   )
 }
 
 // --- Utilities -------------------------------------------------------------
-
-type ActiveDivisionRate = {
-  price: number
-  tier: 'earlyBird' | 'regular'
-}
 
 function groupEntriesByDivision(entries: RegistrationEntry[]): Record<string, RegistrationEntry[]> {
   return entries.reduce<Record<string, RegistrationEntry[]>>((acc, entry) => {
@@ -812,33 +612,6 @@ function groupEntriesByDivision(entries: RegistrationEntry[]): Record<string, Re
 
 function getEntryMemberCount(entry: RegistrationEntry): number {
   return entry.members?.length ?? entry.teamSize ?? 0
-}
-
-function resolveDivisionPricing(pricing: DivisionPricing, referenceDate: Date): ActiveDivisionRate {
-  if (pricing.earlyBird) {
-    const deadline = parseIsoDateToLocal(pricing.earlyBird.deadline)
-    if (referenceDate <= deadline) {
-      return { price: pricing.earlyBird.price, tier: 'earlyBird' }
-    }
-  }
-
-  return { price: pricing.regular.price, tier: 'regular' }
-}
-
-function parseIsoDateToLocal(value: string): Date {
-  const [yearString, monthString, dayString] = value.split('-')
-  const year = Number(yearString)
-  const month = Number(monthString)
-  const day = Number(dayString)
-
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
-    return new Date(value)
-  }
-
-  const safeMonth = Math.max(1, Math.min(12, month || 1))
-  const safeDay = Math.max(1, Math.min(31, day || 1))
-
-  return new Date(year, safeMonth - 1, safeDay, 23, 59, 59, 999)
 }
 
 function flattenRosterMembers(roster?: TeamRoster): RegistrationMember[] {
@@ -869,12 +642,4 @@ function flattenRosterMembers(roster?: TeamRoster): RegistrationMember[] {
 function formatMemberName(member: Pick<Person, 'firstName' | 'lastName'>): string {
   const parts = [member.firstName, member.lastName].filter(Boolean)
   return parts.length ? parts.join(' ') : 'Unnamed'
-}
-
-function formatCurrency(value: number) {
-  return value.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-  })
 }

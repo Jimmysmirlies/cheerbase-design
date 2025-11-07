@@ -29,8 +29,8 @@ import { Input } from '@workspace/ui/shadcn/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { AuthDialog } from '@/components/auth-dialog'
-import { getGlassCardStyle } from '@/components/ui/glass-card-style'
+import { AuthDialog } from '@/components/blocks/auth/auth-dialog'
+import { getGlassCardStyle } from '@/components/ui/glass/glass-card-style'
 
 type NavBarProps = {
   showSearch?: boolean
