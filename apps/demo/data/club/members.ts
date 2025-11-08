@@ -4,6 +4,7 @@ const mk = (id: string, firstName: string, lastName: string, dob: string, email:
 
 export const demoRosters: TeamRoster[] = [
   {
+    updatedAt: "2025-03-15T12:00:00.000Z",
     teamId: "t-u16-phoenix",
     coaches: [
       mk("p-t-u16-phoenix-coach-1", "Alex", "Anders", "2005-02-02", "alex.anders@example.com", "+1 555-1501"),
@@ -39,6 +40,7 @@ export const demoRosters: TeamRoster[] = [
     ],
   },
   {
+    updatedAt: "2025-03-18T15:30:00.000Z",
     teamId: "t-u16-thunder",
     coaches: [
       mk("p-t-u16-thunder-coach-25", "Payton", "Young", "2005-02-26", "payton.young@example.com", "+1 555-1525"),

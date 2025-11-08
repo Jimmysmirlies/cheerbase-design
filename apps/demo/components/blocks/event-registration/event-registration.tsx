@@ -18,7 +18,7 @@ import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Input } from '@workspace/ui/shadcn/input'
 
-import { ChevronDownIcon, PenSquareIcon, SearchIcon, Trash2Icon } from 'lucide-react'
+import { ChevronDownIcon, PenSquareIcon, RefreshCwIcon, SearchIcon, Trash2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { GlassCard } from '@/components/ui/glass/glass-card'
@@ -26,6 +26,7 @@ import type { Person, TeamRoster } from '@/types/club'
 import type { DivisionPricing } from '@/types/events'
 import { formatCurrency, formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
 import { resolveDivisionPricing } from '@/utils/pricing'
+import { buildSnapshotHash, isRegistrationLocked } from '@/utils/registrations'
 
 import { FinalizeRegistrationDialog } from './finalize-registration-dialog'
 import { RegisterTeamModal } from './register-team-modal'
@@ -41,6 +42,7 @@ export type RegistrationFlowProps = {
   initialEntries?: RegistrationEntry[]
   onConfirm?: (entries: RegistrationEntry[]) => void
   finalizeConfig?: Partial<FinalizeConfig>
+  readOnly?: boolean
 }
 
 type FinalizeConfig = {
@@ -49,6 +51,17 @@ type FinalizeConfig = {
   dialogDescription: string
   dialogConfirmLabel: string
   redirectPath: string
+  onCtaHref?: string
+  summaryCard?: React.ReactNode
+  taxSummary?: {
+    gstNumber: string
+    qstNumber: string
+    baseAmount: number
+    gstRate: number
+    qstRate: number
+  }
+  ctaDisabled?: boolean
+  isReadOnly?: boolean
 }
 
 const DEFAULT_FINALIZE_CONFIG: FinalizeConfig = {
@@ -57,6 +70,9 @@ const DEFAULT_FINALIZE_CONFIG: FinalizeConfig = {
   dialogDescription: 'Double-check division totals and roster counts before submitting.',
   dialogConfirmLabel: 'Submit registration',
   redirectPath: '/clubs?view=registrations',
+  onCtaHref: undefined,
+  ctaDisabled: false,
+  isReadOnly: false,
 }
 
 // Section nickname: "Flow Shell" – orchestrates the primary registration workflow state.
@@ -67,17 +83,25 @@ export function RegistrationFlow({
   initialEntries = [],
   onConfirm,
   finalizeConfig,
+  readOnly = false,
 }: RegistrationFlowProps) {
   const divisionOptions = useMemo(
     () => Array.from(new Set(divisionPricing.map(option => option.name))).filter(Boolean),
     [divisionPricing]
   )
   const teamOptions = useMemo(() => teams.filter(Boolean), [teams])
-  const rosterByTeamId = useMemo(() => {
-    return (rosters ?? []).reduce<Record<string, TeamRoster>>((acc, roster) => {
-      acc[roster.teamId] = roster
-      return acc
-    }, {})
+  const rosterMetaByTeamId = useMemo(() => {
+    return (rosters ?? []).reduce<Record<string, { roster: TeamRoster; updatedAt?: string; hash?: string }>>(
+      (acc, roster) => {
+        acc[roster.teamId] = {
+          roster,
+          updatedAt: roster.updatedAt,
+          hash: buildSnapshotHash(roster),
+        }
+        return acc
+      },
+      {}
+    )
   }, [rosters])
 
   const [entries, setEntries] = useState<RegistrationEntry[]>(initialEntries)
@@ -93,6 +117,7 @@ export function RegistrationFlow({
     }),
     [finalizeConfig]
   )
+  const isFlowReadOnly = Boolean(readOnly || resolvedFinalizeConfig.isReadOnly)
 
   const sanitizedSearch = searchTerm.trim().toLowerCase()
 
@@ -112,18 +137,20 @@ export function RegistrationFlow({
   )
 
   const handleAddEntry = (entry: RegistrationEntry) => {
+    if (isFlowReadOnly) return
     if (entry.mode === 'existing' && entry.teamId) {
-      const roster = rosterByTeamId[entry.teamId]
-      const flattenedMembers = flattenRosterMembers(roster)
-      const members = flattenedMembers.length ? flattenedMembers : entry.members
-      const teamSize = entry.teamSize ?? (members?.length ? members.length : undefined)
-
+      const meta = rosterMetaByTeamId[entry.teamId]
+      const rosterMembers = meta?.roster ? flattenRosterMembers(meta.roster) : entry.members ?? []
+      const snapshotTakenAt = new Date().toISOString()
       setEntries(prev => [
         ...prev,
         {
           ...entry,
-          members,
-          teamSize,
+          members: rosterMembers,
+          teamSize: rosterMembers.length,
+          snapshotTakenAt,
+          snapshotSourceTeamId: entry.teamId,
+          snapshotRosterHash: meta?.hash,
         },
       ])
       return
@@ -132,9 +159,13 @@ export function RegistrationFlow({
     setEntries(prev => [...prev, entry])
   }
 
-  const handleRemoveEntry = (id: string) => {
-    setEntries(prev => prev.filter(entry => entry.id !== id))
-  }
+  const handleRemoveEntry = useCallback(
+    (id: string) => {
+      if (isFlowReadOnly) return
+      setEntries(prev => prev.filter(entry => entry.id !== id))
+    },
+    [isFlowReadOnly]
+  )
 
   const handleUpdateEntryMembers = (id: string, members: RegistrationMember[]) => {
     const sanitizedMembers = members.filter(member => {
@@ -168,8 +199,72 @@ export function RegistrationFlow({
     )
   }
 
+  const handleSyncEntryFromTeam = useCallback(
+    (id: string) => {
+      if (isFlowReadOnly) return
+      setEntries(prev =>
+        prev.map(entry => {
+          if (entry.id !== id || entry.mode !== 'existing' || !entry.teamId) {
+            return entry
+          }
+          const meta = rosterMetaByTeamId[entry.teamId]
+          if (!meta?.roster) return entry
+          const nextMembers = flattenRosterMembers(meta.roster)
+          return {
+            ...entry,
+            members: nextMembers,
+            teamSize: nextMembers.length,
+            snapshotTakenAt: new Date().toISOString(),
+            snapshotRosterHash: meta.hash,
+          }
+        })
+      )
+    },
+    [isFlowReadOnly, rosterMetaByTeamId]
+  )
+
+  const getEntryStatus = useCallback(
+    (entry: RegistrationEntry): EntryStatusMeta => {
+      const meta = entry.teamId ? rosterMetaByTeamId[entry.teamId] : undefined
+      const isLocked =
+        entry.locked || isFlowReadOnly || isRegistrationLocked({
+          paidAt: entry.paidAt,
+          paymentDeadline: entry.paymentDeadline,
+        })
+      const lockReason =
+        entry.lockReason ?? (entry.paidAt ? 'paid' : isLocked && entry.paymentDeadline ? 'deadline' : undefined)
+      const lockMessage =
+        entry.lockMessage ??
+        (lockReason === 'paid'
+          ? 'Payment received. Contact the organizer for manual changes.'
+          : lockReason === 'deadline'
+            ? undefined
+            : undefined)
+      return {
+        isLocked,
+        lockReason,
+        lockMessage,
+      }
+    },
+    [isFlowReadOnly, rosterMetaByTeamId]
+  )
+
+  const handlePrimaryAction = useCallback(() => {
+    if (resolvedFinalizeConfig.onCtaHref) {
+      if (typeof window !== 'undefined') {
+        window.location.href = resolvedFinalizeConfig.onCtaHref
+      }
+      return
+    }
+    if (isFlowReadOnly) return
+    setIsFinalizeDialogOpen(true)
+  }, [isFlowReadOnly, resolvedFinalizeConfig])
+
+  const primaryButtonDisabled =
+    resolvedFinalizeConfig.ctaDisabled ?? (!entries.length && !isFlowReadOnly && !resolvedFinalizeConfig.onCtaHref)
+
   const handleConfirm = () => {
-    if (!entries.length) return
+    if (!entries.length || isFlowReadOnly) return
     onConfirm?.(entries)
     setEntries([])
     setIsFinalizeDialogOpen(false)
@@ -194,7 +289,12 @@ export function RegistrationFlow({
                 className="w-full pl-9"
               />
             </div>
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(true)} disabled={!divisionOptions.length}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => !isFlowReadOnly && setIsModalOpen(true)}
+              disabled={!divisionOptions.length || isFlowReadOnly}
+            >
               Register team
             </Button>
           </div>
@@ -207,6 +307,9 @@ export function RegistrationFlow({
             searchTerm={sanitizedSearch}
             onRemoveEntry={handleRemoveEntry}
             onUpdateEntryMembers={handleUpdateEntryMembers}
+            onSyncEntry={handleSyncEntryFromTeam}
+            readOnly={isFlowReadOnly}
+            getEntryStatus={getEntryStatus}
           />
 
           <footer className="border-border/60 border-t pt-4">
@@ -216,17 +319,19 @@ export function RegistrationFlow({
           </footer>
         </div>
 
-        <aside className="mt-8 lg:mt-0 lg:sticky lg:top-24">
+        <aside className="mt-8 flex flex-col gap-4 lg:mt-0 lg:sticky lg:top-24 self-start">
+          {resolvedFinalizeConfig.summaryCard ?? null}
           <GlassCard className="rounded-3xl border-none p-4 shadow-lg">
             <PricingBreakdownPanel
               entriesByDivision={groupedEntries}
               divisionPricing={divisionPricing}
+              taxSummary={resolvedFinalizeConfig.taxSummary}
             />
             <Button
               type="button"
               className="w-full"
-              onClick={() => setIsFinalizeDialogOpen(true)}
-              disabled={!entries.length}
+              onClick={handlePrimaryAction}
+              disabled={primaryButtonDisabled}
             >
               {resolvedFinalizeConfig.ctaLabel}
             </Button>
@@ -241,21 +346,23 @@ export function RegistrationFlow({
         teams={teamOptions}
         onSubmit={handleAddEntry}
       />
-      <FinalizeRegistrationDialog
-        open={isFinalizeDialogOpen}
-        onOpenChange={setIsFinalizeDialogOpen}
-        pricingPanel={
-          <PricingBreakdownPanel
-            entriesByDivision={groupedEntries}
-            divisionPricing={divisionPricing}
-          />
-        }
-        title={resolvedFinalizeConfig.dialogTitle}
-        description={resolvedFinalizeConfig.dialogDescription}
-        confirmLabel={resolvedFinalizeConfig.dialogConfirmLabel}
-        onConfirm={handleConfirm}
-        confirmDisabled={!entries.length}
-      />
+      {!resolvedFinalizeConfig.onCtaHref && !isFlowReadOnly && (
+        <FinalizeRegistrationDialog
+          open={isFinalizeDialogOpen}
+          onOpenChange={setIsFinalizeDialogOpen}
+          pricingPanel={
+            <PricingBreakdownPanel
+              entriesByDivision={groupedEntries}
+              divisionPricing={divisionPricing}
+            />
+          }
+          title={resolvedFinalizeConfig.dialogTitle}
+          description={resolvedFinalizeConfig.dialogDescription}
+          confirmLabel={resolvedFinalizeConfig.dialogConfirmLabel}
+          onConfirm={handleConfirm}
+          confirmDisabled={!entries.length}
+        />
+      )}
     </section>
   )
 }
@@ -271,6 +378,15 @@ type DivisionQueueSectionProps = {
   searchTerm: string
   onRemoveEntry: (id: string) => void
   onUpdateEntryMembers: (id: string, members: RegistrationMember[]) => void
+  onSyncEntry: (id: string) => void
+  readOnly: boolean
+  getEntryStatus: (entry: RegistrationEntry) => EntryStatusMeta
+}
+
+type EntryStatusMeta = {
+  isLocked: boolean
+  lockReason?: 'paid' | 'deadline'
+  lockMessage?: string
 }
 
 function DivisionQueueSection({
@@ -281,6 +397,9 @@ function DivisionQueueSection({
   searchTerm,
   onRemoveEntry,
   onUpdateEntryMembers,
+  onSyncEntry,
+  readOnly,
+  getEntryStatus,
 }: DivisionQueueSectionProps) {
   const baseDivisions = useMemo(() => {
     if (divisionOptions.length) {
@@ -330,6 +449,11 @@ function DivisionQueueSection({
                     entry={entry}
                     onRemove={() => onRemoveEntry(entry.id)}
                     onUpdateMembers={members => onUpdateEntryMembers(entry.id, members)}
+                    onSyncFromTeam={
+                      !readOnly && entry.mode === 'existing' ? () => onSyncEntry(entry.id) : undefined
+                    }
+                    status={getEntryStatus(entry)}
+                    readOnly={readOnly}
                   />
                 ))}
               </div>
@@ -351,9 +475,16 @@ function DivisionQueueSection({
 type PricingBreakdownPanelProps = {
   entriesByDivision: Record<string, RegistrationEntry[]>
   divisionPricing: DivisionPricing[]
+  taxSummary?: {
+    gstNumber: string
+    qstNumber: string
+    baseAmount: number
+    gstRate: number
+    qstRate: number
+  }
 }
 
-function PricingBreakdownPanel({ entriesByDivision, divisionPricing }: PricingBreakdownPanelProps) {
+function PricingBreakdownPanel({ entriesByDivision, divisionPricing, taxSummary }: PricingBreakdownPanelProps) {
   const pricingByDivision = useMemo(() => {
     return divisionPricing.reduce<Record<string, DivisionPricing>>((acc, option) => {
       acc[option.name] = option
@@ -452,10 +583,28 @@ function PricingBreakdownPanel({ entriesByDivision, divisionPricing }: PricingBr
           <span>{totalParticipants}</span>
         </div>
         <div className="flex items-center justify-between text-base font-semibold">
-          <span>Estimated total due</span>
+          <span>Subtotal</span>
           <span>{formatCurrency(totalDue)}</span>
         </div>
       </div>
+      {taxSummary ? (
+        <div className="border-border/60 mt-4 rounded-xl border px-4 py-3 text-sm">
+          <div className="flex flex-col gap-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>GST ({Math.round(taxSummary.gstRate * 100)}%)</span>
+              <span>{formatCurrency(taxSummary.baseAmount * taxSummary.gstRate)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>QST ({Math.round(taxSummary.qstRate * 100)}%)</span>
+              <span>{formatCurrency(taxSummary.baseAmount * taxSummary.qstRate)}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-base font-semibold">
+              <span>Total due</span>
+              <span>{formatCurrency(taxSummary.baseAmount * (1 + taxSummary.gstRate + taxSummary.qstRate))}</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -467,11 +616,16 @@ type DivisionTeamRowProps = {
   entry: RegistrationEntry
   onRemove: () => void
   onUpdateMembers: (members: RegistrationMember[]) => void
+  onSyncFromTeam?: () => void
+  status: EntryStatusMeta
+  readOnly: boolean
 }
 
-function DivisionTeamRow({ entry, onRemove, onUpdateMembers }: DivisionTeamRowProps) {
+function DivisionTeamRow({ entry, onRemove, onUpdateMembers, onSyncFromTeam, status, readOnly }: DivisionTeamRowProps) {
   const [expanded, setExpanded] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
+  const { isLocked, lockMessage } = status
+  const actionsDisabled = readOnly || isLocked
 
   const toggleExpanded = useCallback(() => setExpanded(prev => !prev), [])
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -493,7 +647,7 @@ function DivisionTeamRow({ entry, onRemove, onUpdateMembers }: DivisionTeamRowPr
   const secondaryLabel =
     entry.mode === 'existing'
       ? memberCount
-        ? `${memberCount} members · Existing roster`
+        ? `${memberCount} members`
         : 'Existing roster'
       : (entry.fileName ?? 'Roster upload')
 
@@ -511,6 +665,7 @@ function DivisionTeamRow({ entry, onRemove, onUpdateMembers }: DivisionTeamRowPr
             {entry.teamName ?? entry.fileName ?? 'Team'}
           </p>
           <p className="text-muted-foreground truncate text-xs">{secondaryLabel}</p>
+          {lockMessage ? <p className="text-muted-foreground text-xs">{lockMessage}</p> : null}
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -518,20 +673,36 @@ function DivisionTeamRow({ entry, onRemove, onUpdateMembers }: DivisionTeamRowPr
             size="icon"
             onClick={event => {
               event.stopPropagation()
-              onRemove()
+              if (!actionsDisabled) onRemove()
             }}
             aria-label="Remove team"
+            disabled={actionsDisabled}
           >
             <Trash2Icon className="size-4" aria-hidden="true" />
           </Button>
+          {entry.mode === 'existing' && onSyncFromTeam ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={event => {
+                event.stopPropagation()
+                if (!actionsDisabled) onSyncFromTeam()
+              }}
+              aria-label="Sync from team"
+              disabled={actionsDisabled}
+            >
+              <RefreshCwIcon className="size-4" aria-hidden="true" />
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             size="icon"
             onClick={event => {
               event.stopPropagation()
-              setEditorOpen(true)
+              if (!actionsDisabled) setEditorOpen(true)
             }}
             aria-label="Edit roster"
+            disabled={actionsDisabled}
           >
             <PenSquareIcon className="size-4" aria-hidden="true" />
           </Button>

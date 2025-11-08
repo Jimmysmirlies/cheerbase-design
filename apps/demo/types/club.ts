@@ -27,6 +27,10 @@ export type Registration = {
   invoiceTotal: string; // demo currency string
   paymentDeadline: string; // ISO string in demo
   status?: "pending" | "paid";
+  paidAt?: string;
+  snapshotTakenAt?: string;
+  snapshotSourceTeamId?: string;
+  snapshotRosterHash?: string;
 };
 
 export type MemberRole = "coach" | "athlete" | "reservist" | "chaperone";
@@ -37,4 +41,5 @@ export type TeamRoster = {
   athletes: Person[];
   reservists: Person[];
   chaperones: Person[];
+  updatedAt?: string;
 };

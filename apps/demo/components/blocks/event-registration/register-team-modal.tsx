@@ -96,12 +96,18 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl rounded-2xl gap-0">
-        <DialogHeader className="mb-6">
+        <DialogHeader className="mb-4">
           <DialogTitle>Register a team</DialogTitle>
           <DialogDescription>
             Select the team source, assign a division, and confirm to add it to the queue.
           </DialogDescription>
         </DialogHeader>
+
+        <p className="text-xs text-muted-foreground mb-4">
+          Choosing an existing team captures a roster snapshot for this registration. Later edits in My Club → Teams do not
+          update the registration automatically. Once a registration is paid or the deadline passes, changes are locked and
+          adjustments must go through the event organizer (no refunds or participant total changes).
+        </p>
 
         <section className="mb-6 space-y-4">
           <div className="space-y-2">

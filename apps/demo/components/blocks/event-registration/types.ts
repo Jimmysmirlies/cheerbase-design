@@ -22,6 +22,15 @@ export type RegistrationEntry = {
   teamSize?: number
   fileName?: string
   members?: RegistrationMember[]
+  snapshotTakenAt?: string
+  snapshotSourceTeamId?: string
+  snapshotRosterHash?: string
+  paymentDeadline?: string
+  paidAt?: string
+  locked?: boolean
+  lockReason?: 'paid' | 'deadline'
+  lockMessage?: string
+  contactEmail?: string
 }
 
 export const DEFAULT_ROLE = 'Athlete'

@@ -1,78 +1,117 @@
-"use client";
-/**
- * RegistrationsSection
- *
- * Purpose
- * - View and edit event registrations before deadlines.
- * - Update athlete counts, swap members, and see invoice recalculations.
- *
- * Initial Implementation (Demo)
- * - Placeholder table rows with an Edit action that will open a dialog in a later step.
- */
-import { Button } from "@workspace/ui/shadcn/button";
-import Link from "next/link";
-import { demoRegistrations } from "@/data/club/registrations";
-import { demoTeams } from "@/data/club/teams";
-import { demoRosters } from "@/data/club/members";
-import { findEventById } from "@/data/event-categories";
-import { formatCurrency, formatFriendlyDate } from "@/utils/format";
-import { resolveDivisionPricing } from "@/utils/pricing";
-import type { TeamRoster } from "@/types/club";
+"use client"
+
+import { useMemo, useState } from "react"
+
+import { cn } from "@workspace/ui/lib/utils"
+import { ScrollArea } from "@workspace/ui/shadcn/scroll-area"
+
+import { EventRegisteredCard, type EventRegisteredCardProps } from "@/components/ui/cards/event-registered-card"
+import { demoRegistrations } from "@/data/club/registrations"
+import { demoRosters } from "@/data/club/members"
+import { demoTeams } from "@/data/club/teams"
+import { findEventById } from "@/data/event-categories"
+import { formatCurrency, formatFriendlyDate } from "@/utils/format"
+import { resolveDivisionPricing } from "@/utils/pricing"
+import type { TeamRoster } from "@/types/club"
+
+const TABS = [
+  { key: "upcoming", label: "Upcoming" },
+  { key: "past", label: "Past" },
+] as const
+
+type RegistrationRow = EventRegisteredCardProps & { id: string }
 
 export default function RegistrationsSection() {
+  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("upcoming")
+  const categorized = useMemo(() => categorizeRegistrations(demoRegistrations), [])
+  const rows = activeTab === "upcoming" ? categorized.upcoming : categorized.past
+
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h2 className="text-xl font-semibold">Registrations</h2>
-        <p className="text-sm text-muted-foreground">Edit entries before deadlines; totals update as you change rosters.</p>
+      <header className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Registrations</h2>
+          <p className="text-sm text-muted-foreground">Review invoice status and update rosters before payment deadlines.</p>
+        </div>
+        <div className="flex gap-2">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "rounded-full px-4 py-1 text-sm font-medium transition",
+                activeTab === tab.key ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </header>
 
-      <div className="overflow-hidden rounded-2xl border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Event</th>
-              <th className="px-4 py-3 text-left font-medium">Division</th>
-              <th className="px-4 py-3 text-left font-medium">Team</th>
-              <th className="px-4 py-3 text-left font-medium">Payment deadline</th>
-              <th className="px-4 py-3 text-left font-medium">Participants</th>
-              <th className="px-4 py-3 text-left font-medium">Invoice</th>
-              <th className="px-4 py-3 text-right font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {demoRegistrations.map((reg) => {
-              const team = demoTeams.find((t) => t.id === reg.teamId);
-              const roster = demoRosters.find((r) => r.teamId === reg.teamId);
-              const participants = roster ? countRosterParticipants(roster) : reg.athletes;
-              const event = findEventById(reg.eventId);
-              const divisionPricing = event?.availableDivisions?.find((option) => option.name === reg.division);
-              const invoiceTotal =
-                divisionPricing && participants
-                  ? formatCurrency(participants * resolveDivisionPricing(divisionPricing).price)
-                  : reg.invoiceTotal;
-
-              return (
-                <tr key={reg.id} className="border-t">
-                  <td className="px-4 py-3">{reg.eventName}</td>
-                  <td className="px-4 py-3">{reg.division}</td>
-                  <td className="px-4 py-3">{team?.name ?? reg.teamId}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{formatFriendlyDate(reg.paymentDeadline)}</td>
-                  <td className="px-4 py-3">{participants}</td>
-                  <td className="px-4 py-3">{invoiceTotal}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Button size="sm" variant="outline" type="button" asChild>
-                      <Link href={`/clubs/registrations/${reg.id}`}>Edit</Link>
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <ScrollArea className="w-full">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.length ? (
+            rows.map(row => <EventRegisteredCard key={row.id} {...row} />)
+          ) : (
+            <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
+              {activeTab === "upcoming" ? "No upcoming registrations yet." : "No past registrations to show."}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </section>
-  );
+  )
+}
+
+function categorizeRegistrations(registrations: typeof demoRegistrations) {
+  const now = new Date()
+  const upcoming: RegistrationRow[] = []
+  const past: RegistrationRow[] = []
+
+  registrations.forEach(reg => {
+    const team = demoTeams.find(item => item.id === reg.teamId)
+    const roster = demoRosters.find(item => item.teamId === reg.teamId)
+    const participants = roster ? countRosterParticipants(roster) : reg.athletes
+    const event = findEventById(reg.eventId)
+    const divisionPricing = event?.availableDivisions?.find(option => option.name === reg.division)
+    const invoiceTotal =
+      divisionPricing && participants
+        ? formatCurrency(participants * resolveDivisionPricing(divisionPricing).price)
+        : reg.invoiceTotal
+    const isPaid = reg.status === 'paid' || Boolean(reg.paidAt)
+    const statusLabel = isPaid ? 'Paid' : 'Unpaid'
+    const statusSubtext = isPaid
+      ? `Paid on ${formatFriendlyDate(reg.paidAt)}`
+      : `Auto-pay on ${formatFriendlyDate(reg.paymentDeadline)}`
+    const eventDate = new Date(reg.eventDate)
+    const bucket: "upcoming" | "past" = Number.isNaN(eventDate.getTime()) ? "upcoming" : eventDate < now ? "past" : "upcoming"
+
+    const card: RegistrationRow = {
+      id: reg.id,
+      image: event?.image,
+      title: reg.eventName,
+      subtitle: event?.organizer ?? event?.type,
+      teamName: team?.name ?? reg.teamId,
+      date: reg.eventDate,
+      location: event?.location ?? reg.location,
+      participants,
+      invoice: invoiceTotal,
+      statusLabel,
+      statusSubtext,
+      statusVariant: isPaid ? "green" : "amber",
+      actionHref: `/clubs/registrations/${reg.id}`,
+    }
+
+    if (bucket === "past") {
+      past.push(card)
+    } else {
+      upcoming.push(card)
+    }
+  })
+
+  return { upcoming, past }
 }
 
 function countRosterParticipants(roster: TeamRoster) {
@@ -81,5 +120,5 @@ function countRosterParticipants(roster: TeamRoster) {
     (roster.athletes?.length ?? 0) +
     (roster.reservists?.length ?? 0) +
     (roster.chaperones?.length ?? 0)
-  );
+  )
 }
