@@ -53,13 +53,11 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(functi
   return (
     <Card
       ref={ref}
-      className={cn(
-        'border-border/60 overflow-hidden border transition',
-        showShadow && 'shadow-sm',
-        interactive && showShadow && 'hover:shadow-md',
-        className
-      )}
-      style={{ ...getGlassCardStyle({ hovered: interactive && isHovered, showShadow, emphasis }), ...style }}
+      className={cn('overflow-hidden transition', interactive && 'cursor-pointer', className)}
+      style={{
+        ...getGlassCardStyle({ hovered: interactive && isHovered, showShadow, emphasis }),
+        ...style,
+      }}
       onMouseEnter={interactive ? handleMouseEnter : onMouseEnter}
       onMouseLeave={interactive ? handleMouseLeave : onMouseLeave}
       {...props}

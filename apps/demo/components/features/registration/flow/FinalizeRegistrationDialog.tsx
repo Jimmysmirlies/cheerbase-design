@@ -28,13 +28,13 @@ export function FinalizeRegistrationDialog({
 }: FinalizeRegistrationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl gap-0 rounded-3xl p-0">
+      <DialogContent className="max-w-2xl gap-0 rounded-xl p-0">
         <DialogHeader className="px-6 pb-4 pt-8">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-6 px-6 pb-6 pt-2">
-          <section className="rounded-2xl border border-border/60 bg-muted/20 p-4">{pricingPanel}</section>
+          <section className="rounded-xl border border-border/60 bg-muted/20 p-4">{pricingPanel}</section>
           <p className="text-xs text-muted-foreground">
             Submission will reserve your spots and notify the event organizer. You can still edit rosters before the payment
             deadline.

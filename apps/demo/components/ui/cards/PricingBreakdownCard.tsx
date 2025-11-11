@@ -3,9 +3,9 @@
 import { useMemo, type ReactNode } from 'react'
 
 import { cn } from '@workspace/ui/lib/utils'
+import { Card } from '@workspace/ui/shadcn/card'
 
 import type { RegistrationEntry } from '@/components/features/registration/flow/types'
-import { GlassCard } from '@/components/ui/glass/GlassCard'
 import type { DivisionPricing } from '@/types/events'
 import { formatCurrency, formatFriendlyDate } from '@/utils/format'
 import { resolveDivisionPricing } from '@/utils/pricing'
@@ -35,10 +35,10 @@ export function PricingBreakdownCard({
   ...panelProps
 }: PricingBreakdownCardProps) {
   return (
-    <GlassCard className={cn('rounded-3xl border-none p-4 shadow-lg', className)}>
+    <Card className={cn('rounded-3xl p-4 shadow-sm', className)}>
       <PricingBreakdownPanel {...panelProps} />
       {children ? <div className="mt-4">{children}</div> : null}
-    </GlassCard>
+    </Card>
   )
 }
 

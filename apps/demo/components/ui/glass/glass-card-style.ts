@@ -70,23 +70,19 @@ export function getGlassCardStyle({
   emphasis = 'default',
 }: GlassCardStyleOptions = {}): CSSProperties {
   const bevelShadow =
-    'inset 0 1px 2px 0 hsla(0,0%,100%,0.55), inset 0 -1px 2px 0 hsla(0,0%,100%,0.22)'
-  const dropShadow =
-    '0 4px 8px -1px hsla(210,28%,25%,0.18), 0 1px 2px -2px hsla(210,28%,25%,0.14)'
+    'inset 0 1px 2px 0 hsla(0,0%,100%,0.45), inset 0 -1px 3px 0 hsla(0,0%,100%,0.18)'
 
-  const activeBorder = emphasis === 'active' ? '1px solid oklch(0.6215 0.0996 194.9)' : '1px solid var(--glass-border)'
   const activeBackground =
     emphasis === 'active'
       ? buildGlassGradient(true)
       : buildGlassGradient(hovered)
 
   return {
-    borderRadius: '16px',
-    border: activeBorder,
-    backgroundColor: 'hsla(300,0,100%,0.4)',
+    borderRadius: 'var(--radius-lg)',
+    backgroundColor: 'hsla(300,0%,100%,0.35)',
     backgroundImage: activeBackground,
     backdropFilter: 'blur(24px)',
-    boxShadow: showShadow ? `${bevelShadow}, ${dropShadow}` : bevelShadow,
+    boxShadow: showShadow ? bevelShadow : undefined,
     transition: 'background-image 0.4s ease-in-out',
   }
 }
