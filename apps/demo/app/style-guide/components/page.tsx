@@ -1,8 +1,7 @@
 import { EventCard, Hero, HeroSlide, OrganizerCard, QuickFilterRail } from "@/components/ui";
-import OrganizersSection from "@/components/blocks/event-landing/sections/OrganizersSection";
-import EventCategoriesSection from "@/components/blocks/event-landing/sections/EventCategoriesSection";
-import { organizers } from "@/data/organizers";
-import { eventCategories } from "@/data/event-categories";
+import OrganizersSection from "@/components/features/events/sections/OrganizersSection";
+import EventCategoriesSection from "@/components/features/events/sections/EventCategoriesSection";
+import { eventCategories, organizers } from "@/data/events";
 
 const heroExampleSlides: HeroSlide[] = [
   {

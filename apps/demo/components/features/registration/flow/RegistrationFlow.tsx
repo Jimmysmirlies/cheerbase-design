@@ -1,0 +1,669 @@
+'use client'
+
+/**
+ * RegistrationFlow
+ *
+ * Purpose
+ * - Client-side flow for registering teams to an event outside of a modal context.
+ *
+ * Structure
+ * - Page header describing the event
+ * - Actions row with search input + "Register team" modal trigger
+ * - Queued teams panel with division-grouped cards and totals footer
+ * - Footer actions to clear the queue or submit registrations
+ */
+import { useCallback, useMemo, useState } from 'react'
+
+import { cn } from '@workspace/ui/lib/utils'
+import { Button } from '@workspace/ui/shadcn/button'
+import { Input } from '@workspace/ui/shadcn/input'
+
+import { ChevronDownIcon, PenSquareIcon, RefreshCwIcon, SearchIcon, Trash2Icon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
+import { PricingBreakdownCard, PricingBreakdownPanel } from '@/components/ui/cards/PricingBreakdownCard'
+import type { Person, TeamRoster } from '@/types/club'
+import type { DivisionPricing } from '@/types/events'
+import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
+import { buildSnapshotHash, isRegistrationLocked } from '@/utils/registrations'
+
+import { FinalizeRegistrationDialog } from './FinalizeRegistrationDialog'
+import { RegisterTeamModal } from './RegisterTeamModal'
+import { RosterEditorDialog } from './RosterEditorDialog'
+import { DEFAULT_ROLE, RegistrationEntry, RegistrationMember, TeamOption } from './types'
+
+export type { TeamOption, RegistrationMember, RegistrationEntry } from './types'
+
+export type RegistrationFlowProps = {
+  divisionPricing: DivisionPricing[]
+  teams: TeamOption[]
+  rosters?: TeamRoster[]
+  initialEntries?: RegistrationEntry[]
+  onConfirm?: (entries: RegistrationEntry[]) => void
+  finalizeConfig?: Partial<FinalizeConfig>
+  readOnly?: boolean
+}
+
+type FinalizeConfig = {
+  ctaLabel: string
+  dialogTitle: string
+  dialogDescription: string
+  dialogConfirmLabel: string
+  redirectPath: string
+  onCtaHref?: string
+  summaryCard?: React.ReactNode
+  taxSummary?: {
+    gstNumber: string
+    qstNumber: string
+    baseAmount: number
+    gstRate: number
+    qstRate: number
+  }
+  ctaDisabled?: boolean
+  isReadOnly?: boolean
+}
+
+const DEFAULT_FINALIZE_CONFIG: FinalizeConfig = {
+  ctaLabel: 'Finalize registration',
+  dialogTitle: 'Review and confirm',
+  dialogDescription: 'Double-check division totals and roster counts before submitting.',
+  dialogConfirmLabel: 'Submit registration',
+  redirectPath: '/clubs?view=registrations',
+  onCtaHref: undefined,
+  ctaDisabled: false,
+  isReadOnly: false,
+}
+
+// Section nickname: "Flow Shell" – orchestrates the primary registration workflow state.
+export function RegistrationFlow({
+  divisionPricing,
+  teams,
+  rosters,
+  initialEntries = [],
+  onConfirm,
+  finalizeConfig,
+  readOnly = false,
+}: RegistrationFlowProps) {
+  const divisionOptions = useMemo(
+    () => Array.from(new Set(divisionPricing.map(option => option.name))).filter(Boolean),
+    [divisionPricing]
+  )
+  const teamOptions = useMemo(() => teams.filter(Boolean), [teams])
+  const rosterMetaByTeamId = useMemo(() => {
+    return (rosters ?? []).reduce<Record<string, { roster: TeamRoster; updatedAt?: string; hash?: string }>>(
+      (acc, roster) => {
+        acc[roster.teamId] = {
+          roster,
+          updatedAt: roster.updatedAt,
+          hash: buildSnapshotHash(roster),
+        }
+        return acc
+      },
+      {}
+    )
+  }, [rosters])
+
+  const [entries, setEntries] = useState<RegistrationEntry[]>(initialEntries)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false)
+
+  const router = useRouter()
+  const resolvedFinalizeConfig = useMemo<FinalizeConfig>(
+    () => ({
+      ...DEFAULT_FINALIZE_CONFIG,
+      ...(finalizeConfig ?? {}),
+    }),
+    [finalizeConfig]
+  )
+  const isFlowReadOnly = Boolean(readOnly || resolvedFinalizeConfig.isReadOnly)
+
+  const sanitizedSearch = searchTerm.trim().toLowerCase()
+
+  const filteredEntries = useMemo(() => {
+    if (!sanitizedSearch) return entries
+    return entries.filter(entry => {
+      const divisionMatch = entry.division.toLowerCase().includes(sanitizedSearch)
+      const teamLabel = (entry.teamName ?? entry.fileName ?? '').toLowerCase()
+      return divisionMatch || teamLabel.includes(sanitizedSearch)
+    })
+  }, [entries, sanitizedSearch])
+
+  const groupedEntries = useMemo(() => groupEntriesByDivision(entries), [entries])
+  const filteredGroupedEntries = useMemo(
+    () => groupEntriesByDivision(filteredEntries),
+    [filteredEntries]
+  )
+
+  const handleAddEntry = (entry: RegistrationEntry) => {
+    if (isFlowReadOnly) return
+    if (entry.mode === 'existing' && entry.teamId) {
+      const meta = rosterMetaByTeamId[entry.teamId]
+      const rosterMembers = meta?.roster ? flattenRosterMembers(meta.roster) : entry.members ?? []
+      const snapshotTakenAt = new Date().toISOString()
+      setEntries(prev => [
+        ...prev,
+        {
+          ...entry,
+          members: rosterMembers,
+          teamSize: rosterMembers.length,
+          snapshotTakenAt,
+          snapshotSourceTeamId: entry.teamId,
+          snapshotRosterHash: meta?.hash,
+        },
+      ])
+      return
+    }
+
+    setEntries(prev => [...prev, entry])
+  }
+
+  const handleRemoveEntry = useCallback(
+    (id: string) => {
+      if (isFlowReadOnly) return
+      setEntries(prev => prev.filter(entry => entry.id !== id))
+    },
+    [isFlowReadOnly]
+  )
+
+  const handleUpdateEntryMembers = (id: string, members: RegistrationMember[]) => {
+    const sanitizedMembers = members.filter(member => {
+      const content = [
+        member.name?.trim(),
+        member.email?.trim(),
+        member.phone?.trim(),
+        member.dob?.trim(),
+        member.type?.trim(),
+      ]
+      return content.some(Boolean)
+    })
+
+    setEntries(prev =>
+      prev.map(entry =>
+        entry.id === id
+          ? {
+              ...entry,
+              members: sanitizedMembers.map(member => ({
+                ...member,
+                name: member.name?.trim() || 'Unnamed',
+                email: member.email?.trim() || undefined,
+                phone: member.phone?.trim() || undefined,
+                dob: member.dob?.trim() || undefined,
+                type: member.type?.trim() || DEFAULT_ROLE,
+              })),
+              teamSize: sanitizedMembers.length,
+            }
+          : entry
+      )
+    )
+  }
+
+  const handleSyncEntryFromTeam = useCallback(
+    (id: string) => {
+      if (isFlowReadOnly) return
+      setEntries(prev =>
+        prev.map(entry => {
+          if (entry.id !== id || entry.mode !== 'existing' || !entry.teamId) {
+            return entry
+          }
+          const meta = rosterMetaByTeamId[entry.teamId]
+          if (!meta?.roster) return entry
+          const nextMembers = flattenRosterMembers(meta.roster)
+          return {
+            ...entry,
+            members: nextMembers,
+            teamSize: nextMembers.length,
+            snapshotTakenAt: new Date().toISOString(),
+            snapshotRosterHash: meta.hash,
+          }
+        })
+      )
+    },
+    [isFlowReadOnly, rosterMetaByTeamId]
+  )
+
+  const getEntryStatus = useCallback(
+    (entry: RegistrationEntry): EntryStatusMeta => {
+      const isLocked =
+        entry.locked || isFlowReadOnly || isRegistrationLocked({
+          paidAt: entry.paidAt,
+          paymentDeadline: entry.paymentDeadline,
+        })
+      const lockReason =
+        entry.lockReason ?? (entry.paidAt ? 'paid' : isLocked && entry.paymentDeadline ? 'deadline' : undefined)
+      const lockMessage =
+        entry.lockMessage ??
+        (lockReason === 'paid'
+          ? 'Payment received. Contact the organizer for manual changes.'
+          : lockReason === 'deadline'
+            ? undefined
+            : undefined)
+      return {
+        isLocked,
+        lockReason,
+        lockMessage,
+      }
+    },
+    [isFlowReadOnly]
+  )
+
+  const handlePrimaryAction = useCallback(() => {
+    if (resolvedFinalizeConfig.onCtaHref) {
+      if (typeof window !== 'undefined') {
+        window.location.href = resolvedFinalizeConfig.onCtaHref
+      }
+      return
+    }
+    if (isFlowReadOnly) return
+    setIsFinalizeDialogOpen(true)
+  }, [isFlowReadOnly, resolvedFinalizeConfig])
+
+  const primaryButtonDisabled =
+    resolvedFinalizeConfig.ctaDisabled ?? (!entries.length && !isFlowReadOnly && !resolvedFinalizeConfig.onCtaHref)
+
+  const handleConfirm = () => {
+    if (!entries.length || isFlowReadOnly) return
+    onConfirm?.(entries)
+    setEntries([])
+    setIsFinalizeDialogOpen(false)
+    if (resolvedFinalizeConfig.redirectPath) {
+      router.push(resolvedFinalizeConfig.redirectPath)
+    }
+  }
+
+  return (
+    <section className="w-full">
+      <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start lg:gap-8 lg:space-y-0">
+        <div className="space-y-8">
+          {/* Flow Shell · Search + register */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-md">
+              <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+              <Input
+                type="search"
+                value={searchTerm}
+                onChange={event => setSearchTerm(event.target.value)}
+                placeholder="Search registered teams or participants"
+                className="w-full pl-9"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => !isFlowReadOnly && setIsModalOpen(true)}
+              disabled={!divisionOptions.length || isFlowReadOnly}
+            >
+              Register team
+            </Button>
+          </div>
+
+          <DivisionQueueSection
+            entriesByDivision={groupedEntries}
+            filteredEntriesByDivision={filteredGroupedEntries}
+            allEntries={entries}
+            divisionOptions={divisionOptions}
+            searchTerm={sanitizedSearch}
+            onRemoveEntry={handleRemoveEntry}
+            onUpdateEntryMembers={handleUpdateEntryMembers}
+            onSyncEntry={handleSyncEntryFromTeam}
+            readOnly={isFlowReadOnly}
+            getEntryStatus={getEntryStatus}
+          />
+
+          <footer className="border-border/60 border-t pt-4">
+            <p className="text-muted-foreground text-xs">
+              Finalize once all divisions have assigned registrants.
+            </p>
+          </footer>
+        </div>
+
+        <aside className="mt-8 flex flex-col gap-4 lg:mt-0 lg:sticky lg:top-24 self-start">
+          {resolvedFinalizeConfig.summaryCard ?? null}
+          <PricingBreakdownCard
+            entriesByDivision={groupedEntries}
+            divisionPricing={divisionPricing}
+            taxSummary={resolvedFinalizeConfig.taxSummary}
+          >
+            <Button
+              type="button"
+              className="w-full"
+              onClick={handlePrimaryAction}
+              disabled={primaryButtonDisabled}
+            >
+              {resolvedFinalizeConfig.ctaLabel}
+            </Button>
+          </PricingBreakdownCard>
+        </aside>
+      </div>
+
+      <RegisterTeamModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        divisions={divisionOptions}
+        teams={teamOptions}
+        onSubmit={handleAddEntry}
+      />
+      {!resolvedFinalizeConfig.onCtaHref && !isFlowReadOnly && (
+        <FinalizeRegistrationDialog
+          open={isFinalizeDialogOpen}
+          onOpenChange={setIsFinalizeDialogOpen}
+          pricingPanel={
+            <PricingBreakdownPanel
+              entriesByDivision={groupedEntries}
+              divisionPricing={divisionPricing}
+            />
+          }
+          title={resolvedFinalizeConfig.dialogTitle}
+          description={resolvedFinalizeConfig.dialogDescription}
+          confirmLabel={resolvedFinalizeConfig.dialogConfirmLabel}
+          onConfirm={handleConfirm}
+          confirmDisabled={!entries.length}
+        />
+      )}
+    </section>
+  )
+}
+
+// --- Division queue --------------------------------------------------------
+// Section nickname: "Queue Explorer" – groups divisions and keeps empty states consistent.
+
+type DivisionQueueSectionProps = {
+  entriesByDivision: Record<string, RegistrationEntry[]>
+  filteredEntriesByDivision: Record<string, RegistrationEntry[]>
+  allEntries: RegistrationEntry[]
+  divisionOptions: string[]
+  searchTerm: string
+  onRemoveEntry: (id: string) => void
+  onUpdateEntryMembers: (id: string, members: RegistrationMember[]) => void
+  onSyncEntry: (id: string) => void
+  readOnly: boolean
+  getEntryStatus: (entry: RegistrationEntry) => EntryStatusMeta
+}
+
+type EntryStatusMeta = {
+  isLocked: boolean
+  lockReason?: 'paid' | 'deadline'
+  lockMessage?: string
+}
+
+function DivisionQueueSection({
+  entriesByDivision,
+  filteredEntriesByDivision,
+  allEntries,
+  divisionOptions,
+  searchTerm,
+  onRemoveEntry,
+  onUpdateEntryMembers,
+  onSyncEntry,
+  readOnly,
+  getEntryStatus,
+}: DivisionQueueSectionProps) {
+  const baseDivisions = useMemo(() => {
+    if (divisionOptions.length) {
+      return Array.from(new Set(divisionOptions))
+    }
+    return Array.from(new Set(allEntries.map(entry => entry.division)))
+  }, [divisionOptions, allEntries])
+
+  const divisionsToRender = useMemo(() => {
+    if (!searchTerm) return baseDivisions
+    return baseDivisions.filter(division => (filteredEntriesByDivision[division]?.length ?? 0) > 0)
+  }, [baseDivisions, filteredEntriesByDivision, searchTerm])
+
+  const shouldShowGlobalEmpty = divisionsToRender.length === 0
+
+  if (shouldShowGlobalEmpty) {
+    return (
+      <div className="border-border/70 text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
+        {searchTerm
+          ? 'No teams match your search yet.'
+          : 'No teams added yet. Start by registering a team.'}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {divisionsToRender.map(divisionName => {
+        const divisionEntries =
+          (searchTerm
+            ? filteredEntriesByDivision[divisionName]
+            : entriesByDivision[divisionName]) ?? []
+
+        return (
+          <section key={divisionName} className="space-y-3 border-t border-border/60 pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-foreground">{divisionName}</p>
+              <span className="text-muted-foreground text-xs font-medium">
+                {divisionEntries.length} {divisionEntries.length === 1 ? 'team' : 'teams'}
+              </span>
+            </div>
+            {divisionEntries.length ? (
+              <div className="space-y-2">
+                {divisionEntries.map(entry => (
+                  <DivisionTeamRow
+                    key={entry.id}
+                    entry={entry}
+                    onRemove={() => onRemoveEntry(entry.id)}
+                    onUpdateMembers={members => onUpdateEntryMembers(entry.id, members)}
+                    onSyncFromTeam={
+                      !readOnly && entry.mode === 'existing' ? () => onSyncEntry(entry.id) : undefined
+                    }
+                    status={getEntryStatus(entry)}
+                    readOnly={readOnly}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="border-border/60 text-muted-foreground rounded-2xl border border-dashed p-4 text-xs">
+                No teams registered for this division yet.
+              </div>
+            )}
+          </section>
+        )
+      })}
+    </div>
+  )
+}
+
+// --- Team row --------------------------------------------------------------
+// Section nickname: "Team Capsule" – expandable roster review per team entry.
+
+type DivisionTeamRowProps = {
+  entry: RegistrationEntry
+  onRemove: () => void
+  onUpdateMembers: (members: RegistrationMember[]) => void
+  onSyncFromTeam?: () => void
+  status: EntryStatusMeta
+  readOnly: boolean
+}
+
+function DivisionTeamRow({ entry, onRemove, onUpdateMembers, onSyncFromTeam, status, readOnly }: DivisionTeamRowProps) {
+  const [expanded, setExpanded] = useState(false)
+  const [editorOpen, setEditorOpen] = useState(false)
+  const { isLocked, lockMessage } = status
+  const actionsDisabled = readOnly || isLocked
+
+  const toggleExpanded = useCallback(() => setExpanded(prev => !prev), [])
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      toggleExpanded()
+    }
+  }
+
+  const members = useMemo(() => entry.members ?? [], [entry.members])
+  const handleSaveRoster = useCallback(
+    (updatedMembers: RegistrationMember[]) => {
+      onUpdateMembers(updatedMembers)
+      setEditorOpen(false)
+    },
+    [onUpdateMembers]
+  )
+  const memberCount = members.length ? members.length : entry.teamSize ?? 0
+  const secondaryLabel =
+    entry.mode === 'existing'
+      ? memberCount
+        ? `${memberCount} members`
+        : 'Existing roster'
+      : (entry.fileName ?? 'Roster upload')
+
+  return (
+    <div className="border-border/70 bg-background/80 rounded-2xl border">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={toggleExpanded}
+        onKeyDown={handleKeyDown}
+        className="focus-visible:ring-primary/40 flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus-visible:ring-2"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-foreground truncate text-sm font-medium">
+            {entry.teamName ?? entry.fileName ?? 'Team'}
+          </p>
+          <p className="text-muted-foreground truncate text-xs">{secondaryLabel}</p>
+          {lockMessage ? <p className="text-muted-foreground text-xs">{lockMessage}</p> : null}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={event => {
+              event.stopPropagation()
+              if (!actionsDisabled) onRemove()
+            }}
+            aria-label="Remove team"
+            disabled={actionsDisabled}
+          >
+            <Trash2Icon className="size-4" aria-hidden="true" />
+          </Button>
+          {entry.mode === 'existing' && onSyncFromTeam ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={event => {
+                event.stopPropagation()
+                if (!actionsDisabled) onSyncFromTeam()
+              }}
+              aria-label="Sync from team"
+              disabled={actionsDisabled}
+            >
+              <RefreshCwIcon className="size-4" aria-hidden="true" />
+            </Button>
+          ) : null}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={event => {
+              event.stopPropagation()
+              if (!actionsDisabled) setEditorOpen(true)
+            }}
+            aria-label="Edit roster"
+            disabled={actionsDisabled}
+          >
+            <PenSquareIcon className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={event => {
+              event.stopPropagation()
+              toggleExpanded()
+            }}
+            aria-label={expanded ? 'Collapse team details' : 'Expand team details'}
+          >
+            <ChevronDownIcon
+              className={cn('size-4 transition-transform', expanded && 'rotate-180')}
+            />
+          </Button>
+        </div>
+      </div>
+      {expanded && (
+        <div className="border-border/60 text-muted-foreground border-t text-xs">
+          {members.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto text-left text-[13px] lg:text-sm">
+                <thead className="bg-muted/40 text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 font-medium sm:px-4">Name</th>
+                    <th className="px-3 py-2 font-medium sm:px-4">DOB</th>
+                    <th className="px-3 py-2 font-medium sm:px-5">Email</th>
+                    <th className="px-3 py-2 font-medium sm:px-5">Phone</th>
+                    <th className="px-3 py-2 text-right font-medium sm:px-4">Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((member, index) => (
+                    <tr key={`${entry.id}-member-${index}`} className="border-t">
+                      <td className="text-foreground px-3 py-2 sm:px-4">{member.name}</td>
+                      <td className="px-3 py-2 sm:px-4">{formatFriendlyDate(member.dob)}</td>
+                      <td className="px-3 py-2 sm:px-5">{member.email ?? '—'}</td>
+                      <td className="px-3 py-2 sm:px-5">{formatPhoneNumber(member.phone)}</td>
+                      <td className="text-muted-foreground px-3 py-2 text-right sm:px-4">
+                        {member.type ?? '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : entry.mode === 'existing' ? (
+            <div className="p-4">
+              Roster details will be pulled from your workspace once registration is submitted.
+            </div>
+          ) : (
+            <div className="p-4">Roster file: {entry.fileName ?? 'Pending upload'}</div>
+          )}
+        </div>
+      )}
+      <RosterEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        members={members}
+        teamName={entry.teamName ?? entry.fileName ?? 'Team'}
+        onSave={handleSaveRoster}
+      />
+    </div>
+  )
+}
+
+// --- Utilities -------------------------------------------------------------
+
+function groupEntriesByDivision(entries: RegistrationEntry[]): Record<string, RegistrationEntry[]> {
+  return entries.reduce<Record<string, RegistrationEntry[]>>((acc, entry) => {
+    const list = acc[entry.division] ?? []
+    list.push(entry)
+    acc[entry.division] = list
+    return acc
+  }, {})
+}
+
+function flattenRosterMembers(roster?: TeamRoster): RegistrationMember[] {
+  if (!roster) return []
+
+  const roleMap: Array<{
+    key: 'coaches' | 'athletes' | 'reservists' | 'chaperones'
+    label: string
+  }> = [
+    { key: 'coaches', label: 'Coach' },
+    { key: 'athletes', label: 'Athlete' },
+    { key: 'reservists', label: 'Reservist' },
+    { key: 'chaperones', label: 'Chaperone' },
+  ]
+
+  return roleMap.flatMap(({ key, label }) => {
+    const group = roster[key] ?? []
+    return group.map(member => ({
+      name: formatMemberName(member),
+      type: label,
+      dob: member.dob,
+      email: member.email,
+      phone: member.phone,
+    }))
+  })
+}
+
+function formatMemberName(member: Pick<Person, 'firstName' | 'lastName'>): string {
+  const parts = [member.firstName, member.lastName].filter(Boolean)
+  return parts.length ? parts.join(' ') : 'Unnamed'
+}
