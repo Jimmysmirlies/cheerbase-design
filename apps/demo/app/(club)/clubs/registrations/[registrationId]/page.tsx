@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 
 import { RegistrationFlow } from '@/components/features/registration/flow/RegistrationFlow'
 import { GlassCard } from '@/components/ui/glass/GlassCard'
-import { MailIcon, MapPinIcon, SquareGanttChartIcon, UserCircle2Icon } from 'lucide-react'
+import { ArrowLeftIcon, MailIcon, MapPinIcon, SquareGanttChartIcon, UserCircle2Icon } from 'lucide-react'
 import type { RegistrationEntry, RegistrationMember } from '@/components/features/registration/flow/types'
 import { PrintInvoiceButton } from '@/components/features/registration/PrintInvoiceButton'
 import { demoRosters } from '@/data/clubs/members'
@@ -129,11 +129,18 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-10">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Button asChild variant="link" className="-ml-2 w-fit gap-2 px-2">
-              <Link href="/clubs?view=registrations">← Back to registrations</Link>
+          <div className="flex items-center justify-between">
+            <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
+              <Link href="/clubs?view=registrations" aria-label="Back to registrations">
+                <ArrowLeftIcon className="size-5" />
+              </Link>
             </Button>
-            <PrintInvoiceButton />
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link href={`/clubs/registrations/${registrationId}/invoice`}>View Invoice</Link>
+              </Button>
+              <PrintInvoiceButton />
+            </div>
           </div>
           <header className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -165,6 +172,13 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
           initialEntries={initialEntries}
           finalizeConfig={finalizeConfig}
           readOnly={isLocked}
+          hideStats={true}
+          hideSubmitButton={true}
+          showPaymentMethods={!registration.paidAt}
+          stepLabels={{
+            step1: 'Registered Teams',
+            step2: 'Price',
+          }}
         />
       </div>
     </main>

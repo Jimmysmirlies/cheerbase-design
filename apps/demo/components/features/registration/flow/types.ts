@@ -35,3 +35,10 @@ export type RegistrationEntry = {
 
 export const DEFAULT_ROLE = 'Athlete'
 export const ROLE_OPTIONS = [DEFAULT_ROLE, 'Coach', 'Reservist', 'Chaperone'] as const
+
+// Registration flow UI status used by TeamRow and queue rendering
+export type EntryStatusMeta = {
+  isLocked: boolean
+  lockReason?: 'paid' | 'deadline'
+  lockMessage?: string
+}

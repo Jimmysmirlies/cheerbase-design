@@ -1,168 +1,29 @@
+import { divisionCatalog } from '../divisions'
+
 export type DivisionCategory = {
-  id: string;
-  label: string;
-  divisions: string[];
-};
+  id: string
+  label: string
+  divisions: string[]
+}
 
-export const divisionCategories: DivisionCategory[] = [
-  {
-    id: "all-star-cheer",
-    label: "All Star Cheer",
-    divisions: [
-      "Maitres/Masters - 2ST",
-      "Open - 2ST",
-      "Open - 3",
-      "Open - 3ST",
-      "Open - 4",
-      "Open - 4.2",
-      "Open - 4ST",
-      "Open - 5ST",
-      "Open AG - 5",
-      "Open AG - 6",
-      "Open AG - 6ST",
-      "Open AG - 7",
-      "Open AG - 7ST",
-      "Open Coed - 6ST",
-      "Open Coed - 7ST",
-      "Open Large Coed (5-16 Males) - 5",
-      "Open Large Coed (5-16 Males) - 6",
-      "Open Large Coed (5-16 Males) - 7",
-      "Open Small Coed (1-4 Males) - 5",
-      "Open Small Coed (1-4 Males) - 6",
-      "Open Small Coed (1-4 Males) - 7",
-      "Paracheer (adapted or specialized) - 1",
-      "Paracheer (adapted or specialized) - 2",
-      "U6 - 1 Restricted",
-      "U8 - 1",
-      "U8 - 1 Restricted",
-      "U12 - 1",
-      "U12 - 1 Restricted",
-      "U12 - 2",
-      "U12 - 2ST",
-      "U12 - 3",
-      "U12 - 3ST",
-      "U12 - 4",
-      "U12 - 4ST",
-      "U16 - 1",
-      "U16 - 1 Restricted",
-      "U16 - 2",
-      "U16 - 2ST",
-      "U16 - 3",
-      "U16 - 3ST",
-      "U16 - 4",
-      "U16 - 4ST",
-      "U16 - 5",
-      "U16 - 5ST",
-      "U18 - 1",
-      "U18 - 1 Restricted",
-      "U18 - 2",
-      "U18 - 2ST",
-      "U18 - 3",
-      "U18 - 3ST",
-      "U18 - 4",
-      "U18 - 4.2",
-      "U18 - 4ST",
-      "U18 - 5ST",
-      "U18 - 6",
-      "U18 AG - 5",
-      "U18 AG - 6ST",
-      "U18 Coed - 6ST",
-      "U18 Small Coed (1-4 Males) - 5",
-    ],
-  },
-  {
-    id: "icu-cheer",
-    label: "ICU Cheer",
-    divisions: [
-      "AG Junior - Advanced",
-      "AG Junior - Elite",
-      "AG Senior - Elite",
-      "AG Senior - Premier",
-      "AG Youth - Advanced",
-      "AG Youth - Intermediate",
-      "Adaptive Abilities - Advanced",
-      "Coed Junior - Advanced",
-      "Coed Junior - Elite",
-      "Coed Senior - Elite",
-      "Coed Senior - Premier",
-      "Coed Youth - Advanced",
-      "Coed Youth - Intermediate",
-      "Special Olympics - Intermediate",
-    ],
-  },
-  {
-    id: "initiation-prep-cheer",
-    label: "Initiation/Prep Cheer",
-    divisions: [
-      "U6 Prep - 1",
-      "U8 Prep - 1",
-      "U12 Prep - 1",
-      "U12 Prep - 2",
-      "U12 Prep - 2ST",
-      "U16 Prep - 1",
-      "U16 Prep - 2",
-      "U16 Prep - 2ST",
-      "U18 Prep - 1",
-      "U18 Prep - 2",
-      "U18 Prep - 2ST",
-    ],
-  },
-  {
-    id: "novice-cheer",
-    label: "Novice Cheer",
-    divisions: [
-      "U6 Novice - Novice",
-      "U8 Novice - Novice",
-      "U12 Novice - Novice",
-      "U16 Novice - Novice",
-    ],
-  },
-  {
-    id: "scolaire-cheer",
-    label: "Scolaire Cheer",
-    divisions: [
-      "Collégial - 4",
-      "Collégial Game Day - 1",
-      "Primaire Game Day - 1",
-      "Primaire moustique - 1",
-      "Primaire moustique - 2",
-      "Primaire novice - 1",
-      "Primaire Ouvert initiation - 1",
-      "Primaire Ouvert récréatif - 1",
-      "Primaire ouvert - 1",
-      "Primaire Paracheer - 1",
-      "Secondaire Benjamin - 1",
-      "Secondaire Benjamin - 2",
-      "Secondaire Cadet - 2",
-      "Secondaire Cadet - 3",
-      "Secondaire Game Day - 1",
-      "Secondaire Juvénile - 3",
-      "Secondaire Juvénile - 4",
-      "Secondaire Ouvert - 1",
-      "Secondaire Ouvert - 2",
-      "Secondaire Ouvert - 2ST",
-      "Secondaire Ouvert - 3",
-      "Secondaire Ouvert - 3ST",
-      "Secondaire Ouvert initiation - 1",
-      "Secondaire Ouvert récréatif - 1",
-      "Secondaire Paracheer - 1",
-      "Universitaire - Fille - 7",
-      "Universitaire - Mixte - 4",
-      "Universitaire - Mixte - 7",
-      "Universitaire Game Day - 1",
-    ],
-  },
-  {
-    id: "specialty",
-    label: "Specialty",
-    divisions: [
-      "Duo - All Divisions - All Levels",
-      "Individual - All Divisions - All Levels",
-      "Stunt - All Divisions - All Levels",
-    ],
-  },
-];
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
 
-export const allDivisions = divisionCategories.flatMap((category) =>
-  category.divisions.map((division) => `${category.label} - ${division}`)
-);
+export const divisionCategories: DivisionCategory[] = divisionCatalog.map(category => {
+  const divisions = category.tiers.flatMap(tier =>
+    tier.levels.map(level => `${tier.name} - ${level}`)
+  )
+
+  return {
+    id: slugify(category.name),
+    label: category.name,
+    divisions,
+  }
+})
+
+export const allDivisions = divisionCategories.flatMap(category =>
+  category.divisions.map(division => `${category.label} - ${division}`)
+)

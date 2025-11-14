@@ -9,6 +9,7 @@ import type { RegistrationEntry } from '@/components/features/registration/flow/
 import type { DivisionPricing } from '@/types/events'
 import { formatCurrency, formatFriendlyDate } from '@/utils/format'
 import { resolveDivisionPricing } from '@/utils/pricing'
+import { getEntryMemberCount } from '@/utils/registration-stats'
 
 type TaxSummary = {
   gstNumber: string
@@ -35,11 +36,20 @@ export function PricingBreakdownCard({
   ...panelProps
 }: PricingBreakdownCardProps) {
   return (
-    <Card className={cn('rounded-3xl p-4 shadow-sm', className)}>
+    <Card className={cn('rounded-3xl p-6 shadow-sm', className)}>
       <PricingBreakdownPanel {...panelProps} />
-      {children ? <div className="mt-4">{children}</div> : null}
+      {children ? <div>{children}</div> : null}
     </Card>
   )
+}
+
+// Default tax configuration for Quebec
+const DEFAULT_TAX_SUMMARY: TaxSummary = {
+  gstNumber: '122351737TQ001',
+  qstNumber: '784571093RT0001',
+  baseAmount: 0,
+  gstRate: 0.05,
+  qstRate: 0.09975,
 }
 
 // Section nickname: "Pricing Snapshot" – summarises totals and pricing tiers.
@@ -111,71 +121,58 @@ export function PricingBreakdownPanel({
 
   const hasAnySummary = pricingSummary.length > 0
 
+  // Use provided tax summary or default, with actual baseAmount
+  const activeTaxSummary = useMemo(() => {
+    const base = taxSummary || DEFAULT_TAX_SUMMARY
+    return {
+      ...base,
+      baseAmount: totalDue,
+    }
+  }, [taxSummary, totalDue])
+
   return (
-    <div className="space-y-3 text-sm">
+    <div className="space-y-3 body-text">
       {hasAnySummary ? (
         pricingSummary.map(item => (
           <div key={item.division} className="space-y-1">
             <div className="text-foreground flex items-center justify-between">
-              <span>{item.division}</span>
-              <span>{formatCurrency(item.total)}</span>
+              <span className="body-text">{item.division}</span>
+              <span className="body-text">{formatCurrency(item.total)}</span>
             </div>
-            <div className="text-muted-foreground flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-muted-foreground flex flex-col gap-1 body-small sm:flex-row sm:items-center sm:justify-between">
               <span>{item.unitLabel}</span>
               <span className="sm:text-right">{item.tierLabel}</span>
             </div>
           </div>
         ))
       ) : (
-        <div className="border-border/60 text-muted-foreground rounded-xl border border-dashed p-4 text-xs">
+        <div className="border-border/60 text-muted-foreground rounded-xl border border-dashed p-4 body-text">
           Add teams to see pricing breakdown by division.
         </div>
       )}
       {hasUnpricedDivision && (
-        <p className="text-xs text-amber-600">
+        <p className="body-text text-amber-600">
           Pricing is still pending for at least one division and is excluded from the total.
         </p>
       )}
       <div className="border-border/60 text-foreground space-y-2 border-t pt-3">
-        <div className="flex items-center justify-between">
-          <span>Total teams</span>
-          <span>{totalTeams}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span>Total participants</span>
-          <span>{totalParticipants}</span>
-        </div>
-        <div className="flex items-center justify-between text-base font-semibold">
+        <div className="flex items-center justify-between body-text">
           <span>Subtotal</span>
           <span>{formatCurrency(totalDue)}</span>
         </div>
-      </div>
-      {taxSummary ? (
-        <div className="border-border/60 mt-4 rounded-xl border px-4 py-3 text-sm">
-          <div className="flex flex-col gap-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span>GST ({Math.round(taxSummary.gstRate * 100)}%)</span>
-              <span>{formatCurrency(taxSummary.baseAmount * taxSummary.gstRate)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>QST ({Math.round(taxSummary.qstRate * 100)}%)</span>
-              <span>{formatCurrency(taxSummary.baseAmount * taxSummary.qstRate)}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-base font-semibold">
-              <span>Total due</span>
-              <span>
-                {formatCurrency(
-                  taxSummary.baseAmount * (1 + taxSummary.gstRate + taxSummary.qstRate)
-                )}
-              </span>
-            </div>
-          </div>
+        <div className="flex items-center justify-between body-text">
+          <span>Tax Amount</span>
+          <span>{formatCurrency(activeTaxSummary.baseAmount * (activeTaxSummary.gstRate + activeTaxSummary.qstRate))}</span>
         </div>
-      ) : null}
+        <div className="flex items-center justify-between">
+          <span className="body-large font-semibold">Total</span>
+          <span className="body-large font-semibold">
+            {formatCurrency(
+              activeTaxSummary.baseAmount * (1 + activeTaxSummary.gstRate + activeTaxSummary.qstRate)
+            )}
+          </span>
+        </div>
+      </div>
     </div>
   )
-}
-
-function getEntryMemberCount(entry: RegistrationEntry): number {
-  return entry.members?.length ?? entry.teamSize ?? 0
 }

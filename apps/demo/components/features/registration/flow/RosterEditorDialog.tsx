@@ -124,9 +124,10 @@ export type RosterEditorDialogProps = {
   members: RegistrationMember[]
   teamName: string
   onSave: (members: RegistrationMember[]) => void
+  onDeleteTeam?: () => void
 }
 
-export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSave }: RosterEditorDialogProps) {
+export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSave, onDeleteTeam }: RosterEditorDialogProps) {
   const normalizedMembers = useMemo(() => buildEditableRows(members), [members])
   const initialRowsRef = useRef<EditableRosterRow[]>(normalizedMembers)
   const [rows, setRows] = useState<EditableRosterRow[]>(normalizedMembers)
@@ -396,15 +397,30 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col gap-2 border-t border-border/60 bg-background px-6 pb-6 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
+          <DialogFooter className="flex flex-col gap-3 border-t border-border/60 bg-background px-6 pb-6 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
+            <div className="flex flex-1 items-center sm:justify-start">
+              {onDeleteTeam ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => {
+                    onDeleteTeam()
+                    onOpenChange(false)
+                  }}
+                >
+                  Remove team
+                </Button>
+              ) : null}
+            </div>
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
+              <Button type="button" onClick={handleSave} disabled={!hasChanges}>
+                Save changes
+              </Button>
             </div>
-            <Button type="button" onClick={handleSave} disabled={!hasChanges}>
-              Save changes
-            </Button>
           </DialogFooter>
         </div>
       </DialogContent>

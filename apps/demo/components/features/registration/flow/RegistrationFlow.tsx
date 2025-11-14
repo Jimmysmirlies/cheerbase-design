@@ -12,25 +12,40 @@
  * - Queued teams panel with division-grouped cards and totals footer
  * - Footer actions to clear the queue or submit registrations
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Input } from '@workspace/ui/shadcn/input'
+import { Badge } from '@workspace/ui/shadcn/badge'
+import { cn } from '@workspace/ui/lib/utils'
 
-import { ChevronDownIcon, PenSquareIcon, RefreshCwIcon, SearchIcon, Trash2Icon } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import {
+  SearchIcon,
+  UploadIcon,
+  UserPlusIcon,
+  UsersIcon,
+  LayersIcon,
+  WalletIcon,
+  CheckCircle2Icon,
+  ChevronDownIcon,
+} from 'lucide-react'
+import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { toast } from '@workspace/ui/shadcn/sonner'
 
-import { PricingBreakdownCard, PricingBreakdownPanel } from '@/components/ui/cards/PricingBreakdownCard'
+import { BulkUploadDialog } from '@/components/features/registration/bulk/BulkUploadDialog'
+import { DivisionQueueSection } from './DivisionQueueSection'
 import type { Person, TeamRoster } from '@/types/club'
 import type { DivisionPricing } from '@/types/events'
-import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
+// formatting helpers used in TeamRow and other subcomponents
+// (kept unused imports out of this module)
 import { buildSnapshotHash, isRegistrationLocked } from '@/utils/registrations'
 
-import { FinalizeRegistrationDialog } from './FinalizeRegistrationDialog'
 import { RegisterTeamModal } from './RegisterTeamModal'
-import { RosterEditorDialog } from './RosterEditorDialog'
-import { DEFAULT_ROLE, RegistrationEntry, RegistrationMember, TeamOption } from './types'
+// TeamRow used in DivisionQueueSection; keep import local to that file
+import { DEFAULT_ROLE, RegistrationEntry, RegistrationMember, TeamOption, EntryStatusMeta } from './types'
+import { getEntryMemberCount, groupEntriesByDivision } from '@/utils/registration-stats'
+import { PricingReviewPage } from './PricingReviewPage'
 
 export type { TeamOption, RegistrationMember, RegistrationEntry } from './types'
 
@@ -39,9 +54,17 @@ export type RegistrationFlowProps = {
   teams: TeamOption[]
   rosters?: TeamRoster[]
   initialEntries?: RegistrationEntry[]
-  onConfirm?: (entries: RegistrationEntry[]) => void
   finalizeConfig?: Partial<FinalizeConfig>
   readOnly?: boolean
+  backHref?: string
+  onSubmit?: () => void
+  hideStats?: boolean
+  hideSubmitButton?: boolean
+  showPaymentMethods?: boolean
+  stepLabels?: {
+    step1: string
+    step2: string
+  }
 }
 
 type FinalizeConfig = {
@@ -80,15 +103,29 @@ export function RegistrationFlow({
   teams,
   rosters,
   initialEntries = [],
-  onConfirm,
   finalizeConfig,
   readOnly = false,
+  backHref,
+  onSubmit,
+  hideStats = false,
+  hideSubmitButton = false,
+  showPaymentMethods = false,
+  stepLabels = {
+    step1: 'Step 1 · Register Teams',
+    step2: 'Step 2 · Pricing',
+  },
 }: RegistrationFlowProps) {
   const divisionOptions = useMemo(
     () => Array.from(new Set(divisionPricing.map(option => option.name))).filter(Boolean),
     [divisionPricing]
   )
   const teamOptions = useMemo(() => teams.filter(Boolean), [teams])
+  const teamOptionsById = useMemo(() => {
+    return teamOptions.reduce<Record<string, TeamOption>>((acc, team) => {
+      acc[team.id] = team
+      return acc
+    }, {})
+  }, [teamOptions])
   const rosterMetaByTeamId = useMemo(() => {
     return (rosters ?? []).reduce<Record<string, { roster: TeamRoster; updatedAt?: string; hash?: string }>>(
       (acc, roster) => {
@@ -106,7 +143,10 @@ export function RegistrationFlow({
   const [entries, setEntries] = useState<RegistrationEntry[]>(initialEntries)
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isFinalizeDialogOpen, setIsFinalizeDialogOpen] = useState(false)
+  const [isBulkOpen, setIsBulkOpen] = useState(false)
+  const [activeStep, setActiveStep] = useState<'register' | 'pricing'>('register')
+  const searchParamsNav = useSearchParams()
+  const pathname = usePathname()
 
   const router = useRouter()
   const resolvedFinalizeConfig = useMemo<FinalizeConfig>(
@@ -134,6 +174,68 @@ export function RegistrationFlow({
     () => groupEntriesByDivision(filteredEntries),
     [filteredEntries]
   )
+  const divisionPriceMap = useMemo(() => {
+    return divisionPricing.reduce<Record<string, number>>((acc, option) => {
+      const price = option.regular?.price ?? option.earlyBird?.price ?? 0
+      acc[option.name] = price
+      return acc
+    }, {})
+  }, [divisionPricing])
+  const totalParticipants = useMemo(() => {
+    return entries.reduce((sum, entry) => sum + getEntryMemberCount(entry), 0)
+  }, [entries])
+  const totalCost = useMemo(() => {
+    return entries.reduce((sum, entry) => {
+      const count = getEntryMemberCount(entry)
+      const rate = divisionPriceMap[entry.division] ?? 0
+      return sum + count * rate
+    }, 0)
+  }, [entries, divisionPriceMap])
+  const totalTeams = entries.length
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 2,
+      }),
+    []
+  )
+  const stats = useMemo(
+    () => [
+      {
+        label: 'Total Participants',
+        value: totalParticipants.toLocaleString(),
+        icon: UsersIcon,
+      },
+      {
+        label: 'Total Teams',
+        value: totalTeams.toLocaleString(),
+        icon: LayersIcon,
+      },
+      {
+        label: 'Current Cost (Before Taxes)',
+        value: currencyFormatter.format(totalCost),
+        icon: WalletIcon,
+      },
+    ],
+    [currencyFormatter, totalCost, totalParticipants, totalTeams]
+  )
+
+  const getTeamLabel = useCallback(
+    (entry: RegistrationEntry) => {
+      if (entry.teamName) return entry.teamName
+      if (entry.teamId) {
+        const team = teamOptionsById[entry.teamId]
+        if (team) {
+          return team.name
+        }
+      }
+      if (entry.fileName) return entry.fileName
+      return 'Team'
+    },
+    [teamOptionsById]
+  )
 
   const handleAddEntry = (entry: RegistrationEntry) => {
     if (isFlowReadOnly) return
@@ -141,10 +243,12 @@ export function RegistrationFlow({
       const meta = rosterMetaByTeamId[entry.teamId]
       const rosterMembers = meta?.roster ? flattenRosterMembers(meta.roster) : entry.members ?? []
       const snapshotTakenAt = new Date().toISOString()
+      const teamLabel = entry.teamName ?? teamOptionsById[entry.teamId]?.name ?? 'Team'
       setEntries(prev => [
         ...prev,
         {
           ...entry,
+          teamName: teamLabel,
           members: rosterMembers,
           teamSize: rosterMembers.length,
           snapshotTakenAt,
@@ -152,10 +256,13 @@ export function RegistrationFlow({
           snapshotRosterHash: meta?.hash,
         },
       ])
+      toast.success(`${teamLabel} added to registration`)
       return
     }
 
+    const label = getTeamLabel(entry)
     setEntries(prev => [...prev, entry])
+    toast.success(`${label} added to registration`)
   }
 
   const handleRemoveEntry = useCallback(
@@ -198,30 +305,6 @@ export function RegistrationFlow({
     )
   }
 
-  const handleSyncEntryFromTeam = useCallback(
-    (id: string) => {
-      if (isFlowReadOnly) return
-      setEntries(prev =>
-        prev.map(entry => {
-          if (entry.id !== id || entry.mode !== 'existing' || !entry.teamId) {
-            return entry
-          }
-          const meta = rosterMetaByTeamId[entry.teamId]
-          if (!meta?.roster) return entry
-          const nextMembers = flattenRosterMembers(meta.roster)
-          return {
-            ...entry,
-            members: nextMembers,
-            teamSize: nextMembers.length,
-            snapshotTakenAt: new Date().toISOString(),
-            snapshotRosterHash: meta.hash,
-          }
-        })
-      )
-    },
-    [isFlowReadOnly, rosterMetaByTeamId]
-  )
-
   const getEntryStatus = useCallback(
     (entry: RegistrationEntry): EntryStatusMeta => {
       const isLocked =
@@ -247,396 +330,253 @@ export function RegistrationFlow({
     [isFlowReadOnly]
   )
 
-  const handlePrimaryAction = useCallback(() => {
-    if (resolvedFinalizeConfig.onCtaHref) {
-      if (typeof window !== 'undefined') {
-        window.location.href = resolvedFinalizeConfig.onCtaHref
-      }
-      return
-    }
-    if (isFlowReadOnly) return
-    setIsFinalizeDialogOpen(true)
-  }, [isFlowReadOnly, resolvedFinalizeConfig])
+  useEffect(() => {
+    const a = searchParamsNav.get('action')
+    setIsModalOpen(a === 'register')
+    setIsBulkOpen(a === 'bulk')
+  }, [searchParamsNav])
 
-  const primaryButtonDisabled =
-    resolvedFinalizeConfig.ctaDisabled ?? (!entries.length && !isFlowReadOnly && !resolvedFinalizeConfig.onCtaHref)
+  const handlePricingBack = useCallback(() => {
+    setActiveStep('register')
+  }, [])
 
-  const handleConfirm = () => {
+  const handleReview = useCallback(() => {
     if (!entries.length || isFlowReadOnly) return
-    onConfirm?.(entries)
-    setEntries([])
-    setIsFinalizeDialogOpen(false)
-    if (resolvedFinalizeConfig.redirectPath) {
-      router.push(resolvedFinalizeConfig.redirectPath)
-    }
-  }
+    setActiveStep('pricing')
+  }, [entries.length, isFlowReadOnly])
 
   return (
-    <section className="w-full">
-      <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start lg:gap-8 lg:space-y-0">
-        <div className="space-y-8">
-          {/* Flow Shell · Search + register */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:max-w-md">
-              <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-              <Input
-                type="search"
-                value={searchTerm}
-                onChange={event => setSearchTerm(event.target.value)}
-                placeholder="Search registered teams or participants"
-                className="w-full pl-9"
+    <section className="w-full space-y-6">
+      {/* Step 1 */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            className="flex flex-1 items-center justify-between text-left"
+            onClick={() => setActiveStep('register')}
+            aria-expanded={activeStep === 'register'}
+          >
+            <div className="flex items-center gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {stepLabels.step1}
+                </p>
+              </div>
+              {activeStep === 'register' ? (
+                <Badge variant="outline" className="text-xs font-semibold">In Progress</Badge>
+              ) : (
+                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold">
+                  <CheckCircle2Icon className="size-3" aria-hidden="true" />
+                  Completed
+                </Badge>
+              )}
+            </div>
+          </button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={activeStep === 'register' ? 'Collapse step' : 'Expand step'}
+            onClick={() => setActiveStep('register')}
+          >
+            <ChevronDownIcon
+              className={cn('size-4 transition-transform', activeStep === 'register' ? 'rotate-180' : 'rotate-0')}
+            />
+          </Button>
+        </div>
+        <div
+          className={cn(
+            'overflow-hidden transition-all duration-500',
+            activeStep === 'register'
+              ? 'max-h-[4000px] opacity-100 translate-y-0'
+              : 'pointer-events-none max-h-0 -translate-y-2 opacity-0'
+          )}
+        >
+          <div className="space-y-8 pt-4">
+            {!hideStats && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {stats.map(stat => (
+                  <div
+                    key={stat.label}
+                    className="border-border/60 bg-card/70 text-card-foreground flex items-center justify-between rounded-2xl border px-4 py-3 shadow-sm"
+                  >
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {stat.label}
+                      </p>
+                      <p className="text-2xl font-semibold">{stat.value}</p>
+                    </div>
+                    <stat.icon className="text-muted-foreground size-5" aria-hidden="true" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative w-full sm:max-w-md">
+                  <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+                  <Input
+                    type="search"
+                    value={searchTerm}
+                    onChange={event => setSearchTerm(event.target.value)}
+                    placeholder="Search registered teams or participants"
+                    className="w-full pl-9"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (isFlowReadOnly) return
+                      const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
+                      params.set('action', 'register')
+                      router.replace(`${pathname}?${params.toString()}`)
+                      setIsModalOpen(true)
+                    }}
+                    disabled={!divisionOptions.length || isFlowReadOnly}
+                  >
+                    <UserPlusIcon className="mr-2 size-4" />
+                    Register Team
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (isFlowReadOnly) return
+                      const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
+                      params.set('action', 'bulk')
+                      router.replace(`${pathname}?${params.toString()}`)
+                      setIsBulkOpen(true)
+                    }}
+                    disabled={isFlowReadOnly}
+                  >
+                    <UploadIcon className="mr-2 size-4" />
+                    Bulk Upload
+                  </Button>
+                </div>
+              </div>
+
+              <DivisionQueueSection
+                entriesByDivision={groupedEntries}
+                filteredEntriesByDivision={filteredGroupedEntries}
+                allEntries={entries}
+                divisionOptions={divisionOptions}
+                searchTerm={sanitizedSearch}
+                onRemoveEntry={handleRemoveEntry}
+                onUpdateEntryMembers={handleUpdateEntryMembers}
+                readOnly={isFlowReadOnly}
+                getEntryStatus={getEntryStatus}
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => !isFlowReadOnly && setIsModalOpen(true)}
-              disabled={!divisionOptions.length || isFlowReadOnly}
-            >
-              Register team
-            </Button>
+
+            <div className="flex justify-end">
+              <Button className="w-fit" onClick={handleReview} disabled={!entries.length || isFlowReadOnly}>
+                Review Pricing
+              </Button>
+            </div>
           </div>
-
-          <DivisionQueueSection
-            entriesByDivision={groupedEntries}
-            filteredEntriesByDivision={filteredGroupedEntries}
-            allEntries={entries}
-            divisionOptions={divisionOptions}
-            searchTerm={sanitizedSearch}
-            onRemoveEntry={handleRemoveEntry}
-            onUpdateEntryMembers={handleUpdateEntryMembers}
-            onSyncEntry={handleSyncEntryFromTeam}
-            readOnly={isFlowReadOnly}
-            getEntryStatus={getEntryStatus}
-          />
-
-          <footer className="border-border/60 border-t pt-4">
-            <p className="text-muted-foreground text-xs">
-              Finalize once all divisions have assigned registrants.
-            </p>
-          </footer>
         </div>
+      </div>
 
-        <aside className="mt-8 flex flex-col gap-4 lg:mt-0 lg:sticky lg:top-24 self-start">
-          {resolvedFinalizeConfig.summaryCard ?? null}
-          <PricingBreakdownCard
-            entriesByDivision={groupedEntries}
-            divisionPricing={divisionPricing}
-            taxSummary={resolvedFinalizeConfig.taxSummary}
+      {/* Step 2 */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-4">
+          <button
+            type="button"
+            className="flex flex-1 items-center justify-between text-left"
+            onClick={() => {
+              if (!entries.length) return
+              setActiveStep('pricing')
+            }}
+            aria-expanded={activeStep === 'pricing'}
+            disabled={!entries.length}
           >
-            <Button
-              type="button"
-              className="w-full"
-              onClick={handlePrimaryAction}
-              disabled={primaryButtonDisabled}
-            >
-              {resolvedFinalizeConfig.ctaLabel}
-            </Button>
-          </PricingBreakdownCard>
-        </aside>
+            <div className="flex items-center gap-3">
+              <div>
+                <p
+                  className={cn(
+                    'text-sm font-semibold uppercase tracking-wide',
+                    entries.length ? 'text-muted-foreground' : 'text-muted-foreground/60'
+                  )}
+                >
+                  {stepLabels.step2}
+                </p>
+              </div>
+              <Badge variant={activeStep === 'pricing' ? 'outline' : 'secondary'} className="text-xs font-semibold">
+                {activeStep === 'pricing' ? 'In Progress' : entries.length ? 'Pending' : 'Awaiting Teams'}
+              </Badge>
+            </div>
+          </button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={activeStep === 'pricing' ? 'Collapse step' : 'Expand step'}
+            onClick={() => {
+              if (!entries.length) return
+              setActiveStep('pricing')
+            }}
+            disabled={!entries.length}
+          >
+            <ChevronDownIcon
+              className={cn('size-4 transition-transform', activeStep === 'pricing' ? 'rotate-180' : 'rotate-0')}
+            />
+          </Button>
+        </div>
+        <div
+          className={cn(
+            'overflow-hidden transition-all duration-500',
+            activeStep === 'pricing'
+              ? 'max-h-[4000px] opacity-100 translate-y-0'
+              : 'pointer-events-none max-h-0 translate-y-4 opacity-0'
+          )}
+        >
+          <div className="space-y-6 pt-4">
+            <PricingReviewPage entries={entries} divisionPricing={divisionPricing} onSubmit={onSubmit} hideSubmitButton={hideSubmitButton} showPaymentMethods={showPaymentMethods} />
+          </div>
+        </div>
       </div>
 
       <RegisterTeamModal
         open={isModalOpen}
-        onOpenChange={setIsModalOpen}
+        onOpenChange={(open) => {
+          setIsModalOpen(open)
+          const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
+          if (open) params.set('action', 'register')
+          else params.delete('action')
+          const q = params.toString()
+          router.replace(q ? `${pathname}?${q}` : `${pathname}`)
+        }}
         divisions={divisionOptions}
         teams={teamOptions}
         onSubmit={handleAddEntry}
       />
-      {!resolvedFinalizeConfig.onCtaHref && !isFlowReadOnly && (
-        <FinalizeRegistrationDialog
-          open={isFinalizeDialogOpen}
-          onOpenChange={setIsFinalizeDialogOpen}
-          pricingPanel={
-            <PricingBreakdownPanel
-              entriesByDivision={groupedEntries}
-              divisionPricing={divisionPricing}
-            />
-          }
-          title={resolvedFinalizeConfig.dialogTitle}
-          description={resolvedFinalizeConfig.dialogDescription}
-          confirmLabel={resolvedFinalizeConfig.dialogConfirmLabel}
-          onConfirm={handleConfirm}
-          confirmDisabled={!entries.length}
-        />
-      )}
+      <BulkUploadDialog
+        open={isBulkOpen}
+        onOpenChange={(open) => {
+          setIsBulkOpen(open)
+          const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
+          if (open) params.set('action', 'bulk')
+          else params.delete('action')
+          const q = params.toString()
+          router.replace(q ? `${pathname}?${q}` : `${pathname}`)
+        }}
+        divisionPricing={divisionPricing}
+        teamOptions={teamOptions}
+        onImport={(newEntries) => {
+          if (isFlowReadOnly) return
+          setEntries(prev => [...prev, ...newEntries])
+        }}
+      />
     </section>
   )
 }
 
-// --- Division queue --------------------------------------------------------
-// Section nickname: "Queue Explorer" – groups divisions and keeps empty states consistent.
+// DivisionQueueSection extracted to its own file.
 
-type DivisionQueueSectionProps = {
-  entriesByDivision: Record<string, RegistrationEntry[]>
-  filteredEntriesByDivision: Record<string, RegistrationEntry[]>
-  allEntries: RegistrationEntry[]
-  divisionOptions: string[]
-  searchTerm: string
-  onRemoveEntry: (id: string) => void
-  onUpdateEntryMembers: (id: string, members: RegistrationMember[]) => void
-  onSyncEntry: (id: string) => void
-  readOnly: boolean
-  getEntryStatus: (entry: RegistrationEntry) => EntryStatusMeta
-}
-
-type EntryStatusMeta = {
-  isLocked: boolean
-  lockReason?: 'paid' | 'deadline'
-  lockMessage?: string
-}
-
-function DivisionQueueSection({
-  entriesByDivision,
-  filteredEntriesByDivision,
-  allEntries,
-  divisionOptions,
-  searchTerm,
-  onRemoveEntry,
-  onUpdateEntryMembers,
-  onSyncEntry,
-  readOnly,
-  getEntryStatus,
-}: DivisionQueueSectionProps) {
-  const baseDivisions = useMemo(() => {
-    if (divisionOptions.length) {
-      return Array.from(new Set(divisionOptions))
-    }
-    return Array.from(new Set(allEntries.map(entry => entry.division)))
-  }, [divisionOptions, allEntries])
-
-  const divisionsToRender = useMemo(() => {
-    if (!searchTerm) return baseDivisions
-    return baseDivisions.filter(division => (filteredEntriesByDivision[division]?.length ?? 0) > 0)
-  }, [baseDivisions, filteredEntriesByDivision, searchTerm])
-
-  const shouldShowGlobalEmpty = divisionsToRender.length === 0
-
-  if (shouldShowGlobalEmpty) {
-    return (
-      <div className="border-border/70 text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
-        {searchTerm
-          ? 'No teams match your search yet.'
-          : 'No teams added yet. Start by registering a team.'}
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      {divisionsToRender.map(divisionName => {
-        const divisionEntries =
-          (searchTerm
-            ? filteredEntriesByDivision[divisionName]
-            : entriesByDivision[divisionName]) ?? []
-
-        return (
-          <section key={divisionName} className="space-y-3 border-t border-border/60 pt-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-foreground">{divisionName}</p>
-              <span className="text-muted-foreground text-xs font-medium">
-                {divisionEntries.length} {divisionEntries.length === 1 ? 'team' : 'teams'}
-              </span>
-            </div>
-            {divisionEntries.length ? (
-              <div className="space-y-2">
-                {divisionEntries.map(entry => (
-                  <DivisionTeamRow
-                    key={entry.id}
-                    entry={entry}
-                    onRemove={() => onRemoveEntry(entry.id)}
-                    onUpdateMembers={members => onUpdateEntryMembers(entry.id, members)}
-                    onSyncFromTeam={
-                      !readOnly && entry.mode === 'existing' ? () => onSyncEntry(entry.id) : undefined
-                    }
-                    status={getEntryStatus(entry)}
-                    readOnly={readOnly}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="border-border/60 text-muted-foreground rounded-2xl border border-dashed p-4 text-xs">
-                No teams registered for this division yet.
-              </div>
-            )}
-          </section>
-        )
-      })}
-    </div>
-  )
-}
-
-// --- Team row --------------------------------------------------------------
-// Section nickname: "Team Capsule" – expandable roster review per team entry.
-
-type DivisionTeamRowProps = {
-  entry: RegistrationEntry
-  onRemove: () => void
-  onUpdateMembers: (members: RegistrationMember[]) => void
-  onSyncFromTeam?: () => void
-  status: EntryStatusMeta
-  readOnly: boolean
-}
-
-function DivisionTeamRow({ entry, onRemove, onUpdateMembers, onSyncFromTeam, status, readOnly }: DivisionTeamRowProps) {
-  const [expanded, setExpanded] = useState(false)
-  const [editorOpen, setEditorOpen] = useState(false)
-  const { isLocked, lockMessage } = status
-  const actionsDisabled = readOnly || isLocked
-
-  const toggleExpanded = useCallback(() => setExpanded(prev => !prev), [])
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      toggleExpanded()
-    }
-  }
-
-  const members = useMemo(() => entry.members ?? [], [entry.members])
-  const handleSaveRoster = useCallback(
-    (updatedMembers: RegistrationMember[]) => {
-      onUpdateMembers(updatedMembers)
-      setEditorOpen(false)
-    },
-    [onUpdateMembers]
-  )
-  const memberCount = members.length ? members.length : entry.teamSize ?? 0
-  const secondaryLabel =
-    entry.mode === 'existing'
-      ? memberCount
-        ? `${memberCount} members`
-        : 'Existing roster'
-      : (entry.fileName ?? 'Roster upload')
-
-  return (
-    <div className="border-border/70 bg-background/80 rounded-2xl border">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={toggleExpanded}
-        onKeyDown={handleKeyDown}
-        className="focus-visible:ring-primary/40 flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus-visible:ring-2"
-      >
-        <div className="min-w-0 flex-1">
-          <p className="text-foreground truncate text-sm font-medium">
-            {entry.teamName ?? entry.fileName ?? 'Team'}
-          </p>
-          <p className="text-muted-foreground truncate text-xs">{secondaryLabel}</p>
-          {lockMessage ? <p className="text-muted-foreground text-xs">{lockMessage}</p> : null}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={event => {
-              event.stopPropagation()
-              if (!actionsDisabled) onRemove()
-            }}
-            aria-label="Remove team"
-            disabled={actionsDisabled}
-          >
-            <Trash2Icon className="size-4" aria-hidden="true" />
-          </Button>
-          {entry.mode === 'existing' && onSyncFromTeam ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={event => {
-                event.stopPropagation()
-                if (!actionsDisabled) onSyncFromTeam()
-              }}
-              aria-label="Sync from team"
-              disabled={actionsDisabled}
-            >
-              <RefreshCwIcon className="size-4" aria-hidden="true" />
-            </Button>
-          ) : null}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={event => {
-              event.stopPropagation()
-              if (!actionsDisabled) setEditorOpen(true)
-            }}
-            aria-label="Edit roster"
-            disabled={actionsDisabled}
-          >
-            <PenSquareIcon className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={event => {
-              event.stopPropagation()
-              toggleExpanded()
-            }}
-            aria-label={expanded ? 'Collapse team details' : 'Expand team details'}
-          >
-            <ChevronDownIcon
-              className={cn('size-4 transition-transform', expanded && 'rotate-180')}
-            />
-          </Button>
-        </div>
-      </div>
-      {expanded && (
-        <div className="border-border/60 text-muted-foreground border-t text-xs">
-          {members.length ? (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto text-left text-[13px] lg:text-sm">
-                <thead className="bg-muted/40 text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-2 font-medium sm:px-4">Name</th>
-                    <th className="px-3 py-2 font-medium sm:px-4">DOB</th>
-                    <th className="px-3 py-2 font-medium sm:px-5">Email</th>
-                    <th className="px-3 py-2 font-medium sm:px-5">Phone</th>
-                    <th className="px-3 py-2 text-right font-medium sm:px-4">Role</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((member, index) => (
-                    <tr key={`${entry.id}-member-${index}`} className="border-t">
-                      <td className="text-foreground px-3 py-2 sm:px-4">{member.name}</td>
-                      <td className="px-3 py-2 sm:px-4">{formatFriendlyDate(member.dob)}</td>
-                      <td className="px-3 py-2 sm:px-5">{member.email ?? '—'}</td>
-                      <td className="px-3 py-2 sm:px-5">{formatPhoneNumber(member.phone)}</td>
-                      <td className="text-muted-foreground px-3 py-2 text-right sm:px-4">
-                        {member.type ?? '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : entry.mode === 'existing' ? (
-            <div className="p-4">
-              Roster details will be pulled from your workspace once registration is submitted.
-            </div>
-          ) : (
-            <div className="p-4">Roster file: {entry.fileName ?? 'Pending upload'}</div>
-          )}
-        </div>
-      )}
-      <RosterEditorDialog
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        members={members}
-        teamName={entry.teamName ?? entry.fileName ?? 'Team'}
-        onSave={handleSaveRoster}
-      />
-    </div>
-  )
-}
+// TeamRow extracted to its own file.
 
 // --- Utilities -------------------------------------------------------------
-
-function groupEntriesByDivision(entries: RegistrationEntry[]): Record<string, RegistrationEntry[]> {
-  return entries.reduce<Record<string, RegistrationEntry[]>>((acc, entry) => {
-    const list = acc[entry.division] ?? []
-    list.push(entry)
-    acc[entry.division] = list
-    return acc
-  }, {})
-}
 
 function flattenRosterMembers(roster?: TeamRoster): RegistrationMember[] {
   if (!roster) return []

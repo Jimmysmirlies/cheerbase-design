@@ -1,6 +1,6 @@
 import { Button } from '@workspace/ui/shadcn/button'
 
-import { ArrowLeftIcon } from 'lucide-react'
+import { ArrowLeftIcon, CalendarIcon, MapPinIcon } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -8,6 +8,7 @@ import { RegistrationFlow } from '@/components/features/registration/flow/Regist
 import { demoRosters } from '@/data/clubs/members'
 import { demoTeams } from '@/data/clubs/teams'
 import { findEventById } from '@/data/events'
+import type { Event as ShowcaseEvent } from '@/types/events'
 
 type RegisterPageParams = {
   eventId: string
@@ -24,37 +25,47 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
   }
 
   const eventId = decodeURIComponent(resolvedParams.eventId)
-  const event = findEventById(eventId)
+  const eventData = findEventById(eventId) as ShowcaseEvent | undefined
 
-  if (!event) {
+  if (!eventData) {
     notFound()
   }
 
-  const divisionPricing = event.availableDivisions ?? []
+  const eventDetails = eventData
+  const divisionPricing = eventDetails.availableDivisions ?? []
 
   return (
     <main className="bg-background text-foreground min-h-screen">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:px-10">
-        <div className="flex flex-col gap-4">
-          <Button asChild variant="link" className="-ml-2 w-fit gap-2 px-2">
-            <Link href={`/events/${encodeURIComponent(event.id)}`}>
-              <ArrowLeftIcon className="size-4" />
-              Back to competition overview
+        <header className="space-y-3">
+          <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
+            <Link
+              href={`/events/${encodeURIComponent(eventDetails.id)}`}
+              aria-label="Back to competition overview"
+            >
+              <ArrowLeftIcon className="size-5" />
             </Link>
           </Button>
-
-          <header className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{event.name}</h1>
-            <p className="text-muted-foreground text-sm">
-              {event.location} · {event.date}
-            </p>
-          </header>
-        </div>
+          <div>
+            <h1 className="heading-1 sm:text-4xl">{eventDetails.name}</h1>
+            <div className="flex flex-wrap gap-3 text-muted-foreground body-small mt-2">
+              <span className="inline-flex items-center gap-2">
+                <MapPinIcon className="size-4" aria-hidden="true" />
+                {eventDetails.location}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CalendarIcon className="size-4" aria-hidden="true" />
+                {eventDetails.date}
+              </span>
+            </div>
+          </div>
+        </header>
 
         <RegistrationFlow
           divisionPricing={divisionPricing}
           teams={demoTeams.map(({ id, name, division, size }) => ({ id, name, division, size }))}
           rosters={demoRosters}
+          backHref={`/events/${encodeURIComponent(eventDetails.id)}`}
         />
       </div>
     </main>

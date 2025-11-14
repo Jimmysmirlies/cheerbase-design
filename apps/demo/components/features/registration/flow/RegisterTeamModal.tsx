@@ -103,19 +103,13 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
           </DialogDescription>
         </DialogHeader>
 
-        <p className="text-xs text-muted-foreground mb-4">
-          Choosing an existing team captures a roster snapshot for this registration. Later edits in My Club → Teams do not
-          update the registration automatically. Once a registration is paid or the deadline passes, changes are locked and
-          adjustments must go through the event organizer (no refunds or participant total changes).
-        </p>
-
         <section className="mb-6 space-y-4">
           <div className="space-y-2">
             <Label className="text-muted-foreground text-xs uppercase tracking-wide">Team source</Label>
             <RadioGroup
               value={source}
               onValueChange={value => setSource(value as 'existing' | 'upload')}
-              className="grid gap-2 sm:grid-cols-2"
+              className="grid gap-2"
             >
               <SourceCard
                 value="existing"

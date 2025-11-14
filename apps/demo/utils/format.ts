@@ -1,8 +1,8 @@
-export function formatFriendlyDate(value?: string) {
+export function formatFriendlyDate(value?: string | Date): string {
   if (!value) return "—";
-  const parsed = new Date(value);
+  const parsed = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(parsed.getTime())) {
-    return value;
+    return typeof value === "string" ? value : value.toISOString();
   }
   return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }

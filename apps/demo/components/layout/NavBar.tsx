@@ -62,17 +62,14 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
           className="flex w-full items-center gap-4 px-4 py-4 sm:px-6"
           style={{
             ...getGlassCardStyle({ showShadow: false }),
-            borderRadius: 0,
-            borderColor: 'var(--glass-border)',
-            borderWidth: '0 0 1px 0',
           }}
         >
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span className="bg-primary text-primary-foreground inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold">
               R
             </span>
             <span className="text-primary text-xl font-semibold tracking-normal">cheerbase</span>
-          </div>
+          </Link>
           {/* Search (optional) */}
           <div className="flex flex-1 justify-center">
             {showSearch ? (
