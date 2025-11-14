@@ -1,5 +1,5 @@
-export { Hero } from './hero/Hero'
-export type { HeroProps, HeroSlide } from './hero/Hero'
+export { Hero } from './hero/hero'
+export type { HeroProps, HeroSlide } from './hero/hero'
 export { EventHeroCarousel } from './hero/EventHeroCarousel'
 export { OrganizerCard } from './cards/OrganizerCard'
 export { EventCard } from './cards/EventCard'
