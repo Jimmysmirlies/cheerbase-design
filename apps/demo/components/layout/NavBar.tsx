@@ -25,12 +25,14 @@ import {
   DropdownMenuTrigger,
 } from '@workspace/ui/shadcn/dropdown-menu'
 import { Input } from '@workspace/ui/shadcn/input'
+import { cn } from '@workspace/ui/lib/utils'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { getGlassCardStyle } from '@/components/ui/glass/glass-card-style'
+import { useScrollPosition } from '@/hooks/useScrollPosition'
 
 type NavBarProps = {
   showSearch?: boolean
@@ -41,6 +43,7 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
   const router = useRouter()
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [role, setRole] = useState<null | 'club_owner' | 'organizer'>(null)
+  const isScrolled = useScrollPosition(50)
 
   // Initialize demo auth state from localStorage
   useEffect(() => {
@@ -57,12 +60,13 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
   return (
     <>
       {/* Sticky header: brand, search, and primary nav links */}
-      <header className="sticky top-0 z-30 border-b border-transparent">
+      <header className={cn('sticky top-0 z-30 px-4 transition-all duration-[2000ms] ease-out sm:px-6', isScrolled && 'pt-4')}>
         <div
-          className="flex w-full items-center gap-4 px-4 py-4 sm:px-6"
-          style={{
-            ...getGlassCardStyle({ showShadow: false }),
-          }}
+          className={cn(
+            'mx-auto flex w-full items-center gap-4 px-4 py-4 transition-all duration-[2000ms] ease-out sm:px-6',
+            isScrolled && 'max-w-8xl rounded-2xl shadow-lg'
+          )}
+          style={isScrolled ? getGlassCardStyle({ showShadow: false }) : undefined}
         >
           <Link href="/" className="flex items-center gap-2">
             <span className="bg-primary text-primary-foreground inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold">
@@ -144,9 +148,6 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
               <>
                 <Link className="hover:text-foreground" href="/clubs">
                   My Club
-                </Link>
-                <Link className="hover:text-foreground" href="/events">
-                  Registered Events
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

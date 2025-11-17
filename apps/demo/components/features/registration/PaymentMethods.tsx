@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { MailIcon, CreditCardIcon, ArrowLeftRightIcon } from 'lucide-react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Card, CardHeader, CardContent } from '@workspace/ui/shadcn/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
 
 export type PaymentMethod = {
   id: string
@@ -98,5 +99,59 @@ export function PaymentMethodsCard({
         })}
       </CardContent>
     </Card>
+  )
+}
+
+type PaymentMethodsDialogProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  methods?: PaymentMethod[]
+}
+
+export function PaymentMethodsDialog({
+  open,
+  onOpenChange,
+  methods = DEFAULT_PAYMENT_METHODS,
+}: PaymentMethodsDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Payment Methods</DialogTitle>
+          <DialogDescription>
+            Choose your preferred payment method below
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          {methods.map(method => {
+            const Icon = method.icon
+            return (
+              <div key={method.id} className="rounded-lg border border-border/60 p-4">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-full bg-primary/10 p-2">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="heading-5">{method.type}</h3>
+                </div>
+                <ul className="ml-9 space-y-2">
+                  {method.instructions.map((instruction, index) => (
+                    <li key={index} className="body-small text-muted-foreground">
+                      • {instruction}
+                    </li>
+                  ))}
+                </ul>
+                {method.action && (
+                  <div className="ml-9 mt-4">
+                    <Button asChild size="sm">
+                      <Link href={method.action.href}>{method.action.label}</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

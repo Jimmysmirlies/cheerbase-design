@@ -68,7 +68,7 @@ export function EventCard({
       {/* Meta */}
       <CardContent className={cn('flex flex-1 flex-col px-6 py-0', isCompact ? 'gap-4' : 'gap-5')}>
         <div className={cn('space-y-2', isCompact && 'space-y-1.5')}>
-          <h3 className={cn('text-foreground font-semibold', isCompact ? 'text-base' : 'text-lg')}>
+          <h3 className={cn('text-foreground', isCompact ? 'text-base font-semibold leading-tight' : 'heading-4')}>
             {title}
           </h3>
           <p className={cn('text-muted-foreground', isCompact ? 'text-xs' : 'text-sm')}>
@@ -97,7 +97,7 @@ export function EventCard({
       {/* Actions */}
       <CardFooter
         className={cn(
-          'border-border/80 mt-auto flex items-center justify-between border-t p-6 pt-4',
+          'border-border/80 mt-auto flex items-center justify-between border-t !px-6 !py-4',
           isCompact && 'p-5 pt-3'
         )}
       >

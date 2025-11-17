@@ -4,12 +4,13 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack
 
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
-import { DatePicker } from '@workspace/ui/shadcn/date-picker'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
 import { Input } from '@workspace/ui/shadcn/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@workspace/ui/shadcn/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@workspace/ui/shadcn/popover'
+import { Calendar } from '@workspace/ui/shadcn/calendar'
 
-import { Trash2Icon } from 'lucide-react'
+import { CalendarIcon, Trash2Icon } from 'lucide-react'
 
 import type { RegistrationMember } from './types'
 import { DEFAULT_ROLE, ROLE_OPTIONS } from './types'
@@ -193,17 +194,69 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
       {
         header: 'DOB',
         accessorKey: 'dob',
-        cell: ({ getValue, row }) => (
-          <DatePicker
-            date={parseDobValue(getValue<string>() ?? '')}
-            onDateChange={nextDate => handleCellChange(row.index, 'dob', formatDobValue(nextDate))}
-            placeholder="YYYY-MM-DD"
-            className="h-8 px-3 text-sm font-normal"
-            captionLayout="dropdown"
-            fromYear={earliestYear}
-            toYear={currentYear}
-          />
-        ),
+        cell: ({ getValue, row }) => {
+          const value = getValue<string>() ?? ''
+          const parsedDate = parseDobValue(value)
+          const [open, setOpen] = useState(false)
+
+          const handleDobChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+            const input = event.target.value
+            // Remove all non-digit characters
+            const digitsOnly = input.replace(/\D/g, '')
+
+            // Auto-format as YYYY-MM-DD
+            let formatted = digitsOnly
+            if (digitsOnly.length >= 4) {
+              formatted = digitsOnly.slice(0, 4)
+              if (digitsOnly.length >= 5) {
+                formatted += '-' + digitsOnly.slice(4, 6)
+              }
+              if (digitsOnly.length >= 7) {
+                formatted += '-' + digitsOnly.slice(6, 8)
+              }
+            }
+
+            handleCellChange(row.index, 'dob', formatted)
+          }
+
+          return (
+            <div className="relative">
+              <Input
+                value={value}
+                onChange={handleDobChange}
+                placeholder="YYYY-MM-DD"
+                className="h-8 pr-9"
+                maxLength={10}
+              />
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-8 w-8 hover:bg-transparent"
+                    type="button"
+                  >
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={parsedDate}
+                    onSelect={nextDate => {
+                      handleCellChange(row.index, 'dob', formatDobValue(nextDate))
+                      setOpen(false)
+                    }}
+                    initialFocus
+                    captionLayout="dropdown"
+                    fromYear={earliestYear}
+                    toYear={currentYear}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )
+        },
       },
       {
         header: 'Email',
@@ -309,7 +362,7 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[90vw] sm:max-w-[90vw] lg:max-w-[72rem] xl:max-w-[80rem] rounded-2xl gap-0 p-0">
+      <DialogContent className="w-full max-w-[90vw] sm:max-w-[90vw] lg:max-w-[72rem] xl:max-w-[80rem] rounded-2xl gap-0 p-0 overflow-hidden">
         <div className="flex h-[82vh] flex-col overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4">
             <DialogTitle>Edit roster</DialogTitle>
@@ -323,7 +376,7 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="button" size="sm" onClick={handleAddRow}>
-                  Add row
+                  Add Member
                 </Button>
                 <Button type="button" size="sm" variant="outline" onClick={handleDuplicateLast} disabled={!rows.length}>
                   Duplicate last row
@@ -397,7 +450,7 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col gap-3 border-t border-border/60 bg-background px-6 pb-6 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
+          <DialogFooter className="flex flex-col gap-3 border-t border-border/60 bg-background !p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
             <div className="flex flex-1 items-center sm:justify-start">
               {onDeleteTeam ? (
                 <Button

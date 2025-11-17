@@ -4,17 +4,8 @@ import { useMemo } from 'react'
 
 import type { RegistrationEntry, RegistrationMember, EntryStatusMeta } from './types'
 import { TeamRow } from './TeamRow'
-import { divisionCatalog } from '@/data/divisions'
-import { Badge } from '@workspace/ui/shadcn/badge'
 import { Card, CardContent, CardHeader } from '@workspace/ui/shadcn/card'
-
-const divisionLookup = new Map<string, string>(
-  divisionCatalog
-    .map(category =>
-      category.tiers.map(tier => [`${category.name} - ${tier.name}`, category.name] as const)
-    )
-    .flat()
-)
+import { UsersIcon } from 'lucide-react'
 
 export type DivisionQueueSectionProps = {
   entriesByDivision: Record<string, RegistrationEntry[]>
@@ -76,9 +67,6 @@ export function DivisionQueueSection({
             <CardHeader className="border-border/60 flex items-center justify-between border-b !px-6 !py-4">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="heading-4">{divisionName}</p>
-                <Badge variant="secondary" className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide">
-                  {divisionLookup.get(divisionName) ?? divisionName.split(' - ')[0]} Division
-                </Badge>
               </div>
               <span className={`body-small font-medium ${divisionEntries.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
                 {divisionEntries.length} {divisionEntries.length === 1 ? 'team' : 'teams'}
@@ -97,7 +85,8 @@ export function DivisionQueueSection({
                   />
                 ))
               ) : (
-                <div className="border-border/60 text-muted-foreground border border-dashed p-4 body-small">
+                <div className="border-border/60 text-muted-foreground flex flex-col items-center gap-3 border border-dashed p-8 text-center body-small">
+                  <UsersIcon className="size-8 text-muted-foreground/40" />
                   No teams registered for this division yet.
                 </div>
               )}

@@ -29,7 +29,7 @@ export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
   return (
     <section className="bg-background px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-muted/20">
+        <div className="relative overflow-hidden rounded-3xl bg-muted/20">
           <div
             className="flex h-full w-full transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}

@@ -30,7 +30,7 @@ import {
   TrophyIcon,
 } from "lucide-react";
 
-import { EventHeroCarousel } from "@/components/ui";
+import { EventHeroCarousel, FadeInSection } from "@/components/ui";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
 import { findEventById, listEvents } from "@/data/events";
 import { buildEventGalleryImages } from "./image-gallery";
@@ -140,7 +140,8 @@ export default async function EventPage({ params }: EventPageProps) {
 
       <section className="mx-auto grid w-full max-w-7xl gap-10 px-6 pb-16 pt-6 sm:px-10 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         <article className="space-y-8">
-          <header className="space-y-4">
+          <FadeInSection>
+            <header className="space-y-4">
             <Badge variant="outline" className="text-xs uppercase tracking-wide">
               {event.type}
             </Badge>
@@ -173,17 +174,21 @@ export default async function EventPage({ params }: EventPageProps) {
               ) : null}
             </div>
           </header>
+          </FadeInSection>
 
-          <section className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <FadeInSection delay={100}>
+            <section className="space-y-3 text-sm leading-relaxed text-muted-foreground">
             <h2 className="text-foreground text-lg font-semibold">Overview</h2>
             <p>
               {event.description} Added amenities include expanded warm-up rotations, on-site athletic trainers,
               backstage video replay, and hospitality lounges for club directors. Expect curated judges feedback, vendor
-              experiences, and a champion’s parade following finals.
+              experiences, and a champion's parade following finals.
             </p>
           </section>
+          </FadeInSection>
 
-          <section className="space-y-4 text-sm text-muted-foreground">
+          <FadeInSection delay={200}>
+            <section className="space-y-4 text-sm text-muted-foreground">
             <h2 className="text-foreground text-lg font-semibold">Location</h2>
             <div className="grid gap-4 rounded-3xl border border-dashed border-border/60 p-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
               <div className="space-y-2">
@@ -205,8 +210,10 @@ export default async function EventPage({ params }: EventPageProps) {
               </div>
             </div>
           </section>
+          </FadeInSection>
 
-          <section className="space-y-4">
+          <FadeInSection delay={300}>
+            <section className="space-y-4">
             <h2 className="text-foreground text-lg font-semibold">Event timeline</h2>
             <ol className="border-border/70 relative border-l pl-6 text-sm text-muted-foreground">
               {timeline.map((item) => (
@@ -221,8 +228,10 @@ export default async function EventPage({ params }: EventPageProps) {
               ))}
             </ol>
           </section>
+          </FadeInSection>
 
-          <section className="space-y-4" id="pricing">
+          <FadeInSection delay={400}>
+            <section className="space-y-4" id="pricing">
             <h2 className="text-foreground text-lg font-semibold">Pricing</h2>
             <div className="overflow-hidden rounded-3xl border border-border/70">
               <table className="w-full table-fixed text-sm">
@@ -245,8 +254,10 @@ export default async function EventPage({ params }: EventPageProps) {
               </table>
             </div>
           </section>
+          </FadeInSection>
 
-          <section className="space-y-4">
+          <FadeInSection delay={500}>
+            <section className="space-y-4">
             <h2 className="text-foreground text-lg font-semibold">Documents & resources</h2>
             <div className="grid gap-3 md:grid-cols-2">
               {documents.map((doc) => (
@@ -265,8 +276,10 @@ export default async function EventPage({ params }: EventPageProps) {
               ))}
             </div>
           </section>
+          </FadeInSection>
 
-          <section className="space-y-4">
+          <FadeInSection delay={600}>
+            <section className="space-y-4">
             <h2 className="text-foreground text-lg font-semibold">Hotel accommodations</h2>
             <div className="grid gap-3 md:grid-cols-2">
               {hotels.map((hotel) => (
@@ -286,8 +299,10 @@ export default async function EventPage({ params }: EventPageProps) {
               ))}
             </div>
           </section>
+          </FadeInSection>
 
-          <section className="space-y-3 text-sm text-muted-foreground">
+          <FadeInSection delay={700}>
+            <section className="space-y-3 text-sm text-muted-foreground">
             <h2 className="text-foreground text-lg font-semibold">Results & leaderboard</h2>
             <Card className="border-border/70">
               <CardContent className="flex items-center justify-between gap-4 p-6">
@@ -302,9 +317,11 @@ export default async function EventPage({ params }: EventPageProps) {
               </CardContent>
             </Card>
           </section>
+          </FadeInSection>
         </article>
 
-        <aside className="space-y-6" id="register">
+        <FadeInSection delay={100}>
+          <aside className="space-y-6" id="register">
           <RegistrationSummaryCard
             eventId={event.id}
             fee={event.fee}
@@ -315,6 +332,7 @@ export default async function EventPage({ params }: EventPageProps) {
             Need help with registration? Contact our events concierge to coordinate rosters, invoices, and travel.
           </p>
         </aside>
+        </FadeInSection>
       </section>
     </main>
   );

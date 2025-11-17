@@ -1,15 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2Icon } from 'lucide-react'
+import { CheckCircle2Icon, CreditCardIcon } from 'lucide-react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Card } from '@workspace/ui/shadcn/card'
-import { PaymentMethodsCard } from '@/components/features/registration/PaymentMethods'
+import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
 
 // In production, this would come from the registration submission response
 const MOCK_REGISTRATION_ID = 'reg_001'
 
 export default function RegistrationConfirmationPage() {
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 py-10">
       <Card className="p-8 text-center">
@@ -32,10 +35,14 @@ export default function RegistrationConfirmationPage() {
           <Button variant="outline" asChild>
             <Link href={`/clubs/registrations/${MOCK_REGISTRATION_ID}/invoice`}>View Invoice</Link>
           </Button>
+          <Button variant="outline" onClick={() => setPaymentDialogOpen(true)}>
+            <CreditCardIcon className="mr-2 h-4 w-4" />
+            Payment Methods
+          </Button>
         </div>
       </Card>
 
-      <PaymentMethodsCard />
+      <PaymentMethodsDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} />
     </div>
   )
 }

@@ -1,5 +1,25 @@
 "use client"
 
+/**
+ * TeamRow Component
+ *
+ * Purpose:
+ * - Collapsible team card displaying team name, member avatars, and roster details
+ * - Used in registration flows to show registered teams within divisions
+ *
+ * Structure:
+ * - Team Header (collapsed): Team name, avatar cluster, lock status
+ * - Action Bar: Edit Team button, Expand/Collapse toggle
+ * - Roster Details (expanded): Full member table with DOB, email, phone, role
+ * - Roster Editor Dialog: Opens for editing team members
+ *
+ * Design Nicknames:
+ * - "Team Header" = Collapsed state showing team name + avatars (lines 95-117)
+ * - "Action Bar" = Edit/Expand buttons row (lines 118-144)
+ * - "Roster Table" = Expandable member details table (lines 145-178)
+ * - "Avatar Cluster" = Member preview bubbles (lines 107-114)
+ */
+
 import { useCallback, useMemo, useState } from 'react'
 
 import { cn } from '@workspace/ui/lib/utils'
@@ -12,6 +32,7 @@ import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
 import { RosterEditorDialog } from './RosterEditorDialog'
 import { AvatarCluster } from '@/components/ui/avatars/AvatarCluster'
 
+// Design Token: Role-based avatar color palette
 const ROLE_AVATAR_COLORS: Record<string, { background: string; foreground: string }> = {
   coach: { background: '#fde4d5', foreground: '#5f280d' },
   athlete: { background: '#e3f2ff', foreground: '#0b3659' },
@@ -91,7 +112,10 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
 
   return (
     <div className="flex items-start gap-2">
-      <div className="border-border/70 bg-background/80 rounded-lg border flex-1">
+      {/* Main Team Card - Glass-style container with shadow */}
+      <div className="border-border/70 bg-background/80 rounded-lg border flex-1 shadow-sm">
+
+        {/* Team Header - Clickable area for expansion/collapse */}
         <div
           role="button"
           tabIndex={0}
@@ -99,11 +123,14 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
           onKeyDown={handleKeyDown}
           className="focus-visible:ring-primary/40 flex w-full cursor-pointer items-center justify-between gap-3 px-6 py-4 text-left focus:outline-none focus-visible:ring-2"
         >
+          {/* Left Side: Team name + Avatar Cluster */}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-3">
+              {/* Team Name */}
               <p className="text-foreground truncate heading-4">
                 {entry.teamName ?? entry.fileName ?? 'Team'}
               </p>
+              {/* Avatar Cluster - Member preview bubbles */}
               {showMemberPreview ? (
                 <AvatarCluster
                   items={avatarItems}
@@ -113,12 +140,16 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
                 />
               ) : null}
           </div>
+          {/* Right Side: Lock status message (if applicable) */}
           {lockMessage ? <p className="text-muted-foreground body-small">{lockMessage}</p> : null}
         </div>
+
+        {/* Action Bar - Edit and expand/collapse buttons */}
         <div className="flex items-center gap-2">
+          {/* Edit Team Button */}
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={event => {
               event.stopPropagation()
               if (!actionsDisabled) setEditorOpen(true)
@@ -126,8 +157,10 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
             aria-label="Edit roster"
             disabled={actionsDisabled}
           >
-            <PenSquareIcon className="size-4" aria-hidden="true" />
+            <PenSquareIcon className="mr-2 size-4" aria-hidden="true" />
+            Edit Team
           </Button>
+          {/* Expand/Collapse Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -141,10 +174,13 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
             </Button>
           </div>
         </div>
+
+        {/* Roster Table - Expandable section with member details */}
         {expanded && (
           <div className="border-border/60 text-muted-foreground border-t body-small">
             {members.length ? (
               <div className="overflow-x-auto">
+                {/* Member Details Table */}
                 <table className="w-full table-auto text-left body-small">
                   <thead className="bg-muted/40 text-muted-foreground body-small">
                     <tr>
@@ -169,13 +205,17 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
                 </table>
               </div>
             ) : entry.mode === 'existing' ? (
+              // Empty State: Existing team mode
               <div className="p-4">Roster details will be pulled from your workspace once registration is submitted.</div>
             ) : (
+              // Empty State: File upload mode
               <div className="p-4">Roster file: {entry.fileName ?? 'Pending upload'}</div>
             )}
           </div>
         )}
       </div>
+
+      {/* Roster Editor Dialog - Modal for editing team members */}
       <RosterEditorDialog
         open={editorOpen}
         onOpenChange={setEditorOpen}

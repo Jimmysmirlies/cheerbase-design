@@ -8,7 +8,6 @@ import { RegistrationFlow } from '@/components/features/registration/flow/Regist
 import { GlassCard } from '@/components/ui/glass/GlassCard'
 import { ArrowLeftIcon, MailIcon, MapPinIcon, SquareGanttChartIcon, UserCircle2Icon } from 'lucide-react'
 import type { RegistrationEntry, RegistrationMember } from '@/components/features/registration/flow/types'
-import { PrintInvoiceButton } from '@/components/features/registration/PrintInvoiceButton'
 import { demoRosters } from '@/data/clubs/members'
 import { demoRegistrations } from '@/data/clubs/registrations'
 import { demoTeams } from '@/data/clubs/teams'
@@ -129,26 +128,23 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-10">
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
-              <Link href="/clubs?view=registrations" aria-label="Back to registrations">
-                <ArrowLeftIcon className="size-5" />
-              </Link>
-            </Button>
-            <div className="flex gap-2">
-              <Button asChild variant="outline">
-                <Link href={`/clubs/registrations/${registrationId}/invoice`}>View Invoice</Link>
-              </Button>
-              <PrintInvoiceButton />
+          <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
+            <Link href="/clubs?view=registrations" aria-label="Back to registrations">
+              <ArrowLeftIcon className="size-5" />
+            </Link>
+          </Button>
+          <header className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                {event?.name ?? registration.eventName}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {registration.location} · {registration.eventDate}
+              </p>
             </div>
-          </div>
-          <header className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              {event?.name ?? registration.eventName}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {registration.location} · {registration.eventDate}
-            </p>
+            <Button asChild variant="outline">
+              <Link href={`/clubs/registrations/${registrationId}/invoice`}>View Invoice</Link>
+            </Button>
           </header>
           {isLocked ? (
             <Alert className="border-charcoal-200 bg-charcoal-50/70">
