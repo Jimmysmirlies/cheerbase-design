@@ -7,28 +7,26 @@
  * - Compact marketplace card displaying event media, metadata, and a primary action.
  *
  * Structure
- * - Media banner with event type chip
+ * - Media banner with hero image
  * - Content: title, organizer, details (date/location/teams)
  * - Footer: fee + Register CTA
  */
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
-import { CardContent, CardFooter } from '@workspace/ui/shadcn/card'
+import { Card, CardContent, CardFooter } from '@workspace/ui/shadcn/card'
 
 import { CalendarDaysIcon, MapPinIcon, UsersIcon } from 'lucide-react'
 import Link from 'next/link'
 
-import { GlassCard } from '@/components/ui/glass/GlassCard'
+import { FALLBACK_EVENT_IMAGE } from '@/data/events/fallbacks'
 
 type EventCardProps = {
   image: string
-  type: string
   title: string
   organizer: string
   date: string
   location: string
   teams: string
-  fee: string
   href?: string
   onRegister?: () => void
   size?: 'default' | 'compact'
@@ -36,35 +34,25 @@ type EventCardProps = {
 
 export function EventCard({
   image,
-  type,
   title,
   organizer,
   date,
   location,
   teams,
-  fee,
   href,
   onRegister,
   size = 'default',
 }: EventCardProps) {
   const isCompact = size === 'compact'
+  const mediaImage = image || FALLBACK_EVENT_IMAGE
 
   return (
-    <GlassCard interactive className={cn('shadow-md p-0', isCompact ? 'gap-4' : 'gap-6')}>
+    <Card className={cn('overflow-hidden p-0 shadow-sm transition hover:shadow-md', isCompact ? 'gap-4' : 'gap-6')}>
       {/* Media */}
       <div
-        className={cn('relative bg-cover bg-center', isCompact ? 'h-32' : 'h-40')}
-        style={{ backgroundImage: `url(${image})` }}
-      >
-        <span
-          className={cn(
-            'bg-background/90 text-muted-foreground absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm',
-            isCompact && 'px-2.5 py-0.5 text-[11px]'
-          )}
-        >
-          {type}
-        </span>
-      </div>
+        className={cn('relative bg-muted bg-cover bg-center', isCompact ? 'h-32' : 'h-40')}
+        style={{ backgroundImage: `url(${mediaImage})` }}
+      />
       {/* Meta */}
       <CardContent className={cn('flex flex-1 flex-col px-6 py-0', isCompact ? 'gap-4' : 'gap-5')}>
         <div className={cn('space-y-2', isCompact && 'space-y-1.5')}>
@@ -95,34 +83,17 @@ export function EventCard({
         </div>
       </CardContent>
       {/* Actions */}
-      <CardFooter
-        className={cn(
-          'border-border/80 mt-auto flex items-center justify-between border-t !px-6 !py-4',
-          isCompact && 'p-5 pt-3'
-        )}
-      >
-        <div className={cn('text-sm', isCompact && 'text-xs')}>
-          <span className="text-muted-foreground block">Fee</span>
-          <span
-            className={cn('text-foreground font-semibold', isCompact ? 'text-sm' : 'text-base')}
-          >
-            {fee}
-          </span>
-        </div>
+      <CardFooter className={cn('border-border/80 mt-auto border-t !px-6 !py-4', isCompact && 'p-5')}>
         {onRegister ? (
-          <Button
-            type="button"
-            onClick={onRegister}
-            className={cn('rounded-full px-6', isCompact && 'px-5 py-3 text-sm')}
-          >
-            Register
+          <Button type="button" onClick={onRegister} className={cn('w-full', isCompact && 'py-3 text-sm')}>
+            View
           </Button>
         ) : href ? (
-          <Button asChild className={cn('rounded-full px-6', isCompact && 'px-5 py-3 text-sm')}>
-            <Link href={href}>Register</Link>
+          <Button asChild className={cn('w-full', isCompact && 'py-3 text-sm')}>
+            <Link href={href}>View</Link>
           </Button>
         ) : null}
       </CardFooter>
-    </GlassCard>
+    </Card>
   )
 }

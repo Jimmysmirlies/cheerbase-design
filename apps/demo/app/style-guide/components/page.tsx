@@ -2,6 +2,7 @@ import { EventCard, Hero, HeroSlide, OrganizerCard, QuickFilterRail } from "@/co
 import OrganizersSection from "@/components/features/events/sections/OrganizersSection";
 import EventCategoriesSection from "@/components/features/events/sections/EventCategoriesSection";
 import { eventCategories, organizers } from "@/data/events";
+import { getLocalEventImage } from "@/utils/localImages";
 
 const heroExampleSlides: HeroSlide[] = [
   {
@@ -15,7 +16,7 @@ const heroExampleSlides: HeroSlide[] = [
       "Right column for imagery or media",
       "Dots and arrows stay anchored below the hero",
     ],
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80&ixlib=rb-4.0.3",
+    image: getLocalEventImage("style-guide-hero-1"),
     primaryAction: { label: "Primary CTA", href: "#" },
     secondaryActions: [{ label: "Secondary", href: "#", variant: "secondary" }],
   },
@@ -29,7 +30,7 @@ const heroExampleSlides: HeroSlide[] = [
       "Spacing scales from mobile to desktop",
       "Supports single or multiple actions",
     ],
-    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80&ixlib=rb-4.0.3",
+    image: getLocalEventImage("style-guide-hero-2"),
     primaryAction: { label: "Learn more", href: "#" },
   },
 ];
@@ -110,14 +111,12 @@ export default function ComponentsPage() {
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Default</p>
             <EventCard
               date="Nov 14, 2025"
-              fee="$450"
               href="#"
-              image="https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=900&q=80&ixlib=rb-4.0.3"
+              image={getLocalEventImage("style-guide-event-default")}
               location="Madison Square Garden, NY"
               organizer="Cheer Elite Events"
               teams="32 / 48 teams"
               title="National Cheerleading Championship"
-              type="Championship"
               size="default"
             />
           </div>
@@ -125,22 +124,20 @@ export default function ComponentsPage() {
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Compact</p>
             <EventCard
               date="Jul 19, 2025"
-              fee="$325"
               href="#"
-              image="https://images.unsplash.com/photo-1431329842981-433c8637dbd6?auto=format&fit=crop&w=900&q=80&ixlib=rb-4.0.3"
+              image={getLocalEventImage("style-guide-event-compact")}
               location="Austin Sports Center, TX"
               organizer="Southern Spirit"
               teams="18 / 32 teams"
               title="Summer Series Classic"
-              type="Regional"
               size="compact"
             />
           </div>
         </div>
         <div className="rounded-2xl border border-border bg-card/60 p-4 text-xs text-muted-foreground">
           <p>
-            <span className="font-semibold text-foreground">Props:</span> image, type, title, organizer, date, location,
-            teams, fee, href, size
+            <span className="font-semibold text-foreground">Props:</span> image, title, organizer, date, location, teams,
+            fee, href, size
           </p>
           <p>
             <span className="font-semibold text-foreground">Tokens:</span> Radius LG, Subheading title, Small metadata,

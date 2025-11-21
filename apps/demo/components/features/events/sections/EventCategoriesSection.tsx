@@ -38,14 +38,12 @@ export default function EventCategoriesSection({ categories, id = "categories", 
                   <EventCard
                     key={event.id}
                     date={event.date}
-                    fee={event.fee}
                     href={`/events/${event.id}`}
                     image={event.image}
                     location={event.location}
                     organizer={event.organizer}
                     teams={event.teams}
                     title={event.name}
-                    type={event.type}
                     size={cardSize}
                   />
                 ))}

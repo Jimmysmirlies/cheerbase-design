@@ -15,7 +15,6 @@ import { notFound } from "next/navigation";
 
 import Link from "next/link";
 
-import { Badge } from "@workspace/ui/shadcn/badge";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Card, CardContent } from "@workspace/ui/shadcn/card";
 import { Separator } from "@workspace/ui/shadcn/separator";
@@ -33,6 +32,7 @@ import {
 import { EventHeroCarousel, FadeInSection } from "@/components/ui";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
 import { findEventById, listEvents } from "@/data/events";
+import { divisionPricingDefaults } from "@/data/divisions";
 import { buildEventGalleryImages } from "./image-gallery";
 
 type EventPageParams = {
@@ -78,23 +78,71 @@ export default async function EventPage({ params }: EventPageProps) {
     notFound();
   }
 
-  const slotLabel = `${event.slots.filled}/${event.slots.capacity} teams`;
+  const slotLabel = `${event.slots.filled}/${event.slots.capacity}`;
   const galleryImages = buildEventGalleryImages(event);
-  const tags = event.tags ?? [];
+
+  // "Milestone Rail": timeline posts for critical event dates shown in the vertical rail.
+  const formatTimelineDate = (date: Date) =>
+    date.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+
+  const competitionDate = new Date(event.date);
+  const dayBefore = new Date(competitionDate);
+  dayBefore.setDate(dayBefore.getDate() - 1);
+  const registrationDeadlineDate = new Date(dayBefore);
+  const registrationDeadlineISO = registrationDeadlineDate.toISOString();
 
   const timeline = [
-    { label: "Registration opens", date: "Jan 08, 2025", detail: "Online portal opens at 9:00 AM ET" },
-    { label: "Roster freeze", date: "Mar 22, 2025", detail: "Last day to update athlete lineups" },
-    { label: "Coach check-in", date: "Apr 18, 2025", detail: "Credential pickup from 4:00 – 7:00 PM" },
-    { label: "Competition day", date: event.date, detail: "Warm-ups begin 90 minutes before report time" },
+    {
+      label: "Coach Check-In",
+      date: formatTimelineDate(dayBefore),
+      time: "4:00 – 7:00 PM",
+      detail: "Credential pickup, schedule walkthroughs, and packet distribution.",
+    },
+    {
+      label: "Warm-Up Access",
+      date: formatTimelineDate(competitionDate),
+      time: "7:00 – 10:00 AM",
+      detail: "Warm-up rotations begin 90 minutes before each report time.",
+    },
+    {
+      label: "Finals & Awards",
+      date: formatTimelineDate(competitionDate),
+      time: "5:00 – 8:00 PM",
+      detail: "Division finals, award ceremony, and judges feedback lounge.",
+    },
   ];
 
-  const pricing = [
-    { type: "All-Star", early: "$425 (before Feb 15)", regular: "$475 (after Feb 15)" },
-    { type: "Novice", early: "$295 (before Feb 15)", regular: "$335 (after Feb 15)" },
-    { type: "University", early: "$360 (before Feb 15)", regular: "$410 (after Feb 15)" },
-  ];
+  // "Pricing Grid": divisions and tiered fees rendered in the table body.
+  const formatAmount = (price?: number | null) => {
+    if (price === null || price === undefined) {
+      return "—";
+    }
+    if (price === 0) {
+      return "Free";
+    }
+    return `$${price}`;
+  };
 
+  const PRICING_DEADLINE_LABEL = "Oct 12";
+  const divisionsForPricing = event.availableDivisions ?? [];
+  const pricingRowsMap = divisionsForPricing.reduce((map, division) => {
+    const defaults = divisionPricingDefaults[division.name as keyof typeof divisionPricingDefaults];
+    const label = defaults?.label ?? division.name;
+    if (map.has(label)) {
+      return map;
+    }
+    const before = defaults?.before ?? division.earlyBird?.price ?? null;
+    const after = defaults?.after ?? division.regular?.price ?? null;
+    map.set(label, {
+      label,
+      before: formatAmount(before),
+      after: formatAmount(after),
+    });
+    return map;
+  }, new Map<string, { label: string; before: string; after: string }>());
+  const pricingRowsArray = Array.from(pricingRowsMap.values());
+
+  // "Prep Pack": downloadable resources for coaches and admins.
   const documents = [
     {
       name: "Event information packet",
@@ -113,6 +161,7 @@ export default async function EventPage({ params }: EventPageProps) {
     },
   ];
 
+  // "Stay Options": curated hotel blocks with quick CTA links.
   const hotels = [
     {
       name: "Downtown Convention Marriott",
@@ -136,17 +185,16 @@ export default async function EventPage({ params }: EventPageProps) {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
+      {/* Hero Rail: hero carousel keeps brand visuals consistent with marketplace listing */}
       <EventHeroCarousel images={galleryImages} alt={event.name} />
 
       <section className="mx-auto grid w-full max-w-7xl gap-10 px-6 pb-16 pt-6 sm:px-10 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         <article className="space-y-8">
           <FadeInSection>
             <header className="space-y-4">
-            <Badge variant="outline" className="text-xs uppercase tracking-wide">
-              {event.type}
-            </Badge>
+            {/* Event Header: primary identity block showing title, organizer, and quick tags */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{event.name}</h1>
+              <h1 className="heading-1 text-foreground sm:heading-2">{event.name}</h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-2">
                   <TrophyIcon className="text-primary/70 size-4" />
@@ -163,47 +211,42 @@ export default async function EventPage({ params }: EventPageProps) {
                   {event.location}
                 </span>
               </div>
-              {tags.length ? (
-                <div className="flex flex-wrap gap-2 pt-3">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              ) : null}
             </div>
           </header>
           </FadeInSection>
 
           <FadeInSection delay={100}>
             <section className="space-y-3 text-sm leading-relaxed text-muted-foreground">
-            <h2 className="text-foreground text-lg font-semibold">Overview</h2>
-            <p>
+            {/* Overview Blurb: narrative intro highlighting experience upgrades */}
+            <h2 className="heading-3 text-foreground">Overview</h2>
+            <p className="text-muted-foreground body-text">
               {event.description} Added amenities include expanded warm-up rotations, on-site athletic trainers,
               backstage video replay, and hospitality lounges for club directors. Expect curated judges feedback, vendor
-              experiences, and a champion's parade following finals.
+              experiences, and a champion&apos;s parade following finals.
             </p>
           </section>
           </FadeInSection>
 
           <FadeInSection delay={200}>
             <section className="space-y-4 text-sm text-muted-foreground">
-            <h2 className="text-foreground text-lg font-semibold">Location</h2>
-            <div className="grid gap-4 rounded-3xl border border-dashed border-border/60 p-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
+            {/* Venue Snapshot: quick address plus future map embed */}
+            <h2 className="heading-3 text-foreground">Location</h2>
+            <div className="grid gap-4 rounded-lg border border-dashed border-border/60 p-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
               <div className="space-y-2">
                 <p className="flex items-center gap-2 text-foreground">
                   <MapPinIcon className="text-primary/70 size-4" />
                   {event.location}
                 </p>
-                <p>Directly attached to public transit with adjacent parking options and athlete drop-off zones.</p>
+                <p className="body-text">
+                  Directly attached to public transit with adjacent parking options and athlete drop-off zones.
+                </p>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} target="_blank" rel="noopener noreferrer">
                     Open in Google Maps
                   </Link>
                 </Button>
               </div>
-              <div className="relative h-48 overflow-hidden rounded-2xl bg-muted">
+              <div className="relative h-48 overflow-hidden rounded-lg bg-muted">
                 <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
                   Map preview coming soon
                 </div>
@@ -214,42 +257,65 @@ export default async function EventPage({ params }: EventPageProps) {
 
           <FadeInSection delay={300}>
             <section className="space-y-4">
-            <h2 className="text-foreground text-lg font-semibold">Event timeline</h2>
-            <ol className="border-border/70 relative border-l pl-6 text-sm text-muted-foreground">
+            {/* Date Rail: key operational milestones for planners */}
+            <h2 className="heading-3 text-foreground">Event Timeline</h2>
+            <div className="grid gap-3 text-sm text-muted-foreground">
               {timeline.map((item) => (
-                <li key={item.label} className="relative mb-6 last:mb-0">
-                  <div className="absolute -left-[10px] flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background">
-                    <ClockIcon className="size-3 text-primary" />
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-border/70 bg-card/80 p-5 transition hover:border-primary/40"
+                >
+                  <div className="flex flex-col gap-1">
+                    <p className="heading-4 text-foreground">{item.label}</p>
+                    <div className="body-text flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <ClockIcon className="text-primary/70 size-4" />
+                        {item.date}
+                      </span>
+                      {item.time ? (
+                        <span className="flex items-center gap-1">
+                          <ClockIcon className="text-primary/70 size-4" />
+                          {item.time}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                  <p className="text-foreground font-medium">{item.label}</p>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground/70">{item.date}</p>
-                  <p>{item.detail}</p>
-                </li>
+                  <p className="body-text mt-2">{item.detail}</p>
+                </div>
               ))}
-            </ol>
+            </div>
           </section>
           </FadeInSection>
 
           <FadeInSection delay={400}>
             <section className="space-y-4" id="pricing">
-            <h2 className="text-foreground text-lg font-semibold">Pricing</h2>
-            <div className="overflow-hidden rounded-3xl border border-border/70">
+            {/* Fee Matrix: division-based pricing with early/standard tiers */}
+            <h2 className="heading-3 text-foreground">Pricing</h2>
+            <div className="overflow-hidden rounded-lg border border-border/70">
               <table className="w-full table-fixed text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
                     <th className="p-4 text-left font-semibold">Division</th>
-                    <th className="p-4 text-left font-semibold">Early bird</th>
-                    <th className="p-4 text-left font-semibold">Standard</th>
+                    <th className="p-4 text-left font-semibold">{`Before ${PRICING_DEADLINE_LABEL}`}</th>
+                    <th className="p-4 text-left font-semibold">{`After ${PRICING_DEADLINE_LABEL}`}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
-                  {pricing.map((row) => (
-                    <tr key={row.type}>
-                      <td className="p-4 font-medium text-foreground">{row.type}</td>
-                      <td className="p-4">{row.early}</td>
-                      <td className="p-4">{row.regular}</td>
+                  {pricingRowsArray.length ? (
+                    pricingRowsArray.map((row) => (
+                      <tr key={row.label}>
+                        <td className="p-4 font-medium text-foreground">{row.label}</td>
+                        <td className="p-4">{row.before}</td>
+                        <td className="p-4">{row.after}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td className="p-6 text-center text-sm text-muted-foreground" colSpan={3}>
+                        Pricing information will be available soon.
+                      </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -258,7 +324,8 @@ export default async function EventPage({ params }: EventPageProps) {
 
           <FadeInSection delay={500}>
             <section className="space-y-4">
-            <h2 className="text-foreground text-lg font-semibold">Documents & resources</h2>
+            {/* Download Deck: resource cards for compliance and preparation */}
+            <h2 className="heading-3 text-foreground">Documents & Resources</h2>
             <div className="grid gap-3 md:grid-cols-2">
               {documents.map((doc) => (
                 <Card key={doc.name} className="border-border/70">
@@ -266,7 +333,7 @@ export default async function EventPage({ params }: EventPageProps) {
                     <DownloadIcon className="text-primary/70 size-5 shrink-0" />
                     <div className="space-y-1">
                       <p className="text-foreground font-medium">{doc.name}</p>
-                      <p>{doc.description}</p>
+                      <p className="body-text">{doc.description}</p>
                       <Button asChild variant="link" size="sm" className="px-0 text-primary">
                         <Link href={doc.href}>Download</Link>
                       </Button>
@@ -280,7 +347,8 @@ export default async function EventPage({ params }: EventPageProps) {
 
           <FadeInSection delay={600}>
             <section className="space-y-4">
-            <h2 className="text-foreground text-lg font-semibold">Hotel accommodations</h2>
+            {/* Stay Finder: nearby hotel options with quick booking links */}
+            <h2 className="heading-3 text-foreground">Hotel Accommodations</h2>
             <div className="grid gap-3 md:grid-cols-2">
               {hotels.map((hotel) => (
                 <Card key={hotel.name} className="border-border/70">
@@ -288,8 +356,8 @@ export default async function EventPage({ params }: EventPageProps) {
                     <HotelIcon className="text-primary/70 size-5 shrink-0" />
                     <div className="space-y-1">
                       <p className="text-foreground font-medium">{hotel.name}</p>
-                      <p>{hotel.rate}</p>
-                      <p>{hotel.distance}</p>
+                      <p className="body-text">{hotel.rate}</p>
+                      <p className="body-text">{hotel.distance}</p>
                       <Button asChild variant="link" size="sm" className="px-0 text-primary">
                         <Link href={hotel.href}>View hotel block</Link>
                       </Button>
@@ -303,12 +371,13 @@ export default async function EventPage({ params }: EventPageProps) {
 
           <FadeInSection delay={700}>
             <section className="space-y-3 text-sm text-muted-foreground">
-            <h2 className="text-foreground text-lg font-semibold">Results & leaderboard</h2>
+            {/* Results Teaser: placeholder until scoring pipeline posts data */}
+            <h2 className="heading-3 text-foreground">Results & Leaderboard</h2>
             <Card className="border-border/70">
               <CardContent className="flex items-center justify-between gap-4 p-6">
                 <div>
                   <p className="text-foreground font-medium">Coming soon</p>
-                  <p>Scores and placements will publish once awards conclude.</p>
+                  <p className="body-text">Scores and placements will publish once awards conclude.</p>
                 </div>
                 <Button variant="outline" size="sm" disabled>
                   <Share2Icon className="mr-2 size-4" />
@@ -322,10 +391,10 @@ export default async function EventPage({ params }: EventPageProps) {
 
         <FadeInSection delay={100}>
           <aside className="space-y-6" id="register">
+          {/* Checkout Rail: sticky registration summary and CTA */}
           <RegistrationSummaryCard
             eventId={event.id}
-            fee={event.fee}
-            pricePerParticipant={event.pricePerParticipant}
+            registrationDeadline={registrationDeadlineISO}
             slotLabel={slotLabel}
           />
           <p className="text-xs text-muted-foreground">

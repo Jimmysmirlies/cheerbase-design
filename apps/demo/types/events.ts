@@ -9,18 +9,18 @@ export type Event = {
   id: string;
   name: string;
   organizer: string;
-  type: string;
+  type: "Championship" | "Friendly Competition";
   date: string;
   location: string;
   teams: string;
   fee: string;
   image: string;
-  division: string;
   slots: {
     filled: number;
     capacity: number;
     statusLabel?: string;
   };
+  registrationFeePercent?: number;
   pricePerParticipant: string;
   description: string;
   tags?: string[];

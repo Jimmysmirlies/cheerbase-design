@@ -6,6 +6,7 @@ import Image from 'next/image'
 
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
+import { FALLBACK_EVENT_IMAGE } from '@/data/events/fallbacks'
 import { cn } from '@workspace/ui/lib/utils'
 
 type EventHeroCarouselProps = {
@@ -16,9 +17,7 @@ type EventHeroCarouselProps = {
 export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
   const gallery = useMemo(() => {
     const unique = Array.from(new Set(images.filter(Boolean)))
-    return unique.length > 0
-      ? unique
-      : ['https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=1600&q=80&ixlib=rb-4.0.3']
+    return unique.length > 0 ? unique : [FALLBACK_EVENT_IMAGE]
   }, [images])
 
   const [activeIndex, setActiveIndex] = useState(0)

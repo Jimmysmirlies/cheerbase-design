@@ -1,31 +1,159 @@
-// Home page composition
-// This file composes high‑level, reusable sections for the demo home.
-// It intentionally keeps data and UI responsibilities separate:
-//   - Data lives in `apps/demo/data/*`
-//   - Feature-scoped components live in `apps/demo/components/features/*`
-//   - Atomic UI primitives live in `apps/demo/components/ui/*` and shadcn in `packages/ui/src/shadcn/*`
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Hero } from "@/components/ui";
-import OrganizersSection from "@/components/features/events/sections/OrganizersSection";
-import EventCategoriesSection from "@/components/features/events/sections/EventCategoriesSection";
-import { eventCategories, heroSlides, organizers } from "@/data/events";
+
+import { FadeInSection, Hero } from "@/components/ui";
+import { EventCard } from "@/components/ui/cards/EventCard";
+import { heroSlides, organizers, listEvents } from "@/data/events";
+import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/shadcn/select";
 
 export default function HomePage() {
+  const events = useMemo(() => listEvents(), []);
+  const eventsByOrganizer = useMemo(() => {
+    return events.reduce<Record<string, typeof events>>((acc, event) => {
+      const current = acc[event.organizer] ?? [];
+      acc[event.organizer] = [...current, event];
+      return acc;
+    }, {});
+  }, [events]);
+
+  const organizerNames = useMemo(() => organizers.map((org) => org.name), []);
+
+  const provinceOptions = useMemo(() => getProvinceOptions(events), [events]);
+  const defaultProvince = useMemo(
+    () => provinceOptions.find((option) => option.label.toLowerCase().includes("quebec")) ?? provinceOptions[0],
+    [provinceOptions],
+  );
+  const [selectedProvince, setSelectedProvince] = useState<string>(defaultProvince?.code ?? "");
+  useEffect(() => {
+    if (defaultProvince) {
+      setSelectedProvince(defaultProvince.code);
+    }
+  }, [defaultProvince]);
+  const provinceEvents = useMemo(() => {
+    if (!selectedProvince) return events.slice(0, 6);
+    const filtered = events.filter(
+      (event) => getProvinceFromLocation(event.location)?.code === selectedProvince,
+    );
+    return filtered.length ? filtered : events.slice(0, 6);
+  }, [events, selectedProvince]);
+
+  const defaultOrganizer = useMemo(() => organizerNames.find((name) => name.toLowerCase().includes('sapphire')) ?? '', [organizerNames]);
+  const [selectedOrganizer, setSelectedOrganizer] = useState<string>(defaultOrganizer || organizerNames[0] || '');
+  useEffect(() => {
+    if (defaultOrganizer) {
+      setSelectedOrganizer(defaultOrganizer);
+    } else if (organizerNames[0]) {
+      setSelectedOrganizer(organizerNames[0]);
+    }
+  }, [defaultOrganizer, organizerNames]);
+  const organizerEvents = eventsByOrganizer[selectedOrganizer] ?? [];
+
   return (
     <main className="bg-background text-foreground">
       {/* Hero: Featured experiences carousel with CTA */}
       <Hero slides={heroSlides} />
 
-      {/* Section: Organizer Rail
-          Purpose: Promote event organizers; encourages following and hosting.
-          Contents: Title, subtitle, CTA link, horizontally scrollable organizer cards.
-      */}
-      <OrganizersSection organizers={organizers} />
+            {/* Location-first browsing */}
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-12">
+        <FadeInSection>
+          <header className="flex flex-wrap items-center gap-3">
+            <p className="heading-2">Find events in your area:</p>
+            <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+              <SelectTrigger
+                className="text-primary flex items-center gap-2 border-0 bg-transparent text-2xl font-semibold shadow-none focus:ring-0 focus:ring-offset-0"
+                arrowSize="lg"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-card/90 text-foreground backdrop-blur data-[state=open]:animate-in">
+                {provinceOptions.map((option, index) => (
+                  <SelectItem
+                    key={option.code}
+                    value={option.code}
+                    className="dropdown-fade-in text-xl font-semibold"
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </header>
+        </FadeInSection>
 
-      {/* Section: Event Categories
-          Purpose: Curate event groups; each block contains a header and a responsive grid of event cards.
-      */}
-      <EventCategoriesSection categories={eventCategories} />
+        <FadeInSection key={`province-${selectedProvince || "all"}`} delay={120}>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {provinceEvents.map((event, index) => (
+              <FadeInSection key={`${event.id}-${event.location}`} delay={index * 80} className="h-full">
+                <EventCard
+                  image={event.image}
+                  title={event.name}
+                  organizer={event.organizer}
+                  date={event.date}
+                  location={event.location}
+                  teams={event.teams}
+                  href={`/events/${encodeURIComponent(event.id)}`}
+                />
+              </FadeInSection>
+            ))}
+          </div>
+        </FadeInSection>
+      </section>
+
+      {/* Organizer-first browsing: select an organizer, see their events */}
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-12">
+        <FadeInSection>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <header className="flex flex-wrap items-center gap-3">
+              <p className="heading-2">Browse events by organizer:</p>
+              <Select value={selectedOrganizer} onValueChange={setSelectedOrganizer}>
+                <SelectTrigger
+                  className="text-primary flex items-center gap-2 border-0 bg-transparent text-2xl font-semibold shadow-none focus:ring-0 focus:ring-offset-0"
+                  arrowSize="lg"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card/90 text-foreground backdrop-blur data-[state=open]:animate-in">
+                  {organizers.map((org, index) => (
+                    <SelectItem
+                      key={org.name}
+                      value={org.name}
+                      className="dropdown-fade-in text-xl font-semibold"
+                      style={{ animationDelay: `${index * 60}ms` }}
+                    >
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </header>
+            <Link className="text-primary text-sm font-semibold hover:underline sm:self-end" href="/events/search">
+              Search all events
+            </Link>
+          </div>
+        </FadeInSection>
+
+        <FadeInSection delay={160}>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {organizerEvents.map((event, index) => (
+              <FadeInSection key={`${event.id}-organizer`} delay={index * 80} className="h-full">
+                <EventCard
+                  image={event.image}
+                  title={event.name}
+                  organizer={event.organizer}
+                  date={event.date}
+                  location={event.location}
+                  teams={event.teams}
+                  href={`/events/${encodeURIComponent(event.id)}`}
+                />
+              </FadeInSection>
+            ))}
+          </div>
+        </FadeInSection>
+      </section>
 
       {/* Footer: Global links and product tagline */}
       <footer className="border-t border-border bg-card/60">
@@ -37,7 +165,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3 text-sm font-medium text-muted-foreground">
-            <Link className="hover:text-foreground" href="#categories">
+            <Link className="hover:text-foreground" href="/events/search">
               Browse Events
             </Link>
             <Link className="hover:text-foreground" href="/register">

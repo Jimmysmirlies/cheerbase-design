@@ -8,6 +8,28 @@ export type DivisionCategory = {
   tiers: DivisionTier[]
 }
 
+// Shared ticket/entry divisions used across demo events, mapped to canonical divisionFullNames values.
+export const eventDivisionNames = {
+  worlds: 'All Star Cheer - Open - 4',
+  chaperone: 'All Star Cheer - Paracheer (adapted or specialized) - 1',
+  stuntIndyDuo: 'Specialty - Stunt - All Divisions - All Levels',
+  prepNovice: 'Initiation/Prep Cheer - U12 Prep - 1',
+  allStarScholastic: 'Scolaire Cheer - Secondaire Juvenile - 3',
+  adaptive: 'ICU Cheer - Adaptive Abilities - Advanced',
+} as const
+
+export const divisionPricingDefaults: Record<
+  (typeof eventDivisionNames)[keyof typeof eventDivisionNames],
+  { label: string; before: number | null; after: number | null }
+> = {
+  [eventDivisionNames.worlds]: { label: 'Worlds (2 Performances)', before: 120, after: 140 },
+  [eventDivisionNames.chaperone]: { label: 'Accompanist / Chaperone', before: 40, after: 40 },
+  [eventDivisionNames.stuntIndyDuo]: { label: 'Stunt / Individual / Duo', before: 45, after: 45 },
+  [eventDivisionNames.prepNovice]: { label: 'Initiation / Prep / Novice', before: 40, after: 60 },
+  [eventDivisionNames.allStarScholastic]: { label: 'Scholastic', before: 40, after: 60 },
+  [eventDivisionNames.adaptive]: { label: 'Adaptive / Cheer Abilities', before: 0, after: 0 },
+}
+
 export const divisionCatalog: DivisionCategory[] = [
   {
     name: 'All Star Cheer',
@@ -124,3 +146,8 @@ export const divisionIndex = divisionCatalog.reduce<Record<string, string[]>>((a
   })
   return acc
 }, {})
+
+// Flat list of fully qualified divisions, e.g. "All Star Cheer - U18 - 1".
+export const divisionFullNames: string[] = divisionCatalog.flatMap(category =>
+  category.tiers.flatMap(tier => tier.levels.map(level => `${category.name} - ${tier.name} - ${level}`))
+)

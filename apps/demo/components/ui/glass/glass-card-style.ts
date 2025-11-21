@@ -11,34 +11,28 @@ type GlassGradientStop = {
 
 const GLASS_GRADIENT_STOPS: GlassGradientStop[] = [
   {
-    position: '0% 38%',
-    color: { type: 'hsla', value: 'hsla(0,0%,100%,' },
-    defaultAlpha: 0.2,
-    hoverAlpha: 0.35,
+    position: '7% 10%',
+    color: { type: 'hsla', value: 'hsla(277,54%,49%,' },
+    defaultAlpha: 0.0,
+    hoverAlpha: 0.05,
   },
   {
-    position: '0% 0%',
-    color: { type: 'oklch-token', token: '--glass-peach' },
-    defaultAlpha: 0.12,
-    hoverAlpha: 0.22,
+    position: '98% 21%',
+    color: { type: 'hsla', value: 'hsla(278,62%,56%,' },
+    defaultAlpha: 0.0,
+    hoverAlpha: 0.0,
   },
   {
-    position: '30% 65%',
-    color: { type: 'oklch-token', token: '--glass-light-yellow' },
-    defaultAlpha: 0.18,
-    hoverAlpha: 0.22,
+    position: '81% 90%',
+    color: { type: 'hsla', value: 'hsla(282,68%,66%,' },
+    defaultAlpha: 0.0,
+    hoverAlpha: 0.05,
   },
   {
-    position: '50% 50%',
-    color: { type: 'oklch-token', token: '--glass-light-green' },
-    defaultAlpha: 0.3,
-    hoverAlpha: 0.4,
-  },
-  {
-    position: '100% 100%',
-    color: { type: 'oklch-token', token: '--glass-light-blue' },
-    defaultAlpha: 0.15,
-    hoverAlpha: 0.22,
+    position: '88% 11%',
+    color: { type: 'hsla', value: 'hsla(281,75%,60%,' },
+    defaultAlpha: 0.0,
+    hoverAlpha: 0.12,
   },
 ]
 
@@ -79,7 +73,7 @@ export function getGlassCardStyle({
 
   return {
     borderRadius: 'var(--radius-lg)',
-    backgroundColor: 'hsla(300,0%,100%,0.35)',
+    backgroundColor: 'hsla(299,0%,100%,1)',
     backgroundImage: activeBackground,
     backdropFilter: 'blur(24px)',
     boxShadow: showShadow ? bevelShadow : undefined,

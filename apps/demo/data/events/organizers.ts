@@ -43,5 +43,10 @@ export const organizers: Organizer[] = [
     region: "New England",
     accent: "from-teal-400 via-teal-500 to-teal-600",
   },
+  {
+    name: "Sapphire Productions",
+    visibility: "Public",
+    region: "Quebec",
+    accent: "from-purple-400 via-indigo-500 to-purple-600",
+  },
 ];
-

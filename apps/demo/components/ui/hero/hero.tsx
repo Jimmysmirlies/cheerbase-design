@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { CheckCircle2Icon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 import { Button } from '@workspace/ui/shadcn/button'
+import { FALLBACK_EVENT_IMAGE } from '@/data/events/fallbacks'
+import { cn } from '@workspace/ui/lib/utils'
 
 type HeroAction = {
   label: string
@@ -40,6 +42,7 @@ export type HeroSlide = {
   fullImage?: boolean
   layout?: 'default' | 'event-card'
   featuredEvent?: HeroFeaturedEvent
+  organizer?: string
 }
 
 type SharedHeroProps = {
@@ -128,6 +131,75 @@ function HeroSingle(props: SingleHeroProps) {
 }
 
 function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
+  const isFullImageCarousel = slides.length > 0 && slides.every((slide) => slide.fullImage)
+  if (isFullImageCarousel) {
+    return <HeroCarouselFullBleed slides={slides} />
+  }
+  return <HeroCarouselDefault slides={slides} />
+}
+
+function HeroCarouselFullBleed({ slides }: { slides: HeroSlide[] }) {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const handlePrev = () => setActiveIndex((prev) => (prev === 0 ? prev : prev - 1))
+  const handleNext = () => setActiveIndex((prev) => (prev === slides.length - 1 ? prev : prev + 1))
+
+  return (
+    <section className="bg-background px-4 pb-12 pt-8 sm:px-8 lg:pb-16 lg:pt-12">
+      <div className="mx-auto max-w-7xl">
+        <div className="relative min-h-[520px] overflow-hidden rounded-[1rem]">
+          {slides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={cn(
+                'absolute inset-0 transition-opacity duration-700 ease-in-out',
+                index === activeIndex ? 'opacity-100' : 'pointer-events-none opacity-0'
+              )}
+            >
+              <HeroSlidePanel slide={slide} />
+            </div>
+          ))}
+
+          {slides.length > 1 ? (
+            <>
+              <CarouselOverlayArrow
+                direction="left"
+                onClick={handlePrev}
+                disabled={activeIndex === 0}
+                className="left-6"
+              />
+              <CarouselOverlayArrow
+                direction="right"
+                onClick={handleNext}
+                disabled={activeIndex === slides.length - 1}
+                className="right-6"
+              />
+              <div className="absolute inset-x-0 bottom-6 flex items-center justify-center gap-2">
+                {slides.map((slide, index) => (
+                  <button
+                    key={`${slide.id}-indicator`}
+                    type="button"
+                    onClick={() => setActiveIndex(index)}
+                    aria-label={`Go to slide ${index + 1}`}
+                    className="focus-visible:outline-none"
+                  >
+                    <span
+                      className={cn(
+                        'inline-block h-2 rounded-full bg-white/40 transition-all duration-300',
+                        index === activeIndex ? 'w-8 bg-white' : 'w-2'
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function HeroCarouselDefault({ slides }: { slides: HeroSlide[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -210,48 +282,24 @@ function HeroSlidePanel({ slide }: { slide: HeroSlide }) {
 
   if (slide.fullImage) {
     return (
-      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[2.75rem]">
-        {slide.image ? (
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${slide.image})` }}
-            role={slide.imageAlt ? 'img' : undefined}
-            aria-label={slide.imageAlt}
-          />
-        ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12">
-          <div className="max-w-3xl space-y-4 text-white">
-            {slide.eyebrow ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                {slide.eyebrow}
-              </span>
+      <div className="relative h-full min-h-[520px] w-full">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${slide.image || FALLBACK_EVENT_IMAGE})` }}
+          role={slide.imageAlt ? 'img' : undefined}
+          aria-label={slide.imageAlt}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-4 p-8 text-white sm:p-12">
+          <div className="space-y-2">
+            <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">{slide.headline}</h2>
+            {slide.organizer ? (
+              <p className="text-lg font-medium text-white/80">{slide.organizer}</p>
             ) : null}
-            <div className="space-y-3">
-              <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
-                {slide.headline}
-              </h2>
-              {slide.description ? (
-                <p className="text-base text-white/80 sm:text-lg">{slide.description}</p>
-              ) : null}
-            </div>
-            {slide.highlights?.length ? (
-              <ul className="space-y-2 text-sm text-white/80">
-                {slide.highlights.map((item) => (
-                  <li key={item} className="flex items-start gap-2">
-                    <CheckCircle2Icon className="mt-1 size-4 shrink-0 text-primary-foreground" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <div className="flex flex-wrap gap-3 pt-2">
-              <HeroLink action={slide.primaryAction} />
-              {slide.secondaryActions?.map((action) => (
-                <HeroLink key={action.label} action={action} />
-              ))}
-            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <HeroLink action={slide.primaryAction} />
           </div>
         </div>
       </div>
@@ -311,6 +359,7 @@ function HeroSlidePanel({ slide }: { slide: HeroSlide }) {
 
 function HeroEventSlide({ slide }: { slide: HeroSlide }) {
   const event = slide.featuredEvent!
+  const mediaImage = event.image || FALLBACK_EVENT_IMAGE
 
   return (
     <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -348,12 +397,12 @@ function HeroEventSlide({ slide }: { slide: HeroSlide }) {
         </div>
       </div>
 
-      {event.image ? (
+      {mediaImage ? (
         <div className="relative h-[420px] overflow-hidden rounded-[2.5rem] bg-muted/40">
           <div
             aria-hidden
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${event.image})` }}
+            style={{ backgroundImage: `url(${mediaImage})` }}
             role={slide.imageAlt ? 'img' : undefined}
             aria-label={slide.imageAlt ?? `${event.title} feature image`}
           />
@@ -364,6 +413,35 @@ function HeroEventSlide({ slide }: { slide: HeroSlide }) {
         </div>
       )}
     </div>
+  )
+}
+
+function CarouselOverlayArrow({
+  direction,
+  onClick,
+  disabled,
+  className,
+}: {
+  direction: 'left' | 'right'
+  onClick: () => void
+  disabled: boolean
+  className?: string
+}) {
+  const Icon = direction === 'left' ? ChevronLeftIcon : ChevronRightIcon
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={direction === 'left' ? 'Previous slide' : 'Next slide'}
+      className={cn(
+        'text-white/90 hover:text-white absolute top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 backdrop-blur transition disabled:opacity-40',
+        className
+      )}
+    >
+      <Icon className="size-5" />
+    </button>
   )
 }
 

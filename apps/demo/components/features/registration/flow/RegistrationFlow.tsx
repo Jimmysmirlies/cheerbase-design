@@ -430,21 +430,6 @@ export function RegistrationFlow({
                     onClick={() => {
                       if (isFlowReadOnly) return
                       const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
-                      params.set('action', 'register')
-                      router.replace(`${pathname}?${params.toString()}`)
-                      setIsModalOpen(true)
-                    }}
-                    disabled={!divisionOptions.length || isFlowReadOnly}
-                  >
-                    <UserPlusIcon className="mr-2 size-4" />
-                    Register Team
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (isFlowReadOnly) return
-                      const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
                       params.set('action', 'bulk')
                       router.replace(`${pathname}?${params.toString()}`)
                       setIsBulkOpen(true)
@@ -453,6 +438,20 @@ export function RegistrationFlow({
                   >
                     <UploadIcon className="mr-2 size-4" />
                     Bulk Upload
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (isFlowReadOnly) return
+                      const params = new URLSearchParams(Array.from(searchParamsNav.entries()))
+                      params.set('action', 'register')
+                      router.replace(`${pathname}?${params.toString()}`)
+                      setIsModalOpen(true)
+                    }}
+                    disabled={!divisionOptions.length || isFlowReadOnly}
+                  >
+                    <UserPlusIcon className="mr-2 size-4" />
+                    Register Team
                   </Button>
                 </div>
               </div>
