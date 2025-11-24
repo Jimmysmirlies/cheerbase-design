@@ -131,7 +131,12 @@ export function NavBar({ showSearch = true, mode = 'default' }: NavBarProps) {
           }
         >
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-primary heading-3">cheerbase</span>
+            <span
+              className="heading-3 text-primary dark:text-primary-foreground"
+              suppressHydrationWarning
+            >
+              cheerbase
+            </span>
           </Link>
           {/* Search (optional) */}
           <div className="relative flex flex-1 justify-center">

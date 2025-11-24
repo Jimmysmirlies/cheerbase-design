@@ -31,10 +31,9 @@ export function DivisionQueueSection({
   getEntryStatus,
 }: DivisionQueueSectionProps) {
   const baseDivisions = useMemo(() => {
-    if (divisionOptions.length) {
-      return Array.from(new Set(divisionOptions))
-    }
-    return Array.from(new Set(allEntries.map(entry => entry.division)))
+    const fromOptions = divisionOptions.filter(Boolean)
+    const fromEntries = allEntries.map(entry => entry.division).filter(Boolean)
+    return Array.from(new Set<string>([...fromOptions, ...fromEntries]))
   }, [divisionOptions, allEntries])
 
   const divisionsToRender = useMemo(() => {

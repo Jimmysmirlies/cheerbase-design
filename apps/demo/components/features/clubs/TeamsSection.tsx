@@ -3,31 +3,56 @@
 import { useState } from 'react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Input } from '@workspace/ui/shadcn/input'
-import { SearchIcon, UserPlusIcon, UploadIcon } from 'lucide-react'
+import { SearchIcon, UserPlusIcon } from 'lucide-react'
 import { CreateTeamModal, type CreateTeamData } from './CreateTeamModal'
 import { TeamRowCard, type TeamData } from './TeamRowCard'
 import type { RegistrationMember } from '@/components/features/registration/flow/types'
 import { toast } from '@workspace/ui/shadcn/sonner'
 import UploadRosterDialog from './UploadRosterDialog'
+import { demoTeams } from '@/data/clubs/teams'
+import { demoRosters } from '@/data/clubs/members'
+import type { TeamRoster } from '@/types/club'
 
-// Mock initial teams - in production this would come from the database
-const INITIAL_TEAMS: TeamData[] = [
-  {
-    id: '1',
-    name: 'U16 Thunder',
-    division: 'All Star Cheer - U16 - 4',
-    members: [],
-  },
-  {
-    id: '2',
-    name: 'Senior Lightning',
-    division: 'All Star Cheer - Senior - 6',
-    members: [],
-  },
+type RosterRoleKey = 'coaches' | 'athletes' | 'reservists' | 'chaperones'
+const rosterRoleMap: Array<{ key: RosterRoleKey; label: string }> = [
+  { key: 'coaches', label: 'Coach' },
+  { key: 'athletes', label: 'Athlete' },
+  { key: 'reservists', label: 'Reservist' },
+  { key: 'chaperones', label: 'Chaperone' },
 ]
 
+function formatName(entry?: { firstName?: string; lastName?: string }) {
+  const parts = [entry?.firstName, entry?.lastName].filter(Boolean)
+  return parts.length ? parts.join(' ') : 'Unnamed'
+}
+
+function flattenRoster(roster?: TeamRoster): RegistrationMember[] {
+  if (!roster) return []
+  return rosterRoleMap.flatMap(({ key, label }) =>
+    (roster[key] ?? []).map(member => ({
+      name: formatName(member),
+      type: label,
+      dob: member.dob,
+      email: member.email,
+      phone: member.phone,
+    }))
+  )
+}
+
+function seedTeamsFromClubData(): TeamData[] {
+  return demoTeams.map(team => {
+    const roster = demoRosters.find(r => r.teamId === team.id)
+    return {
+      id: team.id,
+      name: team.name,
+      division: team.division,
+      members: flattenRoster(roster),
+    }
+  })
+}
+
 export default function TeamsSection() {
-  const [teams, setTeams] = useState<TeamData[]>(INITIAL_TEAMS)
+  const [teams, setTeams] = useState<TeamData[]>(() => seedTeamsFromClubData())
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 

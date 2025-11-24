@@ -3,8 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
-import { Badge } from '@workspace/ui/shadcn/badge'
-import { ChevronDownIcon, PenSquareIcon, Trash2Icon } from 'lucide-react'
+import { ChevronDownIcon, PenSquareIcon } from 'lucide-react'
 import { RosterEditorDialog } from '@/components/features/registration/flow/RosterEditorDialog'
 import { AvatarCluster } from '@/components/ui/avatars/AvatarCluster'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
@@ -109,9 +108,6 @@ export function TeamRowCard({ team, onUpdateMembers, onDelete }: TeamRowCardProp
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-foreground truncate heading-4">{team.name}</p>
-              <Badge variant="secondary" className="body-small">
-                {team.division}
-              </Badge>
               {showMemberPreview ? (
                 <AvatarCluster
                   items={avatarItems}
@@ -123,6 +119,7 @@ export function TeamRowCard({ team, onUpdateMembers, onDelete }: TeamRowCardProp
                 <span className="text-muted-foreground body-small">No members</span>
               )}
             </div>
+            <p className="text-muted-foreground body-small mt-1 truncate">{team.division}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -178,7 +175,7 @@ export function TeamRowCard({ team, onUpdateMembers, onDelete }: TeamRowCardProp
                 </table>
               </div>
             ) : (
-              <div className="p-4 text-center">No members added yet. Click "Add Members" to get started.</div>
+              <div className="p-4 text-center">No members added yet. Click &quot;Add Members&quot; to get started.</div>
             )}
           </div>
         )}
