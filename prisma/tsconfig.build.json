@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "..",
+    "declaration": false,
+    "sourceMap": false,
+    "allowImportingTsExtensions": false,
+    "declarationMap": false,
+    "types": ["node"],
+    "typeRoots": ["../apps/demo/node_modules/@types"]
+  },
+  "include": ["./seed.ts", "../apps/demo/data/clubs/*.ts", "../apps/demo/types/club.ts"]
+}

@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "presentation": {
+    "group": "local-stack",
+    "order": 1
+  },
+  "compounds": [
+    {
+      "name": "start local stack",
+      "configurations": ["db:migrate", "seed-data", "demo", "prisma-studio"],
+      "stopAll": true,
+      "presentation": {
+        "group": "local-stack",
+        "order": 1
+      }
+    }
+  ],
+  "configurations": [
+    {
+      "type": "node-terminal",
+      "name": "db:migrate",
+      "request": "launch",
+      "command": "pnpm db:migrate",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "group": "local-stack",
+        "order": 2
+      }
+    },
+    {
+      "type": "node-terminal",
+      "name": "seed-data",
+      "request": "launch",
+      "command": "pnpm db:seed",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "group": "local-stack",
+        "order": 3
+      }
+    },
+    {
+      "type": "node-terminal",
+      "name": "demo",
+      "request": "launch",
+      "command": "pnpm dev",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "group": "local-stack",
+        "order": 4
+      }
+    },
+    {
+      "type": "node-terminal",
+      "name": "prisma-studio",
+      "request": "launch",
+      "command": "pnpm prisma studio",
+      "cwd": "${workspaceFolder}",
+      "presentation": {
+        "group": "local-stack",
+        "order": 5
+      }
+    }
+  ]
+}

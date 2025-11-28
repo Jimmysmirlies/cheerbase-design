@@ -29,7 +29,8 @@ import {
   CheckCircle2Icon,
   ChevronDownIcon,
 } from 'lucide-react'
-import Link from 'next/link'
+// Link reserved for future navigation; keep import commented to suppress lint noise.
+// import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { toast } from '@workspace/ui/shadcn/sonner'
 
@@ -56,7 +57,6 @@ export type RegistrationFlowProps = {
   initialEntries?: RegistrationEntry[]
   finalizeConfig?: Partial<FinalizeConfig>
   readOnly?: boolean
-  backHref?: string
   onSubmit?: () => void
   hideStats?: boolean
   hideSubmitButton?: boolean
@@ -105,7 +105,6 @@ export function RegistrationFlow({
   initialEntries = [],
   finalizeConfig,
   readOnly = false,
-  backHref,
   onSubmit,
   hideStats = false,
   hideSubmitButton = false,
@@ -335,10 +334,6 @@ export function RegistrationFlow({
     setIsModalOpen(a === 'register')
     setIsBulkOpen(a === 'bulk')
   }, [searchParamsNav])
-
-  const handlePricingBack = useCallback(() => {
-    setActiveStep('register')
-  }, [])
 
   const handleReview = useCallback(() => {
     if (!entries.length || isFlowReadOnly) return

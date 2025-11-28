@@ -5,10 +5,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { RegistrationFlow } from '@/components/features/registration/flow/RegistrationFlow'
-import { demoRosters } from '@/data/clubs/members'
-import { demoTeams } from '@/data/clubs/teams'
 import { findEventById } from '@/data/events'
 import type { Event as ShowcaseEvent } from '@/types/events'
+import { getClubData } from '@/lib/club-data'
 
 type RegisterPageParams = {
   eventId: string
@@ -24,6 +23,7 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
     notFound()
   }
 
+  const clubData = await getClubData()
   const eventId = decodeURIComponent(resolvedParams.eventId)
   const eventData = findEventById(eventId) as ShowcaseEvent | undefined
 
@@ -63,9 +63,8 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
 
         <RegistrationFlow
           divisionPricing={divisionPricing}
-          teams={demoTeams.map(({ id, name, division, size }) => ({ id, name, division, size }))}
-          rosters={demoRosters}
-          backHref={`/events/${encodeURIComponent(eventDetails.id)}`}
+          teams={clubData.teams.map(({ id, name, division, size }) => ({ id, name, division, size }))}
+          rosters={clubData.rosters}
         />
       </div>
     </main>

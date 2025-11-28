@@ -111,11 +111,6 @@ export function PricingBreakdownPanel({
     })
   }, [entriesByDivision, pricingByDivision])
 
-  const totalTeams = useMemo(
-    () => Object.values(entriesByDivision).reduce((sum, list) => sum + list.length, 0),
-    [entriesByDivision]
-  )
-  const totalParticipants = pricingSummary.reduce((sum, item) => sum + item.participants, 0)
   const totalDue = pricingSummary.reduce((sum, item) => sum + item.total, 0)
   const hasUnpricedDivision = pricingSummary.some(item => !item.hasPricing && item.participants > 0)
 

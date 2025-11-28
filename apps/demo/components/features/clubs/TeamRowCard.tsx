@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Badge } from '@workspace/ui/shadcn/badge'
-import { ChevronDownIcon, PenSquareIcon, Trash2Icon } from 'lucide-react'
+import { ChevronDownIcon, PenSquareIcon } from 'lucide-react'
 import { RosterEditorDialog } from '@/components/features/registration/flow/RosterEditorDialog'
 import { AvatarCluster } from '@/components/ui/avatars/AvatarCluster'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
@@ -178,7 +178,7 @@ export function TeamRowCard({ team, onUpdateMembers, onDelete }: TeamRowCardProp
                 </table>
               </div>
             ) : (
-              <div className="p-4 text-center">No members added yet. Click "Add Members" to get started.</div>
+              <div className="p-4 text-center">No members added yet. Click &quot;Add Members&quot; to get started.</div>
             )}
           </div>
         )}

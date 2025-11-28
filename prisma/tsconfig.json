@@ -1,0 +1,10 @@
+{
+  "extends": "../apps/demo/tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "types": ["node"],
+    "typeRoots": ["../apps/demo/node_modules/@types"],
+    "noEmit": true
+  },
+  "include": ["./seed.ts"]
+}

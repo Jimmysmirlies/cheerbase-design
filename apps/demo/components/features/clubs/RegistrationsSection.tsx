@@ -6,12 +6,11 @@ import { cn } from "@workspace/ui/lib/utils"
 import { ScrollArea } from "@workspace/ui/shadcn/scroll-area"
 
 import { EventRegisteredCard, type EventRegisteredCardProps } from "@/components/ui/cards/EventRegisteredCard"
-import { demoRegistrations } from "@/data/clubs/registrations"
-import { demoRosters } from "@/data/clubs/members"
-import { demoTeams } from "@/data/clubs/teams"
+import { useClubData } from "@/hooks/useClubData"
 import { findEventById } from "@/data/events"
 import { formatCurrency, formatFriendlyDate } from "@/utils/format"
 import { resolveDivisionPricing } from "@/utils/pricing"
+import type { ClubData } from "@/lib/club-data"
 import type { TeamRoster } from "@/types/club"
 
 const TABS = [
@@ -23,7 +22,8 @@ type RegistrationRow = EventRegisteredCardProps & { id: string }
 
 export default function RegistrationsSection() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("upcoming")
-  const categorized = useMemo(() => categorizeRegistrations(demoRegistrations), [])
+  const { data, loading, error } = useClubData()
+  const categorized = useMemo(() => categorizeRegistrations(data ?? undefined), [data])
   const rows = activeTab === "upcoming" ? categorized.upcoming : categorized.past
 
   return (
@@ -50,6 +50,14 @@ export default function RegistrationsSection() {
         </div>
       </header>
 
+      {loading ? (
+        <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">Loading registrations...</div>
+      ) : error ? (
+        <div className="text-destructive rounded-2xl border border-dashed p-6 text-center text-sm">
+          Failed to load registrations.
+        </div>
+      ) : null}
+
       <ScrollArea className="w-full">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.length ? (
@@ -65,26 +73,32 @@ export default function RegistrationsSection() {
   )
 }
 
-function categorizeRegistrations(registrations: typeof demoRegistrations) {
+function categorizeRegistrations(data?: ClubData) {
+  if (!data) return { upcoming: [] as RegistrationRow[], past: [] as RegistrationRow[] }
+
+  const { registrations, registeredTeams, teams, rosters } = data
+  const registeredTeamMap = new Map(registeredTeams.map(rt => [rt.id, rt]))
+  const rosterByTeam = new Map(rosters.map(r => [r.teamId, r]))
   const now = new Date()
   const upcoming: RegistrationRow[] = []
   const past: RegistrationRow[] = []
 
   registrations.forEach(reg => {
-    const team = demoTeams.find(item => item.id === reg.teamId)
-    const roster = demoRosters.find(item => item.teamId === reg.teamId)
-    const participants = roster ? countRosterParticipants(roster) : reg.athletes
+    const registeredTeam = reg.registeredTeam ?? registeredTeamMap.get(reg.registeredTeamId)
+    const sourceTeam = registeredTeam?.sourceTeamId ? teams.find(item => item.id === registeredTeam.sourceTeamId) : null
+    const roster = registeredTeam?.sourceTeamId ? rosterByTeam.get(registeredTeam.sourceTeamId) : null
+    const participants =
+      registeredTeam?.members?.length ?? (roster ? countRosterParticipants(roster) : reg.athletes ?? registeredTeam?.size ?? 0)
     const event = findEventById(reg.eventId)
     const divisionPricing = event?.availableDivisions?.find(option => option.name === reg.division)
-    const invoiceTotal =
-      divisionPricing && participants
-        ? formatCurrency(participants * resolveDivisionPricing(divisionPricing).price)
-        : reg.invoiceTotal
-    const isPaid = reg.status === 'paid' || Boolean(reg.paidAt)
-    const statusLabel = isPaid ? 'Paid' : 'Unpaid'
+    const invoiceTotalNumber =
+      divisionPricing && participants ? participants * resolveDivisionPricing(divisionPricing).price : reg.invoiceTotal
+    const invoiceTotal = formatCurrency(invoiceTotalNumber)
+    const isPaid = reg.status === "paid" || Boolean(reg.paidAt)
+    const statusLabel = isPaid ? "Paid" : "Unpaid"
     const statusSubtext = isPaid
-      ? `Paid on ${formatFriendlyDate(reg.paidAt)}`
-      : `Auto-pay on ${formatFriendlyDate(reg.paymentDeadline)}`
+      ? `Paid on ${formatFriendlyDate(reg.paidAt ?? undefined)}`
+      : `Auto-pay on ${formatFriendlyDate(reg.paymentDeadline ?? undefined)}`
     const eventDate = new Date(reg.eventDate)
     const bucket: "upcoming" | "past" = Number.isNaN(eventDate.getTime()) ? "upcoming" : eventDate < now ? "past" : "upcoming"
 
@@ -93,8 +107,8 @@ function categorizeRegistrations(registrations: typeof demoRegistrations) {
       image: event?.image,
       title: reg.eventName,
       subtitle: event?.organizer ?? event?.type,
-      teamName: team?.name ?? reg.teamId,
-      date: reg.eventDate,
+      teamName: registeredTeam?.name ?? sourceTeam?.name ?? registeredTeam?.sourceTeamId ?? reg.registeredTeamId,
+      date: formatFriendlyDate(reg.eventDate),
       location: event?.location ?? reg.location,
       participants,
       invoice: invoiceTotal,

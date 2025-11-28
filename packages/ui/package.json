@@ -5,7 +5,9 @@
   "private": true,
   "license": "PROPRIETARY",
   "scripts": {
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "check-types": "pnpm run typecheck"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

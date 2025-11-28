@@ -8,13 +8,11 @@ import { RegistrationFlow } from '@/components/features/registration/flow/Regist
 import { GlassCard } from '@/components/ui/glass/GlassCard'
 import { ArrowLeftIcon, MailIcon, MapPinIcon, SquareGanttChartIcon, UserCircle2Icon } from 'lucide-react'
 import type { RegistrationEntry, RegistrationMember } from '@/components/features/registration/flow/types'
-import { demoRosters } from '@/data/clubs/members'
-import { demoRegistrations } from '@/data/clubs/registrations'
-import { demoTeams } from '@/data/clubs/teams'
 import { findEventById } from '@/data/events'
 import type { Person } from '@/types/club'
 import { formatFriendlyDate } from '@/utils/format'
 import { isRegistrationLocked } from '@/utils/registrations'
+import { getClubData, type RegisteredMemberDTO } from '@/lib/club-data'
 
 type PageParams = {
   registrationId: string
@@ -30,8 +28,13 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     notFound()
   }
 
+  const data = await getClubData()
+
   const registrationId = decodeURIComponent(resolvedParams.registrationId)
-  const registration = demoRegistrations.find(item => item.id === registrationId)
+  const registration = data.registrations.find(item => item.id === registrationId)
+  const registeredTeam = registration
+    ? registration.registeredTeam ?? data.registeredTeams.find(rt => rt.id === registration.registeredTeamId) ?? null
+    : null
 
   if (!registration) {
     notFound()
@@ -39,27 +42,35 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
 
   const event = findEventById(registration.eventId)
   const divisionPricing = event?.availableDivisions ?? []
-  const eventTeams = demoTeams.map(({ id, name, division, size }) => ({ id, name, division, size }))
-  const roster = demoRosters.find(item => item.teamId === registration.teamId)
+  const eventTeams = data.teams.map(({ id, name, division, size }) => ({ id, name, division, size }))
+  const roster =
+    registeredTeam?.sourceTeamId && data.rosters.find(item => item.teamId === registeredTeam.sourceTeamId)
+      ? data.rosters.find(item => item.teamId === registeredTeam.sourceTeamId)
+      : registeredTeam
+        ? rosterFromRegisteredTeam(registeredTeam.members)
+        : undefined
   const contactHref = `mailto:events@mobilytics.app?subject=Registration%20update%3A%20${encodeURIComponent(
     registration.eventName
   )}&body=Registration%20ID%3A%20${registration.id}`
-  const snapshotTakenAt = registration.snapshotTakenAt ?? new Date().toISOString()
-  const isLocked = isRegistrationLocked({ paymentDeadline: registration.paymentDeadline, paidAt: registration.paidAt })
+  const snapshotTakenAt = registration.createdAt ?? new Date().toISOString()
+  const isLocked = isRegistrationLocked({
+    paymentDeadline: registration.paymentDeadline ?? undefined,
+    paidAt: registration.paidAt ?? undefined,
+  })
   const lockReason = registration.paidAt ? 'paid' : isLocked ? 'deadline' : undefined
   const initialEntries: RegistrationEntry[] = [
     {
       id: registration.id,
       division: registration.division,
-      mode: 'existing',
-      teamId: registration.teamId,
-      teamName: eventTeams.find(team => team.id === registration.teamId)?.name ?? registration.teamId,
+      mode: registeredTeam?.sourceTeamId ? 'existing' : 'upload',
+      teamId: registeredTeam?.sourceTeamId ?? registeredTeam?.id,
+      teamName: registeredTeam?.name ?? registeredTeam?.sourceTeamId ?? registration.registeredTeamId,
       teamSize: registration.athletes,
       members: flattenRosterMembers(roster),
       snapshotTakenAt,
-      snapshotSourceTeamId: registration.teamId,
-      paymentDeadline: registration.paymentDeadline,
-      paidAt: registration.paidAt,
+      snapshotSourceTeamId: registeredTeam?.sourceTeamId ?? undefined,
+      paymentDeadline: registration.paymentDeadline ?? undefined,
+      paidAt: registration.paidAt ?? undefined,
       locked: isLocked,
       lockReason,
       lockMessage:
@@ -72,7 +83,7 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     },
   ]
 
-  const baseAmount = Number(registration.invoiceTotal.replace(/[^0-9.-]+/g, '')) || 0
+  const baseAmount = registration.invoiceTotal
   const gstRate = 0.13
   const qstRate = 0.08
   const finalizeConfig = isLocked
@@ -124,6 +135,11 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
         },
       }
 
+  const rostersForFlow =
+    registeredTeam && !registeredTeam.sourceTeamId
+      ? [...data.rosters, { teamId: registeredTeam.id, ...rosterFromRegisteredTeam(registeredTeam.members) }]
+      : data.rosters
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-10">
@@ -164,7 +180,7 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
         <RegistrationFlow
           divisionPricing={divisionPricing}
           teams={eventTeams}
-          rosters={demoRosters}
+          rosters={rostersForFlow}
           initialEntries={initialEntries}
           finalizeConfig={finalizeConfig}
           readOnly={isLocked}
@@ -186,6 +202,29 @@ type RosterShape = {
   athletes: Person[]
   reservists: Person[]
   chaperones: Person[]
+}
+
+function rosterFromRegisteredTeam(members: RegisteredMemberDTO[]): RosterShape {
+  const empty: RosterShape = { coaches: [], athletes: [], reservists: [], chaperones: [] }
+  if (!members?.length) return empty
+
+  const toPerson = (member: RegisteredMemberDTO): Person => ({
+    id: member.personId ?? member.id,
+    firstName: member.firstName,
+    lastName: member.lastName,
+    dob: member.dob ?? undefined,
+    email: member.email ?? undefined,
+    phone: member.phone ?? undefined,
+  })
+
+  members.forEach(member => {
+    if (member.role === 'coach') empty.coaches.push(toPerson(member))
+    if (member.role === 'athlete') empty.athletes.push(toPerson(member))
+    if (member.role === 'reservist') empty.reservists.push(toPerson(member))
+    if (member.role === 'chaperone') empty.chaperones.push(toPerson(member))
+  })
+
+  return empty
 }
 
 type InvoiceSummaryCardProps = {

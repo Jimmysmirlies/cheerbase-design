@@ -80,6 +80,7 @@ function HeroSingle(props: SingleHeroProps) {
     props
 
   return (
+    /* Hero Single Variant: "Story Panel" */
     <section className="bg-background px-6 py-16 sm:px-10 lg:py-20">
       <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
         <div className="space-y-8">
@@ -144,9 +145,10 @@ function HeroCarouselFullBleed({ slides }: { slides: HeroSlide[] }) {
   const handleNext = () => setActiveIndex((prev) => (prev === slides.length - 1 ? prev : prev + 1))
 
   return (
-    <section className="bg-background px-4 pb-12 pt-8 sm:px-8 lg:pb-16 lg:pt-12">
-      <div className="mx-auto max-w-7xl">
-        <div className="relative min-h-[520px] overflow-hidden rounded-[1rem]">
+    /* Hero Carousel Variant: "Full-Bleed Storyboard" */
+    <section className="bg-background lg:p-12 sm:p-6">
+      <div className="mx-auto max-w-7xl shadow-lg overflow-hidden rounded-[1rem]">
+        <div className="relative min-h-[520px]">
           {slides.map((slide, index) => (
             <div
               key={slide.id}
@@ -237,7 +239,8 @@ function HeroCarouselDefault({ slides }: { slides: HeroSlide[] }) {
   const handleNext = () => scrollTo(Math.min(slides.length - 1, activeIndex + 1))
 
   return (
-    <section className="bg-background px-4 pb-16 pt-12 sm:px-8 lg:pb-20 lg:pt-16">
+    /* Hero Carousel Variant: "Standard Slides" */
+    <section className="bg-background px-12 py-12 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-7xl">
         <div
           ref={containerRef}
@@ -462,7 +465,7 @@ function CarouselButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className="text-muted-foreground/80 hover:text-foreground flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/80 shadow-sm transition disabled:opacity-40"
+      className="text-muted-foreground/80 hover:text-foreground flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/80 shadow-lg transition disabled:opacity-40"
     >
       {children}
     </button>

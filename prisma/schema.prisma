@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id             String         @id
+  clubOwnerId    String
+  name           String
+  division       String
+  size           Int
+  coedCount      Int
+  members        TeamMember[]
+  registeredFrom RegisteredTeam[] @relation("RegisteredFromTeam")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Person {
+  id               String        @id
+  clubOwnerId      String
+  firstName        String
+  lastName         String
+  dob              DateTime?
+  email            String?
+  phone            String?
+  teamMemberships  TeamMember[]
+  registeredMember RegisteredMember[] @relation("RegisteredMemberPerson")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model TeamMember {
+  id        String  @id @default(cuid())
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  person    Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  personId  String
+  role      MemberRole
+  createdAt DateTime @default(now())
+}
+
+model RegisteredTeam {
+  id             String            @id @default(cuid())
+  clubOwnerId    String
+  sourceType     RegisteredTeamSource
+  sourceTeam     Team?             @relation("RegisteredFromTeam", fields: [sourceTeamId], references: [id])
+  sourceTeamId   String?
+  name           String
+  division       String
+  size           Int
+  coedCount      Int
+  members        RegisteredMember[]
+  registrations  Registration[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model RegisteredMember {
+  id               String          @id @default(cuid())
+  registeredTeam   RegisteredTeam  @relation(fields: [registeredTeamId], references: [id], onDelete: Cascade)
+  registeredTeamId String
+  person           Person?         @relation("RegisteredMemberPerson", fields: [personId], references: [id])
+  personId         String?
+  role             MemberRole
+  firstName        String
+  lastName         String
+  dob              DateTime?
+  email            String?
+  phone            String?
+  createdAt        DateTime        @default(now())
+}
+
+model Registration {
+  id               String           @id
+  clubOwnerId      String
+  eventId          String
+  eventName        String
+  eventDate        DateTime
+  location         String
+  division         String
+  registeredTeam   RegisteredTeam   @relation(fields: [registeredTeamId], references: [id], onDelete: Cascade)
+  registeredTeamId String
+  athletes         Int
+  invoiceTotal     Decimal
+  paymentDeadline  DateTime
+  status           PaymentStatus    @default(pending)
+  paidAt           DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+enum MemberRole {
+  coach
+  athlete
+  reservist
+  chaperone
+}
+
+enum PaymentStatus {
+  pending
+  paid
+}
+
+enum RegisteredTeamSource {
+  club_team
+  upload
+}

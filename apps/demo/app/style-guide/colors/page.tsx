@@ -1,3 +1,5 @@
+import { ColorSwatch } from "@workspace/ui/components/color-swatch";
+
 const colors = [
   {
     name: "Background",
@@ -18,10 +20,20 @@ const colors = [
     usage: "Main CTAs, active states, emphasis text links.",
   },
   {
+    name: "Primary Foreground",
+    token: "var(--primary-foreground)",
+    usage: "Text/icons placed on primary surfaces.",
+  },
+  {
     name: "Secondary",
     token: "var(--secondary)",
     text: "var(--secondary-foreground)",
     usage: "Neutral buttons, sidebar backgrounds, soft panels.",
+  },
+  {
+    name: "Secondary Foreground",
+    token: "var(--secondary-foreground)",
+    usage: "Text/icons placed on secondary surfaces.",
   },
   {
     name: "Muted",
@@ -36,16 +48,22 @@ const colors = [
     usage: "Marketing flourishes, highlight tags, badges.",
   },
   {
+    name: "Accent Lighter",
+    token: "var(--accent-lighter)",
+    text: "var(--accent-lighter-foreground)",
+    usage: "Hover states and light highlights (e.g., dropdown items, soft chips).",
+  },
+  {
+    name: "Accent Lighter Foreground",
+    token: "var(--accent-lighter-foreground)",
+    text: "var(--background)",
+    usage: "Text/icons on accent-lighter backgrounds when extra contrast is needed.",
+  },
+  {
     name: "Popover",
     token: "var(--popover)",
     text: "var(--popover-foreground)",
     usage: "Dropdowns, popovers, hover cards.",
-  },
-  {
-    name: "Success",
-    token: "var(--success)",
-    text: "var(--success-foreground)",
-    usage: "Positive confirmations, status chips, toasts.",
   },
   {
     name: "Destructive",
@@ -116,28 +134,10 @@ const colors = [
     token: "var(--sidebar-border)",
     usage: "Separators between navigation and main content.",
   },
-];
-
-const glassPalette = [
   {
-    name: "Glass Peach",
-    token: "oklch(var(--glass-peach))",
-    usage: "Primary stop for iridescent surfaces (e.g., cards, navbar).",
-  },
-  {
-    name: "Glass Light Yellow",
-    token: "oklch(var(--glass-light-yellow))",
-    usage: "Second gradient stop for subtle warmth in glass surfaces.",
-  },
-  {
-    name: "Glass Light Green",
-    token: "oklch(var(--glass-light-green))",
-    usage: "Third gradient stop to introduce soft green tones.",
-  },
-  {
-    name: "Glass Light Blue",
-    token: "oklch(var(--glass-light-blue))",
-    usage: "Final gradient stop, cools the glass palette.",
+    name: "Sidebar Ring",
+    token: "var(--sidebar-ring)",
+    usage: "Focus outlines within sidebar surfaces.",
   },
 ];
 
@@ -151,64 +151,11 @@ export default function ColorsPage() {
           colors only for illustrations or analytics.
         </p>
       </header>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {colors.map((color) => (
-          <article
-            key={color.name}
-            className="flex flex-col justify-between rounded-2xl border border-border bg-card shadow-sm"
-          >
-            <div className="rounded-t-2xl p-4" style={{ backgroundColor: color.token, color: color.text ?? "var(--foreground)" }}>
-              <p className="text-sm font-semibold">{color.name}</p>
-              <p className="text-xs opacity-80">{color.token.replace("var(", "").replace(")", "")}</p>
-            </div>
-            <div className="space-y-1 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
-              <p>Usage: {color.usage}</p>
-              {color.text && <p>Foreground token: {color.text.replace("var(", "").replace(")", "")}</p>}
-            </div>
-          </article>
+          <ColorSwatch key={color.name} name={color.name} token={color.token} textToken={color.text} usage={color.usage} />
         ))}
       </div>
-
-      <section className="space-y-3">
-        <h3 className="text-xl font-semibold">Glass Palette</h3>
-        <p className="text-sm text-muted-foreground">
-          Iridescent stops used to build the glass surfaces across cards, nav, and other frosted UI moments.
-        </p>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {glassPalette.map((color) => (
-            <article key={color.name} className="flex flex-col justify-between rounded-2xl border border-border bg-card shadow-sm">
-              <div className="rounded-t-2xl p-4" style={{ backgroundColor: color.token }}>
-                <p className="text-sm font-semibold text-foreground">{color.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {color.token.replace("var(", "").replace(")", "")}
-                </p>
-              </div>
-              <div className="space-y-1 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
-                <p>Usage: {color.usage}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-        <div className="rounded-3xl border border-border/80 bg-card/80 p-6">
-          <p className="text-sm font-semibold text-muted-foreground">Example</p>
-          <div
-            className="mt-3 rounded-3xl p-6 shadow-sm backdrop-blur-xl"
-            style={{
-              background:
-                'linear-gradient(135deg, oklch(var(--glass-peach) / 0.15) 0%, oklch(var(--glass-light-yellow) / 0.15) 25%, oklch(var(--glass-light-green) / 0.15) 50%, oklch(var(--glass-light-blue) / 0.15) 75%, oklch(var(--glass-peach) / 0.15) 100%)',
-              border: '1px solid var(--glass-border)',
-            }}
-          >
-            <div className="flex flex-col gap-2">
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">Glass surface</span>
-              <h4 className="text-xl font-semibold text-foreground">Iridescent card example</h4>
-              <p className="text-sm text-muted-foreground">
-                This demo replicates the card treatment used for event cards and the navbar background.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
     </section>
   );
 }

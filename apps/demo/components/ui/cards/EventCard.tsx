@@ -47,7 +47,12 @@ export function EventCard({
   const mediaImage = image || FALLBACK_EVENT_IMAGE
 
   return (
-    <Card className={cn('overflow-hidden p-0 shadow-sm transition hover:shadow-md', isCompact ? 'gap-4' : 'gap-6')}>
+    <Card
+      className={cn(
+        'h-full overflow-hidden p-0 shadow-lg transition hover:shadow-xl',
+        isCompact ? 'gap-4' : 'gap-6'
+      )}
+    >
       {/* Media */}
       <div
         className={cn('relative bg-muted bg-cover bg-center', isCompact ? 'h-32' : 'h-40')}
@@ -72,9 +77,11 @@ export function EventCard({
             <CalendarDaysIcon className={cn('text-primary/70 size-4', isCompact && 'size-3.5')} />
             {date}
           </p>
-          <p className="flex items-center gap-2">
-            <MapPinIcon className={cn('text-primary/70 size-4', isCompact && 'size-3.5')} />
-            {location}
+          <p className="flex items-start gap-2">
+            <MapPinIcon className={cn('text-primary/70 size-4 shrink-0', isCompact && 'size-3.5')} />
+            <span className={cn('line-clamp-2 break-words leading-tight', isCompact && 'text-xs')}>
+              {location}
+            </span>
           </p>
           <p className="flex items-center gap-2">
             <UsersIcon className={cn('text-primary/70 size-4', isCompact && 'size-3.5')} />

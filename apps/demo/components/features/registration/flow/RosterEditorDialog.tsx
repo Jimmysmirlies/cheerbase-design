@@ -95,6 +95,74 @@ function calculateColumnMinWidths(rows: EditableRosterRow[]): Record<DataColumnK
   }, {} as Record<DataColumnKey, number>)
 }
 
+function DobCell({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (val: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const parsedDate = parseDobValue(value)
+
+  const handleDobChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.target.value
+    const digitsOnly = input.replace(/\D/g, '')
+
+    let formatted = digitsOnly
+    if (digitsOnly.length >= 4) {
+      formatted = digitsOnly.slice(0, 4)
+      if (digitsOnly.length >= 5) {
+        formatted += '-' + digitsOnly.slice(4, 6)
+      }
+      if (digitsOnly.length >= 7) {
+        formatted += '-' + digitsOnly.slice(6, 8)
+      }
+    }
+
+    onChange(formatted)
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={handleDobChange}
+        placeholder="YYYY-MM-DD"
+        className="h-8 pr-9"
+        maxLength={10}
+      />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-0 h-8 w-8 hover:bg-transparent"
+            type="button"
+          >
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="p-2" sideOffset={4}>
+          <Calendar
+            mode="single"
+            captionLayout="dropdown"
+            selected={parsedDate}
+            onSelect={date => {
+              if (date) {
+                onChange(formatDobValue(date))
+              }
+              setOpen(false)
+            }}
+            fromYear={new Date().getFullYear() - DOB_YEAR_RANGE}
+            toYear={new Date().getFullYear()}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
+
 function buildEditableRows(members: RegistrationMember[]): EditableRosterRow[] {
   if (!members?.length) return []
   return members.map(member => ({
@@ -132,8 +200,6 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
   const normalizedMembers = useMemo(() => buildEditableRows(members), [members])
   const initialRowsRef = useRef<EditableRosterRow[]>(normalizedMembers)
   const [rows, setRows] = useState<EditableRosterRow[]>(normalizedMembers)
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const earliestYear = currentYear - DOB_YEAR_RANGE
   const columnMinWidths = useMemo(() => calculateColumnMinWidths(rows), [rows])
 
   useEffect(() => {
@@ -194,69 +260,9 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
       {
         header: 'DOB',
         accessorKey: 'dob',
-        cell: ({ getValue, row }) => {
-          const value = getValue<string>() ?? ''
-          const parsedDate = parseDobValue(value)
-          const [open, setOpen] = useState(false)
-
-          const handleDobChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-            const input = event.target.value
-            // Remove all non-digit characters
-            const digitsOnly = input.replace(/\D/g, '')
-
-            // Auto-format as YYYY-MM-DD
-            let formatted = digitsOnly
-            if (digitsOnly.length >= 4) {
-              formatted = digitsOnly.slice(0, 4)
-              if (digitsOnly.length >= 5) {
-                formatted += '-' + digitsOnly.slice(4, 6)
-              }
-              if (digitsOnly.length >= 7) {
-                formatted += '-' + digitsOnly.slice(6, 8)
-              }
-            }
-
-            handleCellChange(row.index, 'dob', formatted)
-          }
-
-          return (
-            <div className="relative">
-              <Input
-                value={value}
-                onChange={handleDobChange}
-                placeholder="YYYY-MM-DD"
-                className="h-8 pr-9"
-                maxLength={10}
-              />
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-8 w-8 hover:bg-transparent"
-                    type="button"
-                  >
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={parsedDate}
-                    onSelect={nextDate => {
-                      handleCellChange(row.index, 'dob', formatDobValue(nextDate))
-                      setOpen(false)
-                    }}
-                    initialFocus
-                    captionLayout="dropdown"
-                    fromYear={earliestYear}
-                    toYear={currentYear}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          )
-        },
+        cell: ({ getValue, row }) => (
+          <DobCell value={getValue<string>() ?? ''} onChange={val => handleCellChange(row.index, 'dob', val)} />
+        ),
       },
       {
         header: 'Email',
@@ -317,7 +323,7 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
         ),
       },
     ],
-    [currentYear, earliestYear, handleCellChange, handleRemoveRow]
+    [handleCellChange, handleRemoveRow]
   )
 
   const table = useReactTable<EditableRosterRow>({

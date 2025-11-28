@@ -1,35 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Input } from '@workspace/ui/shadcn/input'
-import { SearchIcon, UserPlusIcon, UploadIcon } from 'lucide-react'
+import { SearchIcon, UserPlusIcon } from 'lucide-react'
 import { CreateTeamModal, type CreateTeamData } from './CreateTeamModal'
 import { TeamRowCard, type TeamData } from './TeamRowCard'
 import type { RegistrationMember } from '@/components/features/registration/flow/types'
 import { toast } from '@workspace/ui/shadcn/sonner'
 import UploadRosterDialog from './UploadRosterDialog'
-
-// Mock initial teams - in production this would come from the database
-const INITIAL_TEAMS: TeamData[] = [
-  {
-    id: '1',
-    name: 'U16 Thunder',
-    division: 'All Star Cheer - U16 - 4',
-    members: [],
-  },
-  {
-    id: '2',
-    name: 'Senior Lightning',
-    division: 'All Star Cheer - Senior - 6',
-    members: [],
-  },
-]
+import { useClubData } from '@/hooks/useClubData'
+import type { TeamRoster } from '@/types/club'
 
 export default function TeamsSection() {
-  const [teams, setTeams] = useState<TeamData[]>(INITIAL_TEAMS)
+  const { data, loading, error } = useClubData()
+  const [teams, setTeams] = useState<TeamData[]>([])
+  const [hasHydrated, setHasHydrated] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (!data || hasHydrated) return
+    const rosterMap = new Map<string, TeamRoster>(data.rosters.map(roster => [roster.teamId, roster]))
+    const hydrated = data.teams.map(team => ({
+      id: team.id,
+      name: team.name,
+      division: team.division,
+      members: rosterToMembers(rosterMap.get(team.id)),
+    }))
+    setTeams(hydrated)
+    setHasHydrated(true)
+  }, [data, hasHydrated])
 
   const handleCreateTeam = (teamData: CreateTeamData) => {
     const newTeam: TeamData = {
@@ -54,13 +55,17 @@ export default function TeamsSection() {
   }
 
   const sanitizedSearch = searchTerm.trim().toLowerCase()
-  const filteredTeams = sanitizedSearch
-    ? teams.filter(
-        team =>
-          team.name.toLowerCase().includes(sanitizedSearch) ||
-          team.division.toLowerCase().includes(sanitizedSearch)
-      )
-    : teams
+  const filteredTeams = useMemo(
+    () =>
+      sanitizedSearch
+        ? teams.filter(
+            team =>
+              team.name.toLowerCase().includes(sanitizedSearch) ||
+              team.division.toLowerCase().includes(sanitizedSearch)
+          )
+        : teams,
+    [sanitizedSearch, teams]
+  )
 
   return (
     <section className="space-y-6">
@@ -72,13 +77,23 @@ export default function TeamsSection() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" type="button" onClick={() => setIsCreateModalOpen(true)}>
+          <Button size="sm" type="button" onClick={() => setIsCreateModalOpen(true)} disabled={loading}>
             <UserPlusIcon className="mr-2 size-4" />
             Create Team
           </Button>
           <UploadRosterDialog />
         </div>
       </div>
+
+      {loading ? (
+        <div className="text-muted-foreground rounded-xl border border-dashed border-border/60 p-8 text-center">
+          Loading teams...
+        </div>
+      ) : error ? (
+        <div className="text-destructive rounded-xl border border-dashed border-border/60 p-8 text-center">
+          Failed to load teams.
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-4">
         <div className="relative w-full sm:max-w-md">
@@ -119,4 +134,21 @@ export default function TeamsSection() {
       />
     </section>
   )
+}
+
+function rosterToMembers(roster?: TeamRoster): RegistrationMember[] {
+  if (!roster) return []
+  const toMember = (person: { firstName: string; lastName: string; dob?: string; email?: string; phone?: string }, type: string): RegistrationMember => ({
+    name: `${person.firstName} ${person.lastName}`,
+    type,
+    dob: person.dob,
+    email: person.email,
+    phone: person.phone,
+  })
+  return [
+    ...roster.coaches.map(person => toMember(person, 'Coach')),
+    ...roster.athletes.map(person => toMember(person, 'Athlete')),
+    ...roster.reservists.map(person => toMember(person, 'Reservist')),
+    ...roster.chaperones.map(person => toMember(person, 'Chaperone')),
+  ]
 }

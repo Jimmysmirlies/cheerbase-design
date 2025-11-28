@@ -8,8 +8,6 @@
  */
 import { useMemo, useState } from "react";
 import TeamHeaderCard from "./TeamHeaderCard";
-import { demoTeams } from "@/data/clubs/teams";
-import { demoRosters } from "@/data/clubs/members";
 import type { Person, TeamRoster } from "@/types/club";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/shadcn/tabs";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -18,6 +16,7 @@ import EditMemberDialog from "./EditMemberDialog";
 import { usePersistentRoster } from "@/hooks/usePersistentRoster";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { downloadTextFile } from "@/utils/download";
+import { useClubData } from "@/hooks/useClubData";
 
 function RosterTable({
   people,
@@ -75,18 +74,13 @@ function InlineEditableTable({ rows, onUpdate, onRemove }: { rows: Person[]; onU
 }
 
 export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigateToTeams?: () => void }) {
-  const team = useMemo(() => demoTeams.find((t) => t.id === teamId), [teamId]);
+  const { data, loading, error } = useClubData();
+  const team = useMemo(() => data?.teams.find((t) => t.id === teamId), [data?.teams, teamId]);
   const initialRoster = useMemo<TeamRoster>(() => {
-    return (
-      demoRosters.find((r) => r.teamId === teamId) || {
-        teamId,
-        coaches: [],
-        athletes: [],
-        reservists: [],
-        chaperones: [],
-      }
-    );
-  }, [teamId]);
+    const empty = { teamId, coaches: [], athletes: [], reservists: [], chaperones: [] };
+    if (!data) return empty as TeamRoster;
+    return data.rosters.find((r) => r.teamId === teamId) || (empty as TeamRoster);
+  }, [data, teamId]);
   const [roster, setRoster] = usePersistentRoster(teamId, initialRoster);
   const [activeTab, setActiveTab] = useState<"coaches" | "athletes" | "reservists" | "chaperones">("athletes");
 
@@ -136,6 +130,14 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
         : activeTab === "reservists"
           ? "Reservist"
           : "Chaperone";
+
+  if (loading) {
+    return <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">Loading team...</div>;
+  }
+
+  if (error) {
+    return <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">Failed to load team.</div>;
+  }
 
   return (
     <div className="space-y-6">
