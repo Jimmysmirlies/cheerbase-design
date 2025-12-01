@@ -37,6 +37,16 @@ Cheerbase is a cheerleading operations platform focused on event registration, r
 
 ---
 
+## Design Branding (Aesthetic Guardrails)
+
+- Minimal, black-on-white surfaces with thin, light borders; avoid heavy cards unless necessary.
+- Use typography for hierarchy (bold for primary, muted for secondary) instead of heavy chrome; add generous spacing/air.
+- Inline meta rows (e.g., Division/Level/Members) with subtle dividers; align actions with headers, not extra labels.
+- Keep smooth scroll/Lenis only on marketing; native scroll in app/club/portal areas so modals/dialogs behave normally.
+- When dialogs are open, prefer native scrolling inside the dialog (body lock + overscroll containment as needed).
+
+---
+
 ## Scripts & Tooling
 
 - `pnpm dev:demo` — Run the demo application.

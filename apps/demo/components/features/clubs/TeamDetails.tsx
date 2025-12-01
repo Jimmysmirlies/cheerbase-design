@@ -6,66 +6,45 @@
  * - Reusable renderer for a team's details: header, settings, and roster tabs.
  * - Used inside the Clubs page (keeps sidebar persistent) and the standalone route.
  */
-import { useMemo, useState } from "react";
-import TeamHeaderCard from "./TeamHeaderCard";
+import { useEffect, useMemo, useState } from "react";
 import type { Person, TeamRoster } from "@/types/club";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/shadcn/tabs";
 import { Button } from "@workspace/ui/shadcn/button";
-import AddMemberDialog from "./AddMemberDialog";
-import EditMemberDialog from "./EditMemberDialog";
-import { usePersistentRoster } from "@/hooks/usePersistentRoster";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
-import { downloadTextFile } from "@/utils/download";
 import { useClubData } from "@/hooks/useClubData";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
+import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
+import type { TeamOption } from "@/components/features/registration/flow/types";
+import type { DivisionPricing } from "@/types/events";
 
 function RosterTable({
   people,
-  onUpdate,
-  onRemove,
 }: {
-  people: Person[];
-  onUpdate: (p: Person) => void;
-  onRemove: (id: string) => void;
+  people: (Person & { role?: string })[];
 }) {
   if (people.length === 0) {
     return <p className="text-sm text-muted-foreground">No members in this list yet.</p>;
   }
-  return <InlineEditableTable rows={people} onUpdate={onUpdate} onRemove={onRemove} />;
-}
-
-function InlineEditableTable({ rows, onUpdate, onRemove }: { rows: Person[]; onUpdate: (p: Person) => void; onRemove: (id: string) => void }) {
   return (
-    <div className="overflow-hidden rounded-2xl border">
+    <div className="overflow-x-auto border border-border">
       <table className="w-full text-sm">
-        <thead className="bg-muted/50 text-muted-foreground">
+        <thead className="bg-muted/30 text-muted-foreground">
           <tr>
             <th className="px-4 py-3 text-left font-medium">Name</th>
             <th className="px-4 py-3 text-left font-medium">DOB</th>
             <th className="px-4 py-3 text-left font-medium">Email</th>
             <th className="px-4 py-3 text-left font-medium">Phone</th>
-            <th className="px-4 py-3 text-right font-medium">Actions</th>
+            <th className="px-4 py-3 text-left font-medium">Role</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((p) => (
+          {people.map((p) => (
             <tr key={p.id} className="border-t align-top">
               <td className="px-4 py-3">{`${p.firstName} ${p.lastName}`}</td>
               <td className="px-4 py-3">{formatFriendlyDate(p.dob)}</td>
               <td className="px-4 py-3">{p.email ?? "—"}</td>
               <td className="px-4 py-3">{formatPhoneNumber(p.phone)}</td>
-              <td className="px-4 py-3 text-right">
-                <EditMemberDialog
-                  person={p}
-                  onSave={onUpdate}
-                  onRemove={onRemove}
-                  trigger={
-                    <Button variant="outline" size="sm" type="button">
-                      Edit
-                    </Button>
-                  }
-                />
-              </td>
+              <td className="px-4 py-3 text-muted-foreground">{p.role ?? "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -83,55 +62,67 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
     if (!data) return empty as TeamRoster;
     return data.rosters.find((r) => r.teamId === teamId) || (empty as TeamRoster);
   }, [data, teamId]);
-  const [roster, setRoster] = usePersistentRoster(teamId, initialRoster);
-  const [activeTab, setActiveTab] = useState<"coaches" | "athletes" | "reservists" | "chaperones">("athletes");
+  const [roster, setRoster] = useState<TeamRoster>(initialRoster);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
-  const combinedMembers = useMemo(() => {
+  useEffect(() => {
+    setRoster(initialRoster);
+  }, [initialRoster]);
+
+  const combinedMembers: (Person & { role?: string })[] = useMemo(() => {
     return [
-      ...roster.coaches.map((person) => ({ person, role: "Coach" })),
-      ...roster.athletes.map((person) => ({ person, role: "Athlete" })),
-      ...roster.reservists.map((person) => ({ person, role: "Reservist" })),
-      ...roster.chaperones.map((person) => ({ person, role: "Chaperone" })),
+      ...roster.coaches.map((person) => ({ ...person, role: "Coach" })),
+      ...roster.athletes.map((person) => ({ ...person, role: "Athlete" })),
+      ...roster.reservists.map((person) => ({ ...person, role: "Reservist" })),
+      ...roster.chaperones.map((person) => ({ ...person, role: "Chaperone" })),
     ];
   }, [roster]);
+  const { divisionLabel, levelLabel } = useMemo(() => {
+    const parts = (team?.division ?? "").split("-").map((p) => p.trim()).filter(Boolean);
+    if (!parts.length) return { divisionLabel: "—", levelLabel: "—" };
+    if (parts.length === 1) return { divisionLabel: parts[0], levelLabel: "—" };
+    const level = parts.pop() ?? "—";
+    return { divisionLabel: parts.join(" - "), levelLabel: level };
+  }, [team?.division]);
+  const memberCount =
+    (roster?.coaches?.length ?? 0) +
+    (roster?.athletes?.length ?? 0) +
+    (roster?.reservists?.length ?? 0) +
+    (roster?.chaperones?.length ?? 0);
 
-  const handleExportCsv = () => {
-    const teamName = team?.name ?? "team";
-    const headers = ["Team Name", "Role", "First Name", "Last Name", "Date of Birth", "Email", "Phone"];
-    const escape = (value: string) => {
-      if (/,|"|\n/.test(value)) {
-        return `"${value.replace(/"/g, '""')}"`;
-      }
-      return value;
-    };
-    const rows = combinedMembers.map(({ person, role }) => [
-      teamName,
-      role,
-      person.firstName ?? "",
-      person.lastName ?? "",
-      person.dob ?? "",
-      person.email ?? "",
-      person.phone ?? "",
-    ]);
-    const csv = [headers, ...rows].map((row) => row.map((cell) => escape(cell ?? "")).join(",")).join("\n");
-    const filename = `${teamName.replace(/\s+/g, "-").toLowerCase()}-roster.csv`;
-    downloadTextFile(filename, csv);
+  const editorMembers = useMemo(
+    () =>
+      combinedMembers.map((m) => ({
+        name: `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim(),
+        type: m.role ?? "Athlete",
+        dob: m.dob,
+        email: m.email,
+        phone: m.phone,
+      })),
+    [combinedMembers]
+  );
+
+  const registrationMembersToRoster = (members: { name?: string; type?: string; dob?: string; email?: string; phone?: string }[]): TeamRoster => {
+    const empty: TeamRoster = { teamId, coaches: [], athletes: [], reservists: [], chaperones: [] };
+    members.forEach((m, idx) => {
+      const [first = "", last = ""] = (m.name ?? `Member ${idx + 1}`).split(" ");
+      const person: Person = {
+        id: `${teamId}-${idx}-${m.type ?? "athlete"}`,
+        firstName: first,
+        lastName: last,
+        dob: m.dob,
+        email: m.email,
+        phone: m.phone,
+      };
+      const role = (m.type ?? "athlete").toLowerCase();
+      if (role === "coach") empty.coaches.push(person);
+      else if (role === "reservist") empty.reservists.push(person);
+      else if (role === "chaperone") empty.chaperones.push(person);
+      else empty.athletes.push(person);
+    });
+    return empty;
   };
-
-  const handleDownloadTemplate = () => {
-    const headers = "Team Name,Role,First Name,Last Name,Date of Birth,Email,Phone";
-    const csv = `${headers}\n`;
-    downloadTextFile("team-roster-template.csv", csv);
-  };
-
-  const roleLabel =
-    activeTab === "coaches"
-      ? "Coach"
-      : activeTab === "athletes"
-        ? "Athlete"
-        : activeTab === "reservists"
-          ? "Reservist"
-          : "Chaperone";
 
   if (loading) {
     return <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">Loading team...</div>;
@@ -143,106 +134,83 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
 
   return (
     <div className="space-y-6">
-      {/* Top bar: breadcrumbs only; align to top */}
-      <div className="flex items-start justify-between">
-        <div className="text-xs text-muted-foreground">
-          {onNavigateToTeams ? (
-            <button className="underline-offset-4 hover:underline" onClick={onNavigateToTeams} type="button">
-              Teams
-            </button>
-          ) : (
-            <span>Teams</span>
-          )}
-          <span className="mx-2">/</span>
-          <span className="text-foreground">{team?.name ?? "Unknown Team"}</span>
-        </div>
-        <span />
-      </div>
-
-      {/* Team header card */}
-      <TeamHeaderCard
-        name={team?.name ?? "Unknown Team"}
-        division={team?.division ?? "TBD"}
-        size={team?.size ?? 0}
-        coedCount={team?.coedCount ?? 0}
-      />
-
-      {/* Card acts as a natural separator; no divider */}
-
-      {/* Roster by roles + inline actions */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(v: string) =>
-          setActiveTab(v as "coaches" | "athletes" | "reservists" | "chaperones")}
-        className="space-y-0"
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="coaches">Coaches</TabsTrigger>
-            <TabsTrigger value="athletes">Athletes</TabsTrigger>
-            <TabsTrigger value="reservists">Reservists</TabsTrigger>
-            <TabsTrigger value="chaperones">Chaperones</TabsTrigger>
-          </TabsList>
+      {/* Back + header */}
+      <div className="space-y-4">
+        {onNavigateToTeams ? (
+          <div>
+            <Button variant="ghost" size="icon" type="button" onClick={onNavigateToTeams} aria-label="Back to Teams">
+              <span className="text-xl leading-none">←</span>
+            </Button>
+          </div>
+        ) : null}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="heading-2 text-foreground">{team?.name ?? "Unknown Team"}</div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" type="button" onClick={handleDownloadTemplate}>
-              Download Template
+            <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+              Bulk Upload
             </Button>
-            <Button variant="ghost" size="sm" type="button" onClick={handleExportCsv}>
-              Export CSV
+            <Button type="button" variant="default" size="sm" onClick={() => setEditorOpen(true)}>
+              Edit Team
             </Button>
-            <AddMemberDialog
-              roleLabel={roleLabel}
-              onAdd={(person) => {
-                setRoster((r) => {
-                  const next = { ...r } as TeamRoster;
-                  if (activeTab === "coaches") next.coaches = [...r.coaches, person];
-                  if (activeTab === "athletes") next.athletes = [...r.athletes, person];
-                  if (activeTab === "reservists") next.reservists = [...r.reservists, person];
-                  if (activeTab === "chaperones") next.chaperones = [...r.chaperones, person];
-                  return next;
-                });
-              }}
-            />
           </div>
         </div>
+        <div className="h-px w-full bg-border" />
+        <div className="grid gap-6 pb-4 text-sm text-foreground sm:grid-cols-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Division</span>
+              <span className="font-medium text-right">{divisionLabel}</span>
+            </div>
+            <div className="h-px w-full bg-border/80" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Level</span>
+              <span className="font-medium">{levelLabel}</span>
+            </div>
+            <div className="h-px w-full bg-border/80" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Members</span>
+              <span className="font-medium">{memberCount}</span>
+            </div>
+            <div className="h-px w-full bg-border/80" />
+          </div>
+        </div>
+      </div>
 
-        <TabsContent value="coaches">
-          <RosterTable
-            people={roster?.coaches ?? []}
-            onUpdate={(updated) =>
-              setRoster((r) => ({ ...r, coaches: r.coaches.map((p) => (p.id === updated.id ? updated : p)) }))
-            }
-            onRemove={(id) => setRoster((r) => ({ ...r, coaches: r.coaches.filter((p) => p.id !== id) }))}
-          />
-        </TabsContent>
-        <TabsContent value="athletes">
-          <RosterTable
-            people={roster?.athletes ?? []}
-            onUpdate={(updated) =>
-              setRoster((r) => ({ ...r, athletes: r.athletes.map((p) => (p.id === updated.id ? updated : p)) }))
-            }
-            onRemove={(id) => setRoster((r) => ({ ...r, athletes: r.athletes.filter((p) => p.id !== id) }))}
-          />
-        </TabsContent>
-        <TabsContent value="reservists">
-          <RosterTable
-            people={roster?.reservists ?? []}
-            onUpdate={(updated) =>
-              setRoster((r) => ({ ...r, reservists: r.reservists.map((p) => (p.id === updated.id ? updated : p)) }))
-            }
-            onRemove={(id) => setRoster((r) => ({ ...r, reservists: r.reservists.filter((p) => p.id !== id) }))}
-          />
-        </TabsContent>
-        <TabsContent value="chaperones">
-          <RosterTable
-            people={roster?.chaperones ?? []}
-            onUpdate={(updated) =>
-              setRoster((r) => ({ ...r, chaperones: r.chaperones.map((p) => (p.id === updated.id ? updated : p)) }))
-            }
-            onRemove={(id) => setRoster((r) => ({ ...r, chaperones: r.chaperones.filter((p) => p.id !== id) }))}
-          />
-        </TabsContent>
-      </Tabs>
+      <div className="flex flex-col gap-4">
+        <RosterTable people={combinedMembers} />
+      </div>
+
+      <BulkUploadDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        divisionPricing={[] as DivisionPricing[]}
+        teamOptions={(data?.teams ?? []).map(
+          (t) =>
+            ({
+              id: t.id,
+              name: t.name,
+              division: t.division,
+            }) as TeamOption
+        )}
+        onImport={(entries) => {
+          void entries;
+          setBulkOpen(false);
+        }}
+      />
+      <RosterEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        members={editorMembers}
+        teamName={team?.name ?? "Team"}
+        onSave={(nextMembers) => {
+          setRoster(registrationMembersToRoster(nextMembers));
+          setEditorOpen(false);
+        }}
+      />
     </div>
   );
 }

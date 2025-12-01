@@ -5,12 +5,9 @@ import type { ComponentProps } from "react"
 import { cn } from "@workspace/ui/lib/utils"
 import { Button } from "@workspace/ui/shadcn/button"
 import { Badge } from "@workspace/ui/shadcn/badge"
-import { CardContent, CardFooter } from "@workspace/ui/shadcn/card"
+import { Card, CardContent, CardFooter } from "@workspace/ui/shadcn/card"
 
-import { CalendarIcon, MapPinIcon, UserRoundIcon, UsersIcon } from "lucide-react"
 import Link from "next/link"
-
-import { GlassCard } from "@/components/ui/glass/GlassCard"
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"]
 
@@ -41,7 +38,6 @@ export function EventRegisteredCard({
   participants,
   invoice,
   statusLabel,
-  statusSubtext,
   statusVariant = "amber",
   actionHref,
   actionLabel = "View",
@@ -50,46 +46,52 @@ export function EventRegisteredCard({
   const heroStyle = image ? { backgroundImage: `url(${image})` } : undefined
 
   return (
-    <GlassCard className="flex h-full flex-col overflow-hidden p-0 shadow-md">
+    <Card className="flex h-full flex-col overflow-hidden p-0 shadow-md !rounded-sm gap-0">
       <div className={cn("relative h-40 bg-cover bg-center", !image && "bg-muted")} style={heroStyle}>
         <Badge variant={statusVariant} className="absolute left-4 top-4">
           {statusLabel}
         </Badge>
       </div>
-      <CardContent className="flex flex-1 flex-col gap-4 px-6">
+      <CardContent className="flex flex-1 flex-col gap-6 p-6">
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          {subtitle ? <p className="text-muted-foreground text-sm">{subtitle}</p> : null}
+          <h3 className="heading-4 font-semibold text-foreground">{title}</h3>
         </div>
-        <div className="text-muted-foreground space-y-2 text-sm">
-          <p className="flex items-center gap-2">
-            <CalendarIcon className="text-primary/70 size-4" />
-            {date}
-          </p>
-          <p className="flex items-center gap-2">
-            <MapPinIcon className="text-primary/70 size-4" />
-            {location}
-          </p>
-          <p className="flex items-center gap-2">
-            <UserRoundIcon className="text-primary/70 size-4" />
-            {teamName}
-          </p>
-          <p className="flex items-center gap-2">
-            <UsersIcon className="text-primary/70 size-4" />
-            {participants} participants
-          </p>
+        <div className="space-y-3 text-sm text-foreground">
+          {subtitle ? (
+            <div className="flex items-center justify-between border-b border-border/70 pb-2">
+              <span className="text-muted-foreground">Organizer</span>
+              <span className="font-medium text-right">{subtitle}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between border-b border-border/70 pb-2">
+            <span className="text-muted-foreground">Date</span>
+            <span className="font-medium">{date}</span>
+          </div>
+          <div className="flex items-center justify-between border-b border-border/70 pb-2">
+            <span className="text-muted-foreground">Location</span>
+            <span className="font-medium text-right">{location}</span>
+          </div>
+          <div className="flex items-center justify-between border-b border-border/70 pb-2">
+            <span className="text-muted-foreground">Team</span>
+            <span className="font-medium text-right">{teamName}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Participants</span>
+            <span className="font-medium">{participants}</span>
+          </div>
         </div>
-        {statusSubtext ? <p className="text-xs text-muted-foreground">{statusSubtext}</p> : null}
       </CardContent>
-      <CardFooter className="border-border/60 flex items-center justify-between border-t px-6 py-4">
+      <CardFooter className="border-border/70 flex items-center justify-between border-t !p-6">
         <div className="text-sm">
           <span className="text-muted-foreground block text-xs uppercase tracking-wide">Invoice</span>
           <span className="text-foreground font-semibold">{invoice}</span>
         </div>
-        <Button asChild disabled={disabled} variant="outline">
-          <Link href={actionHref}>{actionLabel}</Link>
-        </Button>
+        <div className="flex justify-end">
+          <Button asChild disabled={disabled} variant="outline">
+            <Link href={actionHref}>{actionLabel}</Link>
+          </Button>
+        </div>
       </CardFooter>
-    </GlassCard>
+    </Card>
   )
 }

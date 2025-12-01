@@ -3,10 +3,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import ClubSettingsSection from "@/components/features/clubs/ClubSettingsSection";
 import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
 import { ClubSidebar } from "@/components/layout/ClubSidebar";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { Button } from "@workspace/ui/shadcn/button";
+import { Input } from "@workspace/ui/shadcn/input";
+import { Label } from "@workspace/ui/shadcn/label";
 
 export default function ClubSettingsPage() {
   const { user, status } = useAuth();
@@ -43,8 +45,25 @@ export default function ClubSettingsPage() {
           hideSubtitle
         />
 
-        <div className="mx-auto w-full max-w-6xl space-y-8 px-6 py-8">
-          <ClubSettingsSection />
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">
+          <section className="space-y-6">
+            <form className="grid max-w-xl gap-4">
+              <div className="grid gap-1">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Club Name</Label>
+                <Input placeholder="e.g., Ralli All Stars" />
+              </div>
+              <div className="grid gap-1">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Contact Email</Label>
+                <Input placeholder="club@example.com" type="email" />
+              </div>
+              <div className="flex gap-2">
+                <Button type="button">Save Changes</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </section>
         </div>
       </section>
     </main>

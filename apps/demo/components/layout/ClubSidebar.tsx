@@ -14,9 +14,12 @@ type ClubSidebarProps = {
   active: "teams" | "registrations" | "settings";
 };
 
-export function ClubSidebar({ active, clubLabel: _clubLabel, clubInitial: _clubInitial, ownerName: _ownerName }: ClubSidebarProps) {
+export function ClubSidebar({ active, clubLabel, clubInitial, ownerName }: ClubSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const targetWidth = useMemo(() => (collapsed ? "w-[72px]" : "w-72"), [collapsed]);
+  void clubLabel;
+  void clubInitial;
+  void ownerName;
 
   useEffect(() => {
     if (typeof window === "undefined") return;

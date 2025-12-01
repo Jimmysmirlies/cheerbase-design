@@ -1,18 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@workspace/ui/shadcn/button'
-import { Badge } from '@workspace/ui/shadcn/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@workspace/ui/shadcn/select'
-import { PrinterIcon, DownloadIcon, ArrowLeftIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { DownloadIcon, PrinterIcon, ArrowLeftIcon } from 'lucide-react'
+
+import { Button } from '@workspace/ui/shadcn/button'
+import { ClubSidebar } from '@/components/layout/ClubSidebar'
 import { InvoiceView, type InvoiceData } from '@/components/features/registration/invoice/InvoiceView'
 import { formatFriendlyDate } from '@/utils/format'
 
@@ -102,15 +96,15 @@ const mockInvoices: InvoiceData[] = [
 
 export default function InvoicePage() {
   const params = useParams()
-  const registrationId =
-    typeof params?.registrationId === 'string' ? (params.registrationId as string) : undefined
+  const registrationId = typeof params?.registrationId === 'string' ? (params.registrationId as string) : undefined
   const registrationHref = registrationId ? `/clubs/registrations/${registrationId}` : '/clubs/registrations'
-  const defaultInvoiceNumber = mockInvoices[0]?.invoiceNumber ?? ''
-  const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState(defaultInvoiceNumber)
+  const sortedInvoices = [...mockInvoices].sort((a, b) => b.issuedDate.getTime() - a.issuedDate.getTime())
+  const currentInvoiceNumber = sortedInvoices[0]?.invoiceNumber ?? ''
+  const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState(currentInvoiceNumber)
   const [isPrinting, setIsPrinting] = useState(false)
 
   const selectedInvoice =
-    mockInvoices.find(inv => inv.invoiceNumber === selectedInvoiceNumber) ?? (mockInvoices[0] ?? null)
+    sortedInvoices.find(inv => inv.invoiceNumber === selectedInvoiceNumber) ?? (sortedInvoices[0] ?? null)
 
   const handlePrint = () => {
     setIsPrinting(true)
@@ -120,84 +114,89 @@ export default function InvoicePage() {
     }, 100)
   }
 
-  if (!selectedInvoice) {
-    return (
-      <div className="mx-auto w-full max-w-5xl px-6 py-10">
-        <div className="rounded-xl border border-dashed border-border/60 p-6 text-center text-muted-foreground">
-          No invoices available for this registration yet.
-        </div>
-      </div>
-    )
-  }
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
 
-      <div className="mx-auto w-full max-w-7xl px-6 py-10">
-        <div className="no-print mb-6 flex items-center justify-between">
-          <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
-            <Link href={registrationHref} aria-label="Back to registration">
-              <ArrowLeftIcon className="size-5" />
-            </Link>
-          </Button>
+      <main className="flex w-full">
+        <ClubSidebar clubInitial="C" clubLabel="Your Club" ownerName="Demo Club Owner" active="registrations" />
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePrint}>
-              <PrinterIcon className="mr-2 h-4 w-4" />
-              Print Invoice
-            </Button>
-            <Button variant="outline">
-              <DownloadIcon className="mr-2 h-4 w-4" />
-              Download PDF
-            </Button>
-          </div>
-        </div>
+        <section className="flex flex-1 flex-col">
+          <div className="mx-auto flex w-full max-w-7xl gap-6 px-6 py-10">
+            <div className="flex flex-1 flex-col gap-4">
+              <div className="no-print flex items-center justify-between">
+                <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
+                  <Link href={registrationHref} aria-label="Back to registration">
+                    <ArrowLeftIcon className="size-5" />
+                  </Link>
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={handlePrint}>
+                    <PrinterIcon className="mr-2 h-4 w-4" />
+                    Print Invoice
+                  </Button>
+                  <Button variant="outline">
+                    <DownloadIcon className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </Button>
+                </div>
+              </div>
+              {selectedInvoice ? (
+                <InvoiceView invoice={selectedInvoice} variant={isPrinting ? 'print' : 'web'} />
+              ) : (
+                <div className="rounded-xl border border-dashed border-border/60 p-6 text-center text-muted-foreground">
+                  No invoices available for this registration yet.
+                </div>
+              )}
+            </div>
 
-        {mockInvoices.length > 1 && (
-          <div className="no-print mb-6">
-            <label htmlFor="invoice-select" className="mb-2 block body-small font-medium text-muted-foreground">
-              Invoice History
-            </label>
-            <Select value={selectedInvoiceNumber} onValueChange={setSelectedInvoiceNumber}>
-              <SelectTrigger id="invoice-select" className="w-full sm:w-[400px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {mockInvoices.map(invoice => (
-                  <SelectItem key={invoice.invoiceNumber} value={invoice.invoiceNumber}>
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium">Invoice #{invoice.invoiceNumber}</span>
-                      <span className="text-muted-foreground">·</span>
-                      <span className="text-muted-foreground body-small">
-                        {formatFriendlyDate(invoice.issuedDate)}
-                      </span>
-                      <Badge
-                        variant={
-                          invoice.status === 'paid'
-                            ? 'default'
-                            : invoice.status === 'partial'
-                              ? 'secondary'
-                              : 'outline'
-                        }
-                        className="ml-2 text-xs"
-                      >
-                        {invoice.status === 'paid'
-                          ? 'Paid'
-                          : invoice.status === 'partial'
-                            ? 'Partially Paid'
-                            : 'Unpaid'}
-                      </Badge>
+            <aside className="w-64 shrink-0 border-l border-border pl-4">
+              <div className="space-y-3 text-sm">
+                <div className="text-muted-foreground text-xs uppercase tracking-wide">Current Invoice</div>
+                <div className="border-b border-border pb-3">
+                  <button
+                    type="button"
+                    className={`flex w-full items-center justify-between text-left transition ${
+                      selectedInvoiceNumber === currentInvoiceNumber ? 'text-primary' : 'text-foreground hover:text-primary'
+                    }`}
+                    aria-label="Current invoice"
+                    onClick={() => setSelectedInvoiceNumber(currentInvoiceNumber)}
+                  >
+                    <span className="body-text font-medium">#{currentInvoiceNumber}</span>
+                    <span className="text-muted-foreground text-xs">{selectedInvoice ? formatFriendlyDate(selectedInvoice.issuedDate) : 'N/A'}</span>
+                  </button>
+                </div>
+                {sortedInvoices.length > 1 ? (
+                  <>
+                    <div className="text-muted-foreground text-xs uppercase tracking-wide pt-2">Past Invoices</div>
+                    <div className="flex flex-col divide-y divide-border">
+                      {sortedInvoices
+                        .filter(inv => inv.invoiceNumber !== currentInvoiceNumber)
+                        .map(invoice => (
+                        <button
+                          key={invoice.invoiceNumber}
+                          type="button"
+                          onClick={() => setSelectedInvoiceNumber(invoice.invoiceNumber)}
+                          className={`flex h-10 w-full items-center justify-between text-left transition ${
+                            invoice.invoiceNumber === selectedInvoiceNumber
+                              ? 'text-primary border-b border-primary'
+                              : 'text-foreground hover:text-primary'
+                          }`}
+                        >
+                          <span className="body-text font-medium">#{invoice.invoiceNumber}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {formatFriendlyDate(invoice.issuedDate)}
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </>
+                ) : null}
+              </div>
+            </aside>
           </div>
-        )}
-
-        <InvoiceView invoice={selectedInvoice} variant={isPrinting ? 'print' : 'web'} />
-      </div>
+        </section>
+      </main>
     </>
   )
 }

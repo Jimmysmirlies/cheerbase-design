@@ -94,14 +94,14 @@ export function EventCard({
         {onRegister ? (
           <Button
             type="button"
-            variant="gradient"
+            variant="default"
             onClick={onRegister}
             className={cn('w-full', isCompact && 'py-3 text-sm')}
           >
             View
           </Button>
         ) : href ? (
-          <Button asChild variant="gradient" className={cn('w-full', isCompact && 'py-3 text-sm')}>
+          <Button asChild variant="default" className={cn('w-full', isCompact && 'py-3 text-sm')}>
             <Link href={href}>View</Link>
           </Button>
         ) : null}

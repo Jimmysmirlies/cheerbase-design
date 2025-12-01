@@ -154,7 +154,11 @@ export function BulkUploadDialog({ open, onOpenChange, divisionPricing, teamOpti
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl gap-0 rounded-2xl p-0">
+      <DialogContent
+        className="max-w-3xl gap-0 rounded-2xl p-0 max-h-[85vh] overflow-hidden"
+        onWheelCapture={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <DialogHeader className="px-6 pb-4 pt-6">
           <DialogTitle>Bulk upload teams (CSV)</DialogTitle>
           <DialogDescription>
@@ -163,7 +167,7 @@ export function BulkUploadDialog({ open, onOpenChange, divisionPricing, teamOpti
         </DialogHeader>
 
         {/* Body */}
-        <div className="flex flex-col gap-6 px-6 pb-6">
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6">
           {step === "upload" ? (
             <section className="space-y-3">
               <div
