@@ -13,6 +13,7 @@
     "check-types": "pnpm run typecheck"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
     "@tanstack/react-table": "^8.15.2",
     "@workspace/ui": "workspace:*",
     "framer-motion": "^11.18.2",
@@ -20,7 +21,9 @@
     "lucide-react": "^0.475.0",
     "next": "^15.2.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.58.1",
+    "zod": "^3.25.56"
   },
   "devDependencies": {
     "@types/node": "^20",

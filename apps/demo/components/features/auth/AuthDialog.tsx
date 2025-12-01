@@ -90,7 +90,7 @@ function EntryStep({ onJoin, onDemoLogin }: EntryStepProps) {
       <p className="text-center text-sm text-muted-foreground">
         No account yet?{" "}
         <button className="font-semibold text-primary underline-offset-4 hover:underline" onClick={onJoin} type="button">
-          Join Ralli
+          Join Cheerbase
         </button>
       </p>
 
@@ -100,19 +100,17 @@ function EntryStep({ onJoin, onDemoLogin }: EntryStepProps) {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <Button variant="outline" className="w-full justify-center" type="button">
-        <span role="img" aria-hidden>
-          🔍
-        </span>
-        <span className="ml-2">Sign in with Google</span>
-      </Button>
-
-      {/* Demo shortcuts */}
       <div className="grid gap-2">
-        <Button className="w-full justify-center" type="button" onClick={() => onDemoLogin("club_owner")}>
+        <Button variant="outline" className="w-full justify-center" type="button">
+          <span role="img" aria-hidden>
+            🔍
+          </span>
+          <span className="ml-2">Sign in with Google</span>
+        </Button>
+        <Button variant="outline" className="w-full justify-center" type="button" onClick={() => onDemoLogin("club_owner")}>
           Log In as Club Owner
         </Button>
-        <Button variant="secondary" className="w-full justify-center" type="button" onClick={() => onDemoLogin("organizer")}>
+        <Button variant="outline" className="w-full justify-center" type="button" onClick={() => onDemoLogin("organizer")}>
           Log In as Event Organizer
         </Button>
       </div>
@@ -236,4 +234,3 @@ function RoleOption({ label, description, value, name }: RoleOptionProps) {
     </label>
   );
 }
-

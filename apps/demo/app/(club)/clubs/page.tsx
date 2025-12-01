@@ -12,90 +12,82 @@
  *   - Aside: vertical nav (Teams, Registrations, Club Settings)
  *   - Main: section content
  */
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { UsersIcon, ReceiptIcon, SettingsIcon } from "lucide-react";
 import TeamDetails from "@/components/features/clubs/TeamDetails";
 import TeamsSection from "@/components/features/clubs/TeamsSection";
-import RegistrationsSection from "@/components/features/clubs/RegistrationsSection";
-import ClubSettingsSection from "@/components/features/clubs/ClubSettingsSection";
-
-type ClubView = "teams" | "registrations" | "settings";
+import { ClubSidebar } from "@/components/layout/ClubSidebar";
+import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
+import { SidebarProvider, SidebarInset, Sidebar } from "@workspace/ui/shadcn/sidebar";
+import type { CSSProperties } from "react";
 
 function ClubsPageInner() {
+  const { user, status } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialView = (searchParams.get("view") as ClubView) || "teams";
   const selectedTeamId = searchParams.get("teamId");
-  const [view, setView] = useState<ClubView>(initialView);
 
-  // Keep URL in sync when view changes (without full navigation)
   useEffect(() => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
-    params.set("view", view);
-    router.replace(`${pathname}?${params.toString()}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
+    if (status === "loading") return;
+    if (!user) {
+      router.replace("/");
+      return;
+    }
+    if (user.role !== "club_owner") {
+      router.replace(user.role === "organizer" ? "/organizer" : "/");
+    }
+  }, [user, status, router]);
+
+  if (status === "loading") {
+    return <main className="min-h-screen bg-background text-foreground" />;
+  }
+
+  if (!user || user.role !== "club_owner") {
+    return null;
+  }
+
+  const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
+  const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-[220px_1fr]">
-        {/* Left-side navigation */}
-        <aside className="space-y-4">
-          <h2 className="text-2xl font-semibold tracking-tight">My Club</h2>
-          <nav className="flex flex-col gap-2 text-sm font-medium">
-            <button
-              className={`rounded-2xl px-4 py-3 text-left transition ${
-                view === "teams" ? "bg-muted text-foreground" : "hover:bg-muted text-muted-foreground"
-              }`}
-              onClick={() => setView("teams")}
-              type="button"
-            >
-              <span className="inline-flex items-center gap-2"><UsersIcon className="h-4 w-4" /> Teams</span>
-            </button>
-            <button
-              className={`rounded-2xl px-4 py-3 text-left transition ${
-                view === "registrations" ? "bg-muted text-foreground" : "hover:bg-muted text-muted-foreground"
-              }`}
-              onClick={() => setView("registrations")}
-              type="button"
-            >
-              <span className="inline-flex items-center gap-2"><ReceiptIcon className="h-4 w-4" /> Registrations</span>
-            </button>
-            <button
-              className={`rounded-2xl px-4 py-3 text-left transition ${
-                view === "settings" ? "bg-muted text-foreground" : "hover:bg-muted text-muted-foreground"
-              }`}
-              onClick={() => setView("settings")}
-              type="button"
-            >
-              <span className="inline-flex items-center gap-2"><SettingsIcon className="h-4 w-4" /> Club Settings</span>
-            </button>
-          </nav>
-        </aside>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "16rem",
+          "--header-height": "4rem",
+        } as CSSProperties
+      }
+    >
+      <Sidebar collapsible="icon" variant="sidebar">
+        <div className="h-full pt-16">
+          <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} active="teams" />
+        </div>
+      </Sidebar>
 
-        {/* Main content area */}
-        <section className="space-y-6">
-          {view === "teams" ? (
-            selectedTeamId ? (
-              <TeamDetails
-                teamId={selectedTeamId}
-                onNavigateToTeams={() => {
-                  const params = new URLSearchParams(Array.from(searchParams.entries()));
-                  params.delete("teamId");
-                  router.replace(`${pathname}?${params.toString()}`);
-                }}
-              />
-            ) : (
-              <TeamsSection />
-            )
-          ) : null}
-          {view === "registrations" ? <RegistrationsSection /> : null}
-          {view === "settings" ? <ClubSettingsSection /> : null}
-        </section>
-      </div>
-    </main>
+      <SidebarInset>
+        <div className="flex flex-1 flex-col">
+          <ClubPageHeader title="Teams" subtitle="Create teams and manage rosters for your club" />
+          <div className="flex-1 overflow-auto">
+            <div className="w-full max-w-7xl space-y-8 px-6 py-8 lg:mx-auto">
+              {selectedTeamId ? (
+                <TeamDetails
+                  teamId={selectedTeamId}
+                  onNavigateToTeams={() => {
+                    const params = new URLSearchParams(Array.from(searchParams.entries()));
+                    params.delete("teamId");
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
+                />
+              ) : (
+                <TeamsSection />
+              )}
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 

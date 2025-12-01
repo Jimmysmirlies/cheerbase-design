@@ -6,6 +6,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { ScrollArea } from "@workspace/ui/shadcn/scroll-area"
 
 import { EventRegisteredCard, type EventRegisteredCardProps } from "@/components/ui/cards/EventRegisteredCard"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { useClubData } from "@/hooks/useClubData"
 import { findEventById } from "@/data/events"
 import { formatCurrency, formatFriendlyDate } from "@/utils/format"
@@ -21,34 +22,29 @@ const TABS = [
 type RegistrationRow = EventRegisteredCardProps & { id: string }
 
 export default function RegistrationsSection() {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("upcoming")
-  const { data, loading, error } = useClubData()
+  const { data, loading, error } = useClubData(user?.id)
   const categorized = useMemo(() => categorizeRegistrations(data ?? undefined), [data])
   const rows = activeTab === "upcoming" ? categorized.upcoming : categorized.past
 
   return (
     <section className="space-y-6">
-      <header className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold">Registrations</h2>
-          <p className="text-sm text-muted-foreground">Review invoice status and update rosters before payment deadlines.</p>
-        </div>
-        <div className="flex gap-2">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                "rounded-full px-4 py-1 text-sm font-medium transition",
-                activeTab === tab.key ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </header>
+      <div className="flex gap-2">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              "rounded-full px-4 py-1 text-sm font-medium transition",
+              activeTab === tab.key ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
         <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">Loading registrations...</div>

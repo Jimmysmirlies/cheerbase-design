@@ -15,6 +15,8 @@ const buttonVariants = cva(
         accent: 'bg-accent text-accent-foreground shadow-xs hover:bg-accent/90',
         destructive:
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+        gradient:
+          "relative overflow-hidden border border-border/70 bg-white text-primary-foreground shadow-sm transition duration-200 filter hover:shadow-md hover:saturate-150 hover:brightness-95",
         outline:
           'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
         secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
@@ -47,13 +49,29 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
+  const { style, ...restProps } = props
   const Comp = asChild ? Slot : 'button'
+
+  const gradientStyle =
+    variant === 'gradient'
+      ? {
+          backgroundColor: 'hsla(0,0%,100%,1)',
+          backgroundImage: [
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5 0.5' numOctaves='3' stitchTiles='stitch' seed='4313'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E\")",
+            'linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)',
+          ].join(','),
+          backgroundRepeat: 'repeat, no-repeat',
+          backgroundSize: 'auto, auto',
+          backgroundBlendMode: 'soft-light, normal',
+        }
+      : undefined
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
+      style={gradientStyle ? { ...gradientStyle, ...(style || {}) } : style}
+      {...restProps}
     />
   )
 }

@@ -17,6 +17,7 @@ import { usePersistentRoster } from "@/hooks/usePersistentRoster";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { downloadTextFile } from "@/utils/download";
 import { useClubData } from "@/hooks/useClubData";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 function RosterTable({
   people,
@@ -74,7 +75,8 @@ function InlineEditableTable({ rows, onUpdate, onRemove }: { rows: Person[]; onU
 }
 
 export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigateToTeams?: () => void }) {
-  const { data, loading, error } = useClubData();
+  const { user } = useAuth();
+  const { data, loading, error } = useClubData(user?.id);
   const team = useMemo(() => data?.teams.find((t) => t.id === teamId), [data?.teams, teamId]);
   const initialRoster = useMemo<TeamRoster>(() => {
     const empty = { teamId, coaches: [], athletes: [], reservists: [], chaperones: [] };

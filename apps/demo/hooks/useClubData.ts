@@ -7,13 +7,18 @@ type HookState =
   | { status: "error"; data: null; error: Error }
   | { status: "success"; data: ClubData; error: null };
 
-export function useClubData() {
+export function useClubData(clubOwnerId?: string) {
   const [state, setState] = useState<HookState>({ status: "idle", data: null, error: null });
 
   useEffect(() => {
+    if (!clubOwnerId) {
+      setState({ status: "idle", data: null, error: null });
+      return;
+    }
     let cancelled = false;
     setState({ status: "loading", data: null, error: null });
-    fetch("/api/demo/club-data")
+    const query = new URLSearchParams({ clubOwnerId }).toString();
+    fetch(`/api/demo/club-data?${query}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`Failed to load club data (${res.status})`);
         const json = (await res.json()) as ClubData;
@@ -27,7 +32,7 @@ export function useClubData() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [clubOwnerId]);
 
   return {
     data: state.data,

@@ -28,12 +28,28 @@ function AvatarImage({ className, ...props }: React.ComponentProps<typeof Avatar
 
 function AvatarFallback({
   className,
+  style,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+  const gradientStyle = {
+    backgroundColor: 'hsla(0,0%,100%,1)',
+    backgroundImage: [
+      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5 0.5' numOctaves='3' stitchTiles='stitch' seed='4313'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E\")",
+      'linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)',
+    ].join(','),
+    backgroundRepeat: 'repeat, no-repeat',
+    backgroundSize: 'auto, auto',
+    backgroundBlendMode: 'soft-light, normal',
+  } as React.CSSProperties
+
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
-      className={cn('bg-muted flex size-full items-center justify-center rounded-full', className)}
+      className={cn(
+        'flex size-full items-center justify-center rounded-full text-primary-foreground',
+        className
+      )}
+      style={{ ...gradientStyle, ...(style || {}) }}
       {...props}
     />
   )

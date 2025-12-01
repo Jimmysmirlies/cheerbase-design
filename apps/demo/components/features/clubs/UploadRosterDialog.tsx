@@ -15,6 +15,7 @@ import { Button } from "@workspace/ui/shadcn/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/shadcn/select";
 import { Card, CardContent } from "@workspace/ui/shadcn/card";
 import { downloadTextFile } from "@/utils/download";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useClubData } from "@/hooks/useClubData";
 
 function parseCsv(text: string): string[][] {
@@ -28,7 +29,8 @@ type ColumnKey = "teamName" | "firstName" | "lastName" | "dob" | "email" | "phon
 const requiredColumns: ColumnKey[] = ["firstName", "lastName"];
 
 export default function UploadRosterDialog() {
-  const { data } = useClubData();
+  const { user } = useAuth();
+  const { data } = useClubData(user?.id);
   const existingTeams = useMemo(() => data?.teams ?? [], [data?.teams]);
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<string[][]>([]);

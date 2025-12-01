@@ -10,10 +10,12 @@ import type { RegistrationMember } from '@/components/features/registration/flow
 import { toast } from '@workspace/ui/shadcn/sonner'
 import UploadRosterDialog from './UploadRosterDialog'
 import { useClubData } from '@/hooks/useClubData'
+import { useAuth } from '@/components/providers/AuthProvider'
 import type { TeamRoster } from '@/types/club'
 
 export default function TeamsSection() {
-  const { data, loading, error } = useClubData()
+  const { user } = useAuth()
+  const { data, loading, error } = useClubData(user?.id)
   const [teams, setTeams] = useState<TeamData[]>([])
   const [hasHydrated, setHasHydrated] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -69,15 +71,25 @@ export default function TeamsSection() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Teams</h2>
-          <p className="text-sm text-muted-foreground">
-            Create teams and manage rosters for your club
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+          <Input
+            type="search"
+            value={searchTerm}
+            onChange={event => setSearchTerm(event.target.value)}
+            placeholder="Search teams or divisions"
+            className="w-full pl-9"
+          />
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" type="button" onClick={() => setIsCreateModalOpen(true)} disabled={loading}>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            size="sm"
+            variant="gradient"
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled={loading}
+          >
             <UserPlusIcon className="mr-2 size-4" />
             Create Team
           </Button>
@@ -96,17 +108,6 @@ export default function TeamsSection() {
       ) : null}
 
       <div className="flex flex-col gap-4">
-        <div className="relative w-full sm:max-w-md">
-          <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-          <Input
-            type="search"
-            value={searchTerm}
-            onChange={event => setSearchTerm(event.target.value)}
-            placeholder="Search teams or divisions"
-            className="w-full pl-9"
-          />
-        </div>
-
         <div className="space-y-3">
           {filteredTeams.length > 0 ? (
             filteredTeams.map(team => (

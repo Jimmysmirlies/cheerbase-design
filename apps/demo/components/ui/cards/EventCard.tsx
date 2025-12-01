@@ -92,11 +92,16 @@ export function EventCard({
       {/* Actions */}
       <CardFooter className={cn('border-border/80 mt-auto border-t !px-6 !py-4', isCompact && 'p-5')}>
         {onRegister ? (
-          <Button type="button" onClick={onRegister} className={cn('w-full', isCompact && 'py-3 text-sm')}>
+          <Button
+            type="button"
+            variant="gradient"
+            onClick={onRegister}
+            className={cn('w-full', isCompact && 'py-3 text-sm')}
+          >
             View
           </Button>
         ) : href ? (
-          <Button asChild className={cn('w-full', isCompact && 'py-3 text-sm')}>
+          <Button asChild variant="gradient" className={cn('w-full', isCompact && 'py-3 text-sm')}>
             <Link href={href}>View</Link>
           </Button>
         ) : null}

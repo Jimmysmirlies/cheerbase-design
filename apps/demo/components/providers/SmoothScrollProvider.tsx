@@ -19,7 +19,6 @@ export function SmoothScrollProvider({ children, enabled = true }: SmoothScrollP
       lerp: 0.12,
       duration: 1.25,
       smoothWheel: true,
-      smoothTouch: false,
     })
 
     let frame: number | null = null
