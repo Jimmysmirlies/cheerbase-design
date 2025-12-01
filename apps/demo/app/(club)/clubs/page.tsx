@@ -19,8 +19,6 @@ import TeamDetails from "@/components/features/clubs/TeamDetails";
 import TeamsSection from "@/components/features/clubs/TeamsSection";
 import { ClubSidebar } from "@/components/layout/ClubSidebar";
 import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
-import { SidebarProvider, SidebarInset, Sidebar } from "@workspace/ui/shadcn/sidebar";
-import type { CSSProperties } from "react";
 
 function ClubsPageInner() {
   const { user, status } = useAuth();
@@ -50,44 +48,30 @@ function ClubsPageInner() {
 
   const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
   const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
+  const ownerName = user.name ?? user.email ?? clubLabel;
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "16rem",
-          "--header-height": "4rem",
-        } as CSSProperties
-      }
-    >
-      <Sidebar collapsible="icon" variant="sidebar">
-        <div className="h-full pt-16">
-          <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} active="teams" />
-        </div>
-      </Sidebar>
+    <main className="flex w-full">
+      <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="teams" />
 
-      <SidebarInset>
-        <div className="flex flex-1 flex-col">
-          <ClubPageHeader title="Teams" subtitle="Create teams and manage rosters for your club" />
-          <div className="flex-1 overflow-auto">
-            <div className="w-full max-w-7xl space-y-8 px-6 py-8 lg:mx-auto">
-              {selectedTeamId ? (
-                <TeamDetails
-                  teamId={selectedTeamId}
-                  onNavigateToTeams={() => {
-                    const params = new URLSearchParams(Array.from(searchParams.entries()));
-                    params.delete("teamId");
-                    router.replace(`${pathname}?${params.toString()}`);
-                  }}
-                />
-              ) : (
-                <TeamsSection />
-              )}
-            </div>
-          </div>
+      <section className="flex flex-1 flex-col">
+        <ClubPageHeader title="Teams" subtitle="Create teams and manage rosters for your club" hideSubtitle />
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">
+          {selectedTeamId ? (
+            <TeamDetails
+              teamId={selectedTeamId}
+              onNavigateToTeams={() => {
+                const params = new URLSearchParams(Array.from(searchParams.entries()));
+                params.delete("teamId");
+                router.replace(`${pathname}?${params.toString()}`);
+              }}
+            />
+          ) : (
+            <TeamsSection />
+          )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </section>
+    </main>
   );
 }
 

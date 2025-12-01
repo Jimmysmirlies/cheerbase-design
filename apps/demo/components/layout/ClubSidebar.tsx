@@ -1,97 +1,149 @@
 "use client";
 
 import Link from "next/link";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/shadcn/tooltip";
-import { ClipboardListIcon, Settings2Icon, UsersIcon } from "lucide-react";
 import type React from "react";
-import { useSidebar } from "@workspace/ui/shadcn/sidebar";
+import { useEffect, useMemo, useState } from "react";
+import { ClipboardListIcon, Settings2Icon, UsersIcon, UserIcon } from "lucide-react";
+
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/shadcn/tooltip";
 
 type ClubSidebarProps = {
   clubLabel: string;
-  clubInitial: string;
+  clubInitial?: string;
+  ownerName?: string;
   active: "teams" | "registrations" | "settings";
 };
 
-export function ClubSidebar({ active }: ClubSidebarProps) {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+export function ClubSidebar({ active, clubLabel: _clubLabel, clubInitial: _clubInitial, ownerName: _ownerName }: ClubSidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+  const targetWidth = useMemo(() => (collapsed ? "w-[72px]" : "w-72"), [collapsed]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(min-width: 1024px)");
+    const applyState = (matches: boolean) => setCollapsed(!matches);
+    applyState(media.matches);
+    const listener = (event: MediaQueryListEvent) => applyState(event.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="flex h-full flex-col bg-background">
-        <div className="px-3 pb-3 pt-5">
-          <nav className="body-text flex flex-col gap-1.5 font-medium">
-            <SidebarButton
-              label="Teams"
-              active={active === "teams"}
-              collapsed={collapsed}
-              icon={UsersIcon}
-              href="/clubs"
-            />
-            <SidebarButton
-              label="Registrations"
-              active={active === "registrations"}
-              collapsed={collapsed}
-              icon={ClipboardListIcon}
-              href="/clubs/registrations"
-            />
-            <SidebarButton
-              label="Club Settings"
-              active={active === "settings"}
-              collapsed={collapsed}
-              icon={Settings2Icon}
-              href="/clubs/settings"
-            />
-          </nav>
-        </div>
-      </div>
+      <aside
+        className={`sticky top-[64px] flex h-[calc(100vh-64px)] flex-col border-r border-border bg-background transition-all duration-200 ${targetWidth}`}
+      >
+        <nav className="flex flex-1 flex-col justify-center gap-1 px-4 py-6">
+          <SidebarNavItem
+            label="Teams"
+            active={active === "teams"}
+            collapsed={collapsed}
+            icon={UsersIcon}
+            href="/clubs"
+          />
+          <SidebarNavItem
+            label="Athletes"
+            active={false}
+            collapsed={collapsed}
+            icon={UserIcon}
+            disabled
+            badge="Coming soon"
+          />
+          <SidebarNavItem
+            label="Registrations"
+            active={active === "registrations"}
+            collapsed={collapsed}
+            icon={ClipboardListIcon}
+            href="/clubs/registrations"
+          />
+          <SidebarNavItem
+            label="Club Settings"
+            active={active === "settings"}
+            collapsed={collapsed}
+            icon={Settings2Icon}
+            href="/clubs/settings"
+          />
+        </nav>
+      </aside>
     </TooltipProvider>
   );
 }
 
-function SidebarButton({
+function SidebarNavItem({
   label,
   active,
   collapsed,
   icon: Icon,
   href,
+  disabled = false,
+  badge,
 }: {
   label: string;
   active: boolean;
   collapsed: boolean;
   icon: React.ComponentType<{ className?: string }>;
-  href: string;
+  href?: string;
+  disabled?: boolean;
+  badge?: string;
 }) {
-  const content = (
-    <div
-      className={`relative flex w-full items-center gap-2 px-2 py-2 text-left transition border-b body-text ${
-        collapsed ? "justify-center" : ""
-      } ${
-        active
-          ? "border-primary text-primary"
-          : "border-border text-foreground hover:text-primary"
-      }`}
-    >
-      {collapsed && <Icon className="size-5" aria-hidden />}
-      {!collapsed && <span className="flex-1 body-text">{label}</span>}
-      {collapsed && <span className="sr-only">{label}</span>}
-    </div>
-  );
+  const badgeContent = badge ? (
+    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      {badge}
+    </span>
+  ) : null;
 
   if (collapsed) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={href}>{content}</Link>
+          {href && !disabled ? (
+            <Link
+              href={href}
+              className="flex h-10 w-full items-center justify-center rounded-none border-b border-border transition"
+            >
+              <Icon className="size-5" aria-hidden />
+              <span className="sr-only">{label}</span>
+            </Link>
+          ) : (
+            <div className="flex h-10 w-full items-center justify-center rounded-none border-b border-border text-muted-foreground">
+              <Icon className="size-5" aria-hidden />
+              <span className="sr-only">{label}</span>
+            </div>
+          )}
         </TooltipTrigger>
-        <TooltipContent side="right">{label}</TooltipContent>
+        <TooltipContent side="right">
+          <div className="flex flex-col gap-1">
+            <span>{label}</span>
+            {badgeContent}
+          </div>
+        </TooltipContent>
       </Tooltip>
     );
   }
 
+  const baseClasses = `flex h-10 w-full items-center justify-between rounded-none border-b transition ${
+    disabled
+      ? "cursor-not-allowed border-border text-muted-foreground"
+      : active
+        ? "border-primary text-primary"
+        : "border-border text-foreground hover:text-primary"
+  }`;
+
+  const inner = (
+    <div className={baseClasses}>
+      <span className="body-text">{label}</span>
+      {badgeContent}
+    </div>
+  );
+
+  if (disabled || !href) {
+    return inner;
+  }
+
   return (
-    <Link href={href}>
-      {content}
+    <Link href={href} className={baseClasses}>
+      <span className="body-text">{label}</span>
+      {badgeContent}
     </Link>
   );
 }
