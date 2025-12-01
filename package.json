@@ -8,6 +8,7 @@
     "dev": "turbo dev",
     "dev:demo": "pnpm --filter @cheerbase/wwt-demo dev",
     "dev:local": "pnpm db:migrate && pnpm db:seed && pnpm dev:demo",
+    "postinstall": "DATABASE_URL=${DATABASE_URL:-file:./prisma/dev.db} prisma generate",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "dotenv -e .env -- prisma generate",
