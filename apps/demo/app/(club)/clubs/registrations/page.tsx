@@ -147,7 +147,8 @@ function categorizeRegistrations(data?: ClubData) {
   const past: RegistrationRow[] = []
 
   registrations.forEach(reg => {
-    const registeredTeam = reg.registeredTeam ?? registeredTeamMap.get(reg.registeredTeamId)
+    const inferredRegisteredTeamId = reg.registeredTeamId ?? (reg.teamId ? `rt-${reg.teamId}` : undefined)
+    const registeredTeam = reg.registeredTeam ?? (inferredRegisteredTeamId ? registeredTeamMap.get(inferredRegisteredTeamId) : undefined)
     const sourceTeam = registeredTeam?.sourceTeamId ? teams.find(item => item.id === registeredTeam.sourceTeamId) : null
     const roster = registeredTeam?.sourceTeamId ? rosterByTeam.get(registeredTeam.sourceTeamId) : null
     const participants =
@@ -170,7 +171,13 @@ function categorizeRegistrations(data?: ClubData) {
       image: event?.image,
       title: reg.eventName,
       subtitle: event?.organizer ?? event?.type,
-      teamName: registeredTeam?.name ?? sourceTeam?.name ?? registeredTeam?.sourceTeamId ?? reg.registeredTeamId,
+      teamName:
+        registeredTeam?.name ??
+        sourceTeam?.name ??
+        registeredTeam?.sourceTeamId ??
+        reg.registeredTeamId ??
+        reg.teamId ??
+        "Team",
       date: formatFriendlyDate(reg.eventDate),
       // keep raw date for grouping
       eventDate,
