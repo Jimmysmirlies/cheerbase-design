@@ -50,6 +50,7 @@ export default function ClubRegistrationsPage() {
           title="Registrations"
           subtitle="Review submissions, update rosters, and keep an eye on payment deadlines."
           hideSubtitle
+          breadcrumbs={<span>Clubs / Registrations</span>}
         />
 
         <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">

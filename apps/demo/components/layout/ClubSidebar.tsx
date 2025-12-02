@@ -36,7 +36,7 @@ export function ClubSidebar({ active, clubLabel, clubInitial, ownerName }: ClubS
       <aside
         className={`sticky top-[64px] flex h-[calc(100vh-64px)] flex-col border-r border-border bg-background transition-all duration-200 ${targetWidth}`}
       >
-        <nav className="flex flex-1 flex-col justify-center gap-1 px-4 py-6">
+        <nav className="flex flex-1 flex-col gap-1 p-6">
           <SidebarNavItem
             label="Teams"
             active={active === "teams"}

@@ -64,7 +64,12 @@ function ClubsPageInner() {
       <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="teams" />
 
       <section className="flex flex-1 flex-col">
-        <ClubPageHeader title="Teams" subtitle="Create teams and manage rosters for your club" hideSubtitle />
+        <ClubPageHeader
+          title="Teams"
+          subtitle="Create teams and manage rosters for your club"
+          hideSubtitle
+          breadcrumbs={<span>Clubs / Teams</span>}
+        />
         <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">
           {selectedTeamId ? (
             <TeamDetails

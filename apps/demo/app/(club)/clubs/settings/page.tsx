@@ -43,6 +43,7 @@ export default function ClubSettingsPage() {
           title="Club Settings"
           subtitle="Manage your club profile, preferences, and visibility."
           hideSubtitle
+          breadcrumbs={<span>Clubs / Settings</span>}
         />
 
         <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">

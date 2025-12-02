@@ -133,7 +133,11 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
       <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="registrations" />
 
       <section className="flex flex-1 flex-col">
-        <ClubPageHeader title="Registrations" hideSubtitle />
+        <ClubPageHeader
+          title="Registrations"
+          hideSubtitle
+          breadcrumbs={<span>Clubs / Registrations / {registration.eventName}</span>}
+        />
 
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8">
           <EventHeader

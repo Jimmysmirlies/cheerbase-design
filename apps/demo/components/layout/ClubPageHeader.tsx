@@ -5,6 +5,8 @@ type ClubPageHeaderProps = {
   subtitle?: string;
   action?: ReactNode;
   hideSubtitle?: boolean;
+  hideTitle?: boolean;
+  breadcrumbs?: ReactNode;
 };
 
 const gradientStyle: CSSProperties = {
@@ -18,7 +20,7 @@ const gradientStyle: CSSProperties = {
   backgroundBlendMode: "soft-light, normal",
 };
 
-export function ClubPageHeader({ title, subtitle, action, hideSubtitle }: ClubPageHeaderProps) {
+export function ClubPageHeader({ title, subtitle, action, hideSubtitle, hideTitle, breadcrumbs }: ClubPageHeaderProps) {
   return (
     <div
       className="relative w-full overflow-hidden border-b border-border/70 backdrop-blur-sm"
@@ -26,11 +28,14 @@ export function ClubPageHeader({ title, subtitle, action, hideSubtitle }: ClubPa
     >
         <header className="w-full max-w-full px-6 pt-16 pb-6 lg:mx-auto lg:max-w-7xl">
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="heading-2 text-primary-foreground">{title}</h1>
-            {subtitle && !hideSubtitle ? (
-              <p className="mt-1.5 text-base text-primary-foreground/85">{subtitle}</p>
-            ) : null}
+            <div className="flex flex-col gap-2">
+              {!hideTitle ? <h1 className="heading-2 text-primary-foreground">{title}</h1> : null}
+              {subtitle && !hideSubtitle ? (
+                <p className="text-base text-primary-foreground/85">{subtitle}</p>
+              ) : null}
+              {breadcrumbs ? (
+                <div className="text-sm font-medium text-primary-foreground/85">{breadcrumbs}</div>
+              ) : null}
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}
         </div>
