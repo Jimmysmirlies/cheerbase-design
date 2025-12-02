@@ -53,7 +53,7 @@ export default function ClubRegistrationsPage() {
           breadcrumbs={<span>Clubs / Registrations</span>}
         />
 
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">
+        <div className="mx-auto w-full max-w-6xl space-y-8 px-6 py-8">
           <RegistrationsContent userId={user.id} />
         </div>
       </section>
@@ -160,10 +160,17 @@ function categorizeRegistrations(data?: ClubData) {
       divisionPricing && participants ? participants * resolveDivisionPricing(divisionPricing).price : reg.invoiceTotal
     const invoiceTotal = formatCurrency(invoiceTotalNumber)
     const isPaid = reg.status === 'paid' || Boolean(reg.paidAt)
-    const statusLabel = isPaid ? 'Paid' : 'Unpaid'
-    const statusSubtext = isPaid
-      ? `Paid on ${formatFriendlyDate(reg.paidAt ?? undefined)}`
-      : `Auto-pay on ${formatFriendlyDate(reg.paymentDeadline ?? undefined)}`
+    const paymentDeadline = reg.paymentDeadline ? new Date(reg.paymentDeadline) : undefined
+    let statusLabel: 'Paid' | 'Unpaid' | 'Overdue' = 'Unpaid'
+    if (isPaid) statusLabel = 'Paid'
+    else if (paymentDeadline && paymentDeadline < now) statusLabel = 'Overdue'
+    const statusSubtext =
+      statusLabel === 'Paid'
+        ? `Paid on ${formatFriendlyDate(reg.paidAt ?? undefined)}`
+        : statusLabel === 'Overdue'
+          ? `Overdue since ${formatFriendlyDate(paymentDeadline)}`
+          : `Auto-pay on ${formatFriendlyDate(paymentDeadline ?? undefined)}`
+    const statusVariant = statusLabel === 'Paid' ? 'green' : statusLabel === 'Overdue' ? 'red' : 'amber'
     const eventDate = new Date(reg.eventDate)
     const bucket: 'upcoming' | 'past' = Number.isNaN(eventDate.getTime()) ? 'upcoming' : eventDate < now ? 'past' : 'upcoming'
 
@@ -187,7 +194,7 @@ function categorizeRegistrations(data?: ClubData) {
       invoice: invoiceTotal,
       statusLabel,
       statusSubtext,
-      statusVariant: isPaid ? 'green' : 'amber',
+      statusVariant,
       actionHref: `/clubs/registrations/${reg.id}`,
     }
 

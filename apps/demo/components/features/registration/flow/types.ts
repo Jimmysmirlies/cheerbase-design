@@ -26,6 +26,7 @@ export type RegistrationEntry = {
   snapshotSourceTeamId?: string
   snapshotRosterHash?: string
   paymentDeadline?: string
+  registrationDeadline?: string
   paidAt?: string
   locked?: boolean
   lockReason?: 'paid' | 'deadline'

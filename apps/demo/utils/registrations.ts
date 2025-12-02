@@ -9,6 +9,7 @@ export type RegistrationSnapshotMeta = {
 export type RegistrationLockMeta = {
   status?: Registration['status']
   paymentDeadline?: string
+  registrationDeadline?: string
   paidAt?: string
 }
 
@@ -39,8 +40,9 @@ function simpleHash(input: string): string {
 
 export function isRegistrationLocked(meta: RegistrationLockMeta, referenceDate: Date = new Date()): boolean {
   if (meta.paidAt) return true
-  if (!meta.paymentDeadline) return false
-  const deadline = new Date(meta.paymentDeadline)
+  const deadlineString = meta.registrationDeadline ?? meta.paymentDeadline
+  if (!deadlineString) return false
+  const deadline = new Date(deadlineString)
   if (Number.isNaN(deadline.getTime())) return false
   return referenceDate > deadline
 }

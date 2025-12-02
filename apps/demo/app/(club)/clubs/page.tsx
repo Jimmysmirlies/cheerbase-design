@@ -22,7 +22,7 @@ import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { SearchIcon, UserPlusIcon } from "lucide-react";
 import { CreateTeamModal, type CreateTeamData } from "@/components/features/clubs/CreateTeamModal";
-import { TeamRowCard, type TeamData } from "@/components/features/clubs/TeamRowCard";
+import { TeamCard, type TeamData } from "@/components/features/clubs/TeamCard";
 import type { RegistrationMember } from "@/components/features/registration/flow/types";
 import UploadRosterDialog from "@/components/features/clubs/UploadRosterDialog";
 import { toast } from "@workspace/ui/shadcn/sonner";
@@ -175,7 +175,7 @@ function TeamsContent({ userId }: { userId?: string }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredTeams.length > 0 ? (
           filteredTeams.map(team => (
-            <TeamRowCard
+            <TeamCard
               key={team.id}
               team={team}
               onViewTeam={teamId => {

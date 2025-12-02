@@ -26,7 +26,6 @@ import {
   UsersIcon,
   LayersIcon,
   WalletIcon,
-  CheckCircle2Icon,
   ChevronDownIcon,
 } from 'lucide-react'
 // Link reserved for future navigation; keep import commented to suppress lint noise.
@@ -310,9 +309,15 @@ export function RegistrationFlow({
         entry.locked || isFlowReadOnly || isRegistrationLocked({
           paidAt: entry.paidAt,
           paymentDeadline: entry.paymentDeadline,
+          registrationDeadline: entry.registrationDeadline,
         })
       const lockReason =
-        entry.lockReason ?? (entry.paidAt ? 'paid' : isLocked && entry.paymentDeadline ? 'deadline' : undefined)
+        entry.lockReason ??
+        (entry.paidAt
+          ? 'paid'
+          : isLocked && (entry.registrationDeadline || entry.paymentDeadline)
+            ? 'deadline'
+            : undefined)
       const lockMessage =
         entry.lockMessage ??
         (lockReason === 'paid'
@@ -351,21 +356,7 @@ export function RegistrationFlow({
             onClick={() => setActiveStep('register')}
             aria-expanded={activeStep === 'register'}
           >
-            <div className="flex items-center gap-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {stepLabels.step1}
-                </p>
-              </div>
-              {activeStep === 'register' ? (
-                <Badge variant="outline" className="text-xs font-semibold">In Progress</Badge>
-              ) : (
-                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold">
-                  <CheckCircle2Icon className="size-3" aria-hidden="true" />
-                  Completed
-                </Badge>
-              )}
-            </div>
+            <div className="heading-4">{stepLabels.step1}</div>
           </button>
           <Button
             variant="ghost"
@@ -407,7 +398,7 @@ export function RegistrationFlow({
             )}
 
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-3">
                 <div className="relative w-full sm:max-w-md">
                   <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
                   <Input

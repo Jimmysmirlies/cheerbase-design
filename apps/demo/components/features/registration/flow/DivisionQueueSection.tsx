@@ -4,7 +4,6 @@ import { useMemo } from 'react'
 
 import type { RegistrationEntry, RegistrationMember, EntryStatusMeta } from './types'
 import { TeamRow } from './TeamRow'
-import { Card, CardContent, CardHeader } from '@workspace/ui/shadcn/card'
 import { UsersIcon } from 'lucide-react'
 
 export type DivisionQueueSectionProps = {
@@ -46,7 +45,7 @@ export function DivisionQueueSection({
 
   if (shouldShowGlobalEmpty) {
     return (
-      <div className="border-border/70 text-muted-foreground rounded-2xl border border-dashed p-6 text-center body-small">
+      <div className="border-border/70 text-muted-foreground rounded-xl border border-dashed p-6 text-center body-small">
         {searchTerm
           ? 'No teams match your search yet.'
           : 'No teams added yet. Start by registering a team.'}
@@ -55,7 +54,7 @@ export function DivisionQueueSection({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {divisionsToRender.map(divisionName => {
         const divisionEntries =
           (searchTerm
@@ -63,18 +62,16 @@ export function DivisionQueueSection({
             : entriesByDivision[divisionName]) ?? []
 
         return (
-          <Card key={divisionName} className="border-border/60 gap-0 p-0">
-            <CardHeader className="border-border/60 flex items-center justify-between border-b !px-6 !py-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="heading-4">{divisionName}</p>
-              </div>
-              <span className={`body-small font-medium ${divisionEntries.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
-                {divisionEntries.length} {divisionEntries.length === 1 ? 'team' : 'teams'}
+          <div key={divisionName} className="border-t border-border pt-4">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <p className="heading-4">{divisionName}</p>
+              <span className="body-small text-muted-foreground">
+                {divisionEntries.length} {divisionEntries.length === 1 ? 'team' : 'teams'} registered
               </span>
-            </CardHeader>
-            <CardContent className="p-4">
-              {divisionEntries.length ? (
-                divisionEntries.map(entry => (
+            </div>
+            {divisionEntries.length ? (
+              <div className="space-y-3">
+                {divisionEntries.map(entry => (
                   <TeamRow
                     key={entry.id}
                     entry={entry}
@@ -83,15 +80,16 @@ export function DivisionQueueSection({
                     status={getEntryStatus(entry)}
                     readOnly={readOnly}
                   />
-                ))
-              ) : (
-                <div className="border-border/60 text-muted-foreground flex flex-col items-center gap-3 border border-dashed p-8 text-center body-small">
-                  <UsersIcon className="size-8 text-muted-foreground/40" />
-                  No teams registered for this division yet.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="border-border/60 text-muted-foreground flex flex-col gap-2 border-y border-dashed px-4 py-6 text-sm">
+                <UsersIcon className="size-6 text-muted-foreground/50" aria-hidden />
+                <span>No teams registered for this division yet.</span>
+              </div>
+            )}
+            <div className="mt-4 h-px w-full bg-border" />
+          </div>
         )
       })}
     </div>

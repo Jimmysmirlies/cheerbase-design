@@ -96,7 +96,7 @@ The `RegistrationFlow` component (`components/features/registration/flow/`) is t
 #### Team Management
 
 Teams use a row-based layout similar to registration flows:
-- `TeamRowCard` - Expandable team row with member avatars
+- `TeamCard` - Expandable team row with member avatars
 - `CreateTeamModal` - Tiered division selection (Category → Tier → Level)
 - `RosterEditorDialog` - Shared dialog for adding/editing team members
 
@@ -104,7 +104,7 @@ Teams use a row-based layout similar to registration flows:
 
 **TeamRow variants:**
 - Registration context: `TeamRow.tsx` (with lock states, payment deadlines)
-- Team management: `TeamRowCard.tsx` (simpler, management-focused)
+- Team management: `TeamCard.tsx` (simpler, management-focused)
 
 **Modal patterns:**
 - `RegisterTeamModal` - Register team to event (existing team or upload)

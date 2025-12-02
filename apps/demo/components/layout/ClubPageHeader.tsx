@@ -7,6 +7,8 @@ type ClubPageHeaderProps = {
   hideSubtitle?: boolean;
   hideTitle?: boolean;
   breadcrumbs?: ReactNode;
+  metadataItems?: { label: string; value: ReactNode }[];
+  metadataColumns?: number;
 };
 
 const gradientStyle: CSSProperties = {
@@ -20,24 +22,53 @@ const gradientStyle: CSSProperties = {
   backgroundBlendMode: "soft-light, normal",
 };
 
-export function ClubPageHeader({ title, subtitle, action, hideSubtitle, hideTitle, breadcrumbs }: ClubPageHeaderProps) {
+export function ClubPageHeader({
+  title,
+  subtitle,
+  action,
+  hideSubtitle,
+  hideTitle,
+  breadcrumbs,
+  metadataItems,
+  metadataColumns = 3,
+}: ClubPageHeaderProps) {
   return (
     <div
       className="relative w-full overflow-hidden border-b border-border/70 backdrop-blur-sm"
       style={gradientStyle}
     >
-        <header className="w-full max-w-full px-6 pt-16 pb-6 lg:mx-auto lg:max-w-7xl">
-          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="w-full max-w-full px-6 pb-8 pt-18 lg:mx-auto lg:max-w-6xl">
+        <div className="flex min-h-[200px] flex-col justify-end gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-2">
-              {!hideTitle ? <h1 className="heading-2 text-primary-foreground">{title}</h1> : null}
-              {subtitle && !hideSubtitle ? (
-                <p className="text-base text-primary-foreground/85">{subtitle}</p>
-              ) : null}
               {breadcrumbs ? (
-                <div className="text-sm font-medium text-primary-foreground/85">{breadcrumbs}</div>
+                <div className="text-xs font-medium uppercase tracking-[0.16em] text-primary-foreground/80">
+                  {breadcrumbs}
+                </div>
               ) : null}
+              {!hideTitle ? <h1 className="heading-2 text-primary-foreground">{title}</h1> : null}
+            </div>
+            {action ? <div className="shrink-0">{action}</div> : null}
           </div>
-          {action ? <div className="shrink-0">{action}</div> : null}
+          {subtitle && !hideSubtitle ? (
+            <p className="text-base text-primary-foreground/85">{subtitle}</p>
+          ) : null}
+          {(subtitle && !hideSubtitle) || metadataItems?.length ? <div className="h-px w-full bg-primary-foreground/30" /> : null}
+          {metadataItems?.length ? (
+            <div
+              className={`grid gap-8 text-sm text-primary-foreground sm:grid-cols-${metadataColumns}`}
+            >
+              {metadataItems.map((item, idx) => (
+                <div key={`${item.label}-${idx}`} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-primary-foreground/80">{item.label}</span>
+                    <span className="font-semibold text-right">{item.value}</span>
+                  </div>
+                  <div className="h-px w-full bg-primary-foreground/30" />
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </header>
     </div>

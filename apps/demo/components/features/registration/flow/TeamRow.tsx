@@ -111,42 +111,31 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
   )
 
   return (
-    <div className="flex items-start gap-2">
-      {/* Main Team Card - Glass-style container with shadow */}
-      <div className="border-border/70 bg-background/80 rounded-lg border flex-1 shadow-sm">
-
-        {/* Team Header - Clickable area for expansion/collapse */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={toggleExpanded}
-          onKeyDown={handleKeyDown}
-          className="focus-visible:ring-primary/40 flex w-full cursor-pointer items-center justify-between gap-3 px-6 py-4 text-left focus:outline-none focus-visible:ring-2"
-        >
-          {/* Left Side: Team name + Avatar Cluster */}
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Team Name */}
-              <p className="text-foreground truncate heading-4">
-                {entry.teamName ?? entry.fileName ?? 'Team'}
-              </p>
-              {/* Avatar Cluster - Member preview bubbles */}
-              {showMemberPreview ? (
-                <AvatarCluster
-                  items={avatarItems}
-                  fallbackLabel={fallbackInitials}
-                  remainingCount={additionalCount}
-                  getRolePalette={getAvatarPalette}
-                />
-              ) : null}
+    <div className="flex flex-col gap-2">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={toggleExpanded}
+        onKeyDown={handleKeyDown}
+        className="flex w-full cursor-pointer items-center justify-between gap-3 py-2 text-left focus:outline-none"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-foreground truncate heading-4">
+              {entry.teamName ?? entry.fileName ?? 'Team'}
+            </p>
+            {showMemberPreview ? (
+              <AvatarCluster
+                items={avatarItems}
+                fallbackLabel={fallbackInitials}
+                remainingCount={additionalCount}
+                getRolePalette={getAvatarPalette}
+              />
+            ) : null}
           </div>
-          {/* Right Side: Lock status message (if applicable) */}
-          {lockMessage ? <p className="text-muted-foreground body-small">{lockMessage}</p> : null}
+          {lockMessage ? <p className="text-muted-foreground body-small mt-1">{lockMessage}</p> : null}
         </div>
-
-        {/* Action Bar - Edit and expand/collapse buttons */}
         <div className="flex items-center gap-2">
-          {/* Edit Team Button */}
           <Button
             variant="ghost"
             size="sm"
@@ -160,62 +149,55 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
             <PenSquareIcon className="mr-2 size-4" aria-hidden="true" />
             Edit Team
           </Button>
-          {/* Expand/Collapse Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={event => {
-                event.stopPropagation()
-                toggleExpanded()
-              }}
-              aria-label={expanded ? 'Collapse team details' : 'Expand team details'}
-            >
-              <ChevronDownIcon className={cn('size-4 transition-transform', expanded && 'rotate-180')} />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={event => {
+              event.stopPropagation()
+              toggleExpanded()
+            }}
+            aria-label={expanded ? 'Collapse team details' : 'Expand team details'}
+          >
+            <ChevronDownIcon className={cn('size-4 transition-transform', expanded && 'rotate-180')} />
+          </Button>
         </div>
-
-        {/* Roster Table - Expandable section with member details */}
-        {expanded && (
-          <div className="border-border/60 text-muted-foreground border-t body-small">
-            {members.length ? (
-              <div className="overflow-x-auto">
-                {/* Member Details Table */}
-                <table className="w-full table-auto text-left body-small">
-                  <thead className="bg-muted/40 text-muted-foreground body-small">
-                    <tr>
-                      <th className="px-3 py-3 font-medium sm:px-4">Name</th>
-                      <th className="px-3 py-3 font-medium sm:px-4">DOB</th>
-                      <th className="px-3 py-3 font-medium sm:px-5">Email</th>
-                      <th className="px-3 py-3 font-medium sm:px-5">Phone</th>
-                      <th className="px-3 py-3 text-right font-medium sm:px-4">Role</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {members.map((member, index) => (
-                      <tr key={`${entry.id}-member-${index}`} className="border-t">
-                        <td className="text-foreground px-3 py-3 sm:px-4">{member.name}</td>
-                        <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob)}</td>
-                        <td className="px-3 py-3 sm:px-5">{member.email ?? '—'}</td>
-                        <td className="px-3 py-3 sm:px-5">{formatPhoneNumber(member.phone)}</td>
-                        <td className="text-muted-foreground px-3 py-3 text-right sm:px-4">{member.type ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : entry.mode === 'existing' ? (
-              // Empty State: Existing team mode
-              <div className="p-4">Roster details will be pulled from your workspace once registration is submitted.</div>
-            ) : (
-              // Empty State: File upload mode
-              <div className="p-4">Roster file: {entry.fileName ?? 'Pending upload'}</div>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Roster Editor Dialog - Modal for editing team members */}
+      {expanded && (
+        <div className="border-border/60 text-muted-foreground border-t pt-3 body-small">
+          {members.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto text-left body-small">
+                <thead className="bg-muted/40 text-muted-foreground body-small">
+                  <tr>
+                    <th className="px-3 py-3 font-medium sm:px-4">Name</th>
+                    <th className="px-3 py-3 font-medium sm:px-4">DOB</th>
+                    <th className="px-3 py-3 font-medium sm:px-5">Email</th>
+                    <th className="px-3 py-3 font-medium sm:px-5">Phone</th>
+                    <th className="px-3 py-3 text-right font-medium sm:px-4">Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((member, index) => (
+                    <tr key={`${entry.id}-member-${index}`} className="border-t">
+                      <td className="text-foreground px-3 py-3 sm:px-4">{member.name}</td>
+                      <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob)}</td>
+                      <td className="px-3 py-3 sm:px-5">{member.email ?? '—'}</td>
+                      <td className="px-3 py-3 sm:px-5">{formatPhoneNumber(member.phone)}</td>
+                      <td className="px-3 py-3 text-right sm:px-4">{member.type ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : entry.mode === 'existing' ? (
+            <div className="px-3 py-2">Roster details will be pulled from your workspace once registration is submitted.</div>
+          ) : (
+            <div className="px-3 py-2">Roster file: {entry.fileName ?? 'Pending upload'}</div>
+          )}
+        </div>
+      )}
+
       <RosterEditorDialog
         open={editorOpen}
         onOpenChange={setEditorOpen}

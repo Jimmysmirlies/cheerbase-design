@@ -34,6 +34,7 @@ export type RegistrationDTO = {
   athletes?: number;
   invoiceTotal: number;
   paymentDeadline?: string;
+  registrationDeadline?: string;
   status?: "pending" | "paid";
   paidAt?: string | null;
   createdAt?: string | null;
@@ -91,6 +92,7 @@ export async function getClubData(clubOwnerId: string = DEFAULT_CLUB_OWNER_ID): 
       athletes: reg.athletes,
       invoiceTotal: Number(reg.invoiceTotal),
       paymentDeadline: reg.paymentDeadline ? new Date(reg.paymentDeadline).toISOString() : undefined,
+      registrationDeadline: reg.registrationDeadline ? new Date(reg.registrationDeadline).toISOString() : undefined,
       status: reg.status ?? "pending",
       paidAt: reg.paidAt ? new Date(reg.paidAt).toISOString() : null,
       createdAt: reg.snapshotTakenAt ? new Date(reg.snapshotTakenAt).toISOString() : undefined,

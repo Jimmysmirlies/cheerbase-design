@@ -12,12 +12,12 @@ export type TeamData = {
   members?: RegistrationMember[]
 }
 
-type TeamRowCardProps = {
+type TeamCardProps = {
   team: TeamData
   onViewTeam: (teamId: string) => void
 }
 
-export function TeamRowCard({ team, onViewTeam }: TeamRowCardProps) {
+export function TeamCard({ team, onViewTeam }: TeamCardProps) {
   const memberCount = useMemo(() => team.members?.length ?? 0, [team.members])
   const { divisionLabel, levelLabel } = useMemo(() => {
     const parts = (team.division ?? '').split('-').map(part => part.trim()).filter(Boolean)

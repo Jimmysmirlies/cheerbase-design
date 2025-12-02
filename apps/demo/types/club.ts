@@ -26,6 +26,7 @@ export type Registration = {
   athletes: number;
   invoiceTotal: string; // demo currency string
   paymentDeadline: string; // ISO string in demo
+  registrationDeadline?: string; // ISO string in demo
   status?: "pending" | "paid";
   paidAt?: string;
   snapshotTakenAt?: string;
