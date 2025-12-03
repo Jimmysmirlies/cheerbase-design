@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { ClipboardListIcon, Settings2Icon, UsersIcon, UserIcon } from "lucide-react";
+import { ClipboardListIcon, Settings2Icon, UsersIcon, UserIcon, InfoIcon } from "lucide-react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/shadcn/tooltip";
 
@@ -67,6 +67,30 @@ export function ClubSidebar({ active, clubLabel, clubInitial, ownerName }: ClubS
             href="/clubs/settings"
           />
         </nav>
+        <div className="mt-auto border-t border-border px-4 py-4 text-muted-foreground">
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center text-muted-foreground">
+                  <InfoIcon className="size-5" aria-hidden />
+                  <span className="sr-only">Club workspace notice</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-[220px] body-text">
+                Club Management is mid-refresh while we align styles. Some tweaks may temporarily nudge marketing layouts—thanks
+                for your patience.
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <div className="space-y-1">
+              <p className="body-text font-semibold text-foreground">Club workspace update</p>
+              <p className="body-text">
+                We&apos;re refreshing this area to match our new styling. Expect occasional layout quirks that may also touch marketing
+                pages while the work is in progress.
+              </p>
+            </div>
+          )}
+        </div>
       </aside>
     </TooltipProvider>
   );

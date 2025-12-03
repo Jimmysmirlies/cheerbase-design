@@ -7,7 +7,7 @@ import { FadeInSection, Hero } from "@/components/ui";
 import { EventCard } from "@/components/ui/cards/EventCard";
 import { heroSlides, organizers, listEvents } from "@/data/events";
 import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/shadcn/select";
+import { LargeSelect } from "@workspace/ui/components/large-select";
 
 export default function HomePage() {
   const events = useMemo(() => listEvents(), []);
@@ -51,6 +51,15 @@ export default function HomePage() {
   }, [defaultOrganizer, organizerNames]);
   const organizerEvents = eventsByOrganizer[selectedOrganizer] ?? [];
 
+  const provinceSelectOptions = useMemo(
+    () => provinceOptions.map(option => ({ value: option.code, label: option.label })),
+    [provinceOptions],
+  );
+  const organizerSelectOptions = useMemo(
+    () => organizers.map(org => ({ value: org.name, label: org.name })),
+    [],
+  );
+
   return (
     <main className="bg-background text-foreground">
       {/* Hero: Featured experiences carousel with CTA */}
@@ -61,26 +70,7 @@ export default function HomePage() {
         <FadeInSection>
           <header className="flex flex-wrap items-center gap-3">
             <p className="heading-2">Find events in your area:</p>
-            <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-              <SelectTrigger
-                className="text-primary flex items-center gap-2 border-0 bg-transparent text-2xl font-semibold shadow-none focus:ring-0 focus:ring-offset-0"
-                arrowSize="lg"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-card/90 text-foreground backdrop-blur data-[state=open]:animate-in">
-                {provinceOptions.map((option, index) => (
-                  <SelectItem
-                    key={option.code}
-                    value={option.code}
-                    className="dropdown-fade-in text-xl font-semibold"
-                    style={{ animationDelay: `${index * 60}ms` }}
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <LargeSelect value={selectedProvince} onValueChange={setSelectedProvince} options={provinceSelectOptions} />
           </header>
         </FadeInSection>
 
@@ -109,26 +99,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <header className="flex flex-wrap items-center gap-3">
               <p className="heading-2">Browse events by organizer:</p>
-              <Select value={selectedOrganizer} onValueChange={setSelectedOrganizer}>
-                <SelectTrigger
-                  className="text-primary flex items-center gap-2 border-0 bg-transparent text-2xl font-semibold shadow-none focus:ring-0 focus:ring-offset-0"
-                  arrowSize="lg"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-card/90 text-foreground backdrop-blur data-[state=open]:animate-in">
-                  {organizers.map((org, index) => (
-                    <SelectItem
-                      key={org.name}
-                      value={org.name}
-                      className="dropdown-fade-in text-xl font-semibold"
-                      style={{ animationDelay: `${index * 60}ms` }}
-                    >
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <LargeSelect value={selectedOrganizer} onValueChange={setSelectedOrganizer} options={organizerSelectOptions} />
             </header>
             <Link className="text-primary text-sm font-semibold hover:underline sm:self-end" href="/events/search">
               Search all events

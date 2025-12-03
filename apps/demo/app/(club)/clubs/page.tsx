@@ -25,6 +25,7 @@ import { CreateTeamModal, type CreateTeamData } from "@/components/features/club
 import { TeamCard, type TeamData } from "@/components/features/clubs/TeamCard";
 import type { RegistrationMember } from "@/components/features/registration/flow/types";
 import UploadRosterDialog from "@/components/features/clubs/UploadRosterDialog";
+import { FadeInSection } from "@/components/ui";
 import { toast } from "@workspace/ui/shadcn/sonner";
 import { useClubData } from "@/hooks/useClubData";
 import type { TeamRoster } from "@/types/club";
@@ -70,19 +71,21 @@ function ClubsPageInner() {
           hideSubtitle
           breadcrumbs={<span>Clubs / Teams</span>}
         />
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-6 py-8">
-          {selectedTeamId ? (
-            <TeamDetails
-              teamId={selectedTeamId}
-              onNavigateToTeams={() => {
-                const params = new URLSearchParams(Array.from(searchParams.entries()));
-                params.delete("teamId");
-                router.replace(`${pathname}?${params.toString()}`);
-              }}
-            />
-          ) : (
-            <TeamsContent userId={user.id} />
-          )}
+        <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+          <FadeInSection className="w-full">
+            {selectedTeamId ? (
+              <TeamDetails
+                teamId={selectedTeamId}
+                onNavigateToTeams={() => {
+                  const params = new URLSearchParams(Array.from(searchParams.entries()));
+                  params.delete("teamId");
+                  router.replace(`${pathname}?${params.toString()}`);
+                }}
+              />
+            ) : (
+              <TeamsContent userId={user.id} />
+            )}
+          </FadeInSection>
         </div>
       </section>
     </main>
@@ -136,65 +139,74 @@ function TeamsContent({ userId }: { userId?: string }) {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-md">
-          <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-          <Input
-            type="search"
-            value={searchTerm}
-            onChange={event => setSearchTerm(event.target.value)}
-            placeholder="Search teams or divisions"
-            className="w-full pl-9"
-          />
+      <FadeInSection className="w-full">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-md">
+            <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+            <Input
+              type="search"
+              value={searchTerm}
+              onChange={event => setSearchTerm(event.target.value)}
+              placeholder="Search teams or divisions"
+              className="w-full pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              size="sm"
+              variant="default"
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              disabled={loading}
+            >
+              <UserPlusIcon className="mr-2 size-4" />
+              Create Team
+            </Button>
+            <UploadRosterDialog />
+          </div>
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button
-            size="sm"
-            variant="default"
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            disabled={loading}
-          >
-            <UserPlusIcon className="mr-2 size-4" />
-            Create Team
-          </Button>
-          <UploadRosterDialog />
-        </div>
-      </div>
+      </FadeInSection>
 
       {loading ? (
-        <div className="text-muted-foreground rounded-xl border border-dashed border-border/60 p-8 text-center">
-          Loading teams...
-        </div>
+        <FadeInSection className="w-full" delay={80}>
+          <div className="text-muted-foreground rounded-xl border border-dashed border-border/60 p-8 text-center">
+            Loading teams...
+          </div>
+        </FadeInSection>
       ) : error ? (
-        <div className="text-destructive rounded-xl border border-dashed border-border/60 p-8 text-center">
-          Failed to load teams.
-        </div>
+        <FadeInSection className="w-full" delay={80}>
+          <div className="text-destructive rounded-xl border border-dashed border-border/60 p-8 text-center">
+            Failed to load teams.
+          </div>
+        </FadeInSection>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredTeams.length > 0 ? (
-          filteredTeams.map(team => (
-            <TeamCard
-              key={team.id}
-              team={team}
-              onViewTeam={teamId => {
-                const params = new URLSearchParams(Array.from(searchParams.entries()));
-                params.set("teamId", teamId);
-                router.replace(`${pathname}?${params.toString()}`);
-              }}
-            />
-          ))
-        ) : (
-          <div className="rounded-xl border border-dashed border-border/60 p-8 text-center sm:col-span-2 lg:col-span-3">
-            <p className="text-muted-foreground body-small">
-              {searchTerm
-                ? "No teams found matching your search"
-                : "No teams yet. Create your first team to get started."}
-            </p>
-          </div>
-        )}
-      </div>
+      <FadeInSection className="w-full" delay={loading || error ? 160 : 120}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredTeams.length > 0 ? (
+            filteredTeams.map((team, index) => (
+              <FadeInSection key={team.id} delay={index * 80} className="h-full">
+                <TeamCard
+                  team={team}
+                  onViewTeam={teamId => {
+                    const params = new URLSearchParams(Array.from(searchParams.entries()));
+                    params.set("teamId", teamId);
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
+                />
+              </FadeInSection>
+            ))
+          ) : (
+            <div className="rounded-xl border border-dashed border-border/60 p-8 text-center sm:col-span-2 lg:col-span-3">
+              <p className="text-muted-foreground body-small">
+                {searchTerm
+                  ? "No teams found matching your search"
+                  : "No teams yet. Create your first team to get started."}
+              </p>
+            </div>
+          )}
+        </div>
+      </FadeInSection>
 
       <CreateTeamModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onSubmit={handleCreateTeam} />
     </section>

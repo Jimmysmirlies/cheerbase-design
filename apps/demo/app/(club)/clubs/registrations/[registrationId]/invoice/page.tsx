@@ -8,6 +8,7 @@ import { DownloadIcon, PrinterIcon, ArrowLeftIcon } from 'lucide-react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { ClubSidebar } from '@/components/layout/ClubSidebar'
 import { InvoiceView, type InvoiceData } from '@/components/features/registration/invoice/InvoiceView'
+import { FadeInSection } from '@/components/ui'
 import { formatFriendlyDate } from '@/utils/format'
 
 // Mock data - in production this would come from API/database based on registrationId
@@ -123,7 +124,7 @@ export default function InvoicePage() {
 
         <section className="flex flex-1 flex-col">
           <div className="mx-auto flex w-full max-w-7xl gap-6 px-6 py-10">
-            <div className="flex flex-1 flex-col gap-4">
+            <FadeInSection className="flex flex-1 flex-col gap-4">
               <div className="no-print flex items-center justify-between">
                 <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
                   <Link href={registrationHref} aria-label="Back to registration">
@@ -148,52 +149,56 @@ export default function InvoicePage() {
                   No invoices available for this registration yet.
                 </div>
               )}
-            </div>
+            </FadeInSection>
 
-            <aside className="w-64 shrink-0 border-l border-border pl-4">
-              <div className="space-y-3 text-sm">
-                <div className="text-muted-foreground text-xs uppercase tracking-wide">Current Invoice</div>
-                <div className="border-b border-border pb-3">
-                  <button
-                    type="button"
-                    className={`flex w-full items-center justify-between text-left transition ${
-                      selectedInvoiceNumber === currentInvoiceNumber ? 'text-primary' : 'text-foreground hover:text-primary'
-                    }`}
-                    aria-label="Current invoice"
-                    onClick={() => setSelectedInvoiceNumber(currentInvoiceNumber)}
-                  >
-                    <span className="body-text font-medium">#{currentInvoiceNumber}</span>
-                    <span className="text-muted-foreground text-xs">{selectedInvoice ? formatFriendlyDate(selectedInvoice.issuedDate) : 'N/A'}</span>
-                  </button>
+            <FadeInSection className="w-64 shrink-0" delay={120}>
+              <aside className="w-full border-l border-border pl-4">
+                <div className="space-y-3 text-sm">
+                  <div className="text-muted-foreground text-xs uppercase tracking-wide">Current Invoice</div>
+                  <div className="border-b border-border pb-3">
+                    <button
+                      type="button"
+                      className={`flex w-full items-center justify-between text-left transition ${
+                        selectedInvoiceNumber === currentInvoiceNumber ? 'text-primary' : 'text-foreground hover:text-primary'
+                      }`}
+                      aria-label="Current invoice"
+                      onClick={() => setSelectedInvoiceNumber(currentInvoiceNumber)}
+                    >
+                      <span className="body-text font-medium">#{currentInvoiceNumber}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {selectedInvoice ? formatFriendlyDate(selectedInvoice.issuedDate) : 'N/A'}
+                      </span>
+                    </button>
+                  </div>
+                  {sortedInvoices.length > 1 ? (
+                    <>
+                      <div className="text-muted-foreground text-xs uppercase tracking-wide pt-2">Past Invoices</div>
+                      <div className="flex flex-col divide-y divide-border">
+                        {sortedInvoices
+                          .filter(inv => inv.invoiceNumber !== currentInvoiceNumber)
+                          .map(invoice => (
+                            <button
+                              key={invoice.invoiceNumber}
+                              type="button"
+                              onClick={() => setSelectedInvoiceNumber(invoice.invoiceNumber)}
+                              className={`flex h-10 w-full items-center justify-between text-left transition ${
+                                invoice.invoiceNumber === selectedInvoiceNumber
+                                  ? 'text-primary border-b border-primary'
+                                  : 'text-foreground hover:text-primary'
+                              }`}
+                            >
+                              <span className="body-text font-medium">#{invoice.invoiceNumber}</span>
+                              <span className="text-muted-foreground text-xs">
+                                {formatFriendlyDate(invoice.issuedDate)}
+                              </span>
+                            </button>
+                          ))}
+                      </div>
+                    </>
+                  ) : null}
                 </div>
-                {sortedInvoices.length > 1 ? (
-                  <>
-                    <div className="text-muted-foreground text-xs uppercase tracking-wide pt-2">Past Invoices</div>
-                    <div className="flex flex-col divide-y divide-border">
-                      {sortedInvoices
-                        .filter(inv => inv.invoiceNumber !== currentInvoiceNumber)
-                        .map(invoice => (
-                        <button
-                          key={invoice.invoiceNumber}
-                          type="button"
-                          onClick={() => setSelectedInvoiceNumber(invoice.invoiceNumber)}
-                          className={`flex h-10 w-full items-center justify-between text-left transition ${
-                            invoice.invoiceNumber === selectedInvoiceNumber
-                              ? 'text-primary border-b border-primary'
-                              : 'text-foreground hover:text-primary'
-                          }`}
-                        >
-                          <span className="body-text font-medium">#{invoice.invoiceNumber}</span>
-                          <span className="text-muted-foreground text-xs">
-                            {formatFriendlyDate(invoice.issuedDate)}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            </aside>
+              </aside>
+            </FadeInSection>
           </div>
         </section>
       </main>

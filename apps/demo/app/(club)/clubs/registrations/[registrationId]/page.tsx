@@ -7,6 +7,9 @@ import { isRegistrationLocked } from '@/utils/registrations'
 import { getClubData } from '@/lib/club-data'
 import { ClubSidebar } from '@/components/layout/ClubSidebar'
 import { ClubPageHeader } from '@/components/layout/ClubPageHeader'
+import { Button } from '@workspace/ui/shadcn/button'
+import { RegistrationPaymentCTA } from '@/components/features/clubs/RegistrationPaymentCTA'
+import { FadeInSection } from '@/components/ui'
 import type { TeamRoster } from '@/types/club'
 
 type PageParams = {
@@ -64,13 +67,28 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     registrationDeadline: registration.registrationDeadline ?? undefined,
     paidAt: registration.paidAt ?? undefined,
   })
-  const lockReason = registration.paidAt ? 'paid' : isLocked ? 'deadline' : undefined
 
   const paymentDeadlineDate = registration.paymentDeadline ? new Date(registration.paymentDeadline) : undefined
   let paymentStatus: 'Paid' | 'Unpaid' | 'Overdue' = 'Unpaid'
   if (registration.paidAt || registration.status === 'paid') paymentStatus = 'Paid'
   else if (paymentDeadlineDate && paymentDeadlineDate < new Date()) paymentStatus = 'Overdue'
   const invoiceTotalNumber = Number(registration.invoiceTotal ?? 0)
+  const invoiceTotalLabel = formatCurrency(invoiceTotalNumber)
+  const paymentDeadlineLabel =
+    paymentDeadlineDate && !Number.isNaN(paymentDeadlineDate.getTime())
+      ? formatFriendlyDate(paymentDeadlineDate)
+      : undefined
+  const eventDetailItems = [
+    { label: 'Location', value: registration.location ?? 'TBD' },
+    { label: 'Event Date', value: formatFriendlyDate(registration.eventDate) },
+    { label: 'Organizer', value: event?.organizer ?? 'TBD' },
+  ]
+  const eventPageHref = `/events/${registration.eventId}`
+  const invoiceHref = `/clubs/registrations/${registration.id}/invoice`
+  const paymentCtaDescription =
+    paymentStatus === 'Overdue'
+      ? `This registration is overdue. Pay the ${invoiceTotalLabel} balance now to keep ${registration.eventName} active.`
+      : `Pay the outstanding balance for ${registration.eventName} to keep this registration active.`
 
   const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
   const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
@@ -87,102 +105,202 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
           title={registration.eventName}
           hideSubtitle
           breadcrumbs={<span>Clubs / Registrations / {registration.eventName}</span>}
-          metadataItems={[
-            { label: 'Location', value: registration.location },
-            { label: 'Event Date', value: formatFriendlyDate(registration.eventDate) },
-            { label: 'Organizer', value: event?.organizer ?? 'TBD' },
-          ]}
+          eventStartDate={registration.eventDate}
         />
 
-        <div className="mx-auto w-full max-w-6xl space-y-12 px-6 py-6">
-          {/* NOTICE — Registration lock + CTA (stacked) */}
-          <div className="flex flex-col gap-4">
-            <div className="rounded-md border border-border bg-background/80 px-4 py-3 text-sm text-foreground">
-              {lockReason === 'paid' ? (
-                <p>Registration locked — payment received. Contact the organizer for any changes.</p>
-              ) : isLocked ? (
-                <p>Registration locked — the registration deadline has passed. Contact the organizer for any inquiries.</p>
-              ) : (
-                <p>
-                  Registration open — you can still update your roster until{' '}
-                  <span className="font-medium">
-                    {registration.registrationDeadline
-                      ? formatFriendlyDate(registration.registrationDeadline)
-                      : 'the deadline'}
-                  </span>
-                  .
-                </p>
-              )}
-            </div>
+        <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+          {/* ACTIONS + PAYMENT NOTICES */}
+          <div className="space-y-6">
+            {/* ACTIONS — Primary buttons */}
+            <FadeInSection className="w-full">
+              <div className="flex flex-wrap gap-3">
+                <Button asChild variant="outline">
+                  <Link href={invoiceHref}>View Invoice</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={eventPageHref}>View Event Listing</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={`/clubs/registrations/${registration.id}?mode=edit`}>Update Registration</Link>
+                </Button>
+              </div>
+            </FadeInSection>
 
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              <p className="font-semibold">Modify registration</p>
-              <p className="mt-1 text-amber-900/80">
-                Changes may affect pricing and availability. If this registration is locked, contact the event organizer to request updates.
-              </p>
-            </div>
+            {/* PAYMENT NOTICES */}
+            {paymentStatus === 'Overdue' || paymentStatus === 'Paid' ? (
+              <div className="space-y-4">
+                {paymentStatus === 'Overdue' ? (
+                  <FadeInSection className="w-full" delay={40}>
+                    <PaymentStatusNotice
+                      status="Overdue"
+                      amountLabel={invoiceTotalLabel}
+                      dueLabel={paymentDeadlineLabel}
+                      eventName={registration.eventName}
+                      invoiceHref={invoiceHref}
+                    />
+                  </FadeInSection>
+                ) : null}
+                {paymentStatus === 'Paid' ? (
+                  <FadeInSection className="w-full" delay={40}>
+                    <PaymentStatusNotice
+                      status="Paid"
+                      amountLabel={invoiceTotalLabel}
+                      dueLabel={paymentDeadlineLabel}
+                      eventName={registration.eventName}
+                      invoiceHref={invoiceHref}
+                    />
+                  </FadeInSection>
+                ) : null}
+              </div>
+            ) : null}
           </div>
+
+          {/* PAYMENT CTA */}
+          {paymentStatus !== 'Paid' && !isLocked ? (
+            <FadeInSection className="w-full" delay={80}>
+              <RegistrationPaymentCTA
+                amountLabel={`Invoice total ${invoiceTotalLabel}`}
+                dueLabel={paymentDeadlineLabel}
+                description={paymentCtaDescription}
+              />
+            </FadeInSection>
+          ) : null}
 
           {/* SUMMARY — Key figures */}
-          <div className="flex flex-col gap-3">
-            <p className="heading-4">Summary</p>
-            <div className="h-px w-full bg-border" />
-            <div className="grid gap-6 text-sm text-foreground sm:grid-cols-2">
+          <FadeInSection className="w-full" delay={160}>
+            <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Invoice total</span>
-                  <span className="font-semibold">{formatCurrency(invoiceTotalNumber)}</span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Payment status</span>
-                  <span className="font-semibold">
-                    {paymentStatus}
-                    {paymentDeadlineDate && paymentStatus !== 'Paid'
-                      ? ` · Due ${formatFriendlyDate(paymentDeadlineDate)}`
-                      : ''}
-                  </span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
+                <p className="heading-4">Summary</p>
+                <div className="h-px w-full bg-border" />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Registration ID</span>
-                  <span className="font-semibold">{registration.id}</span>
+              <div className="grid gap-6 text-sm text-foreground sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Invoice total</span>
+                    <span className="font-semibold">{invoiceTotalLabel}</span>
+                  </div>
+                  <div className="h-px w-full bg-border/70" />
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Payment status</span>
+                    <span className="font-semibold">
+                      {paymentStatus}
+                      {paymentDeadlineLabel && paymentStatus !== 'Paid'
+                        ? ` · Due ${paymentDeadlineLabel}`
+                        : ''}
+                    </span>
+                  </div>
+                  <div className="h-px w-full bg-border/70" />
                 </div>
-                <div className="h-px w-full bg-border/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Registration deadline</span>
-                  <span className="font-semibold">
-                    {registration.registrationDeadline
-                      ? formatFriendlyDate(registration.registrationDeadline)
-                      : 'Not set'}
-                  </span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Registration ID</span>
+                    <span className="font-semibold">{registration.id}</span>
+                  </div>
+                  <div className="h-px w-full bg-border/70" />
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Registration deadline</span>
+                    <span className="font-semibold">
+                      {registration.registrationDeadline
+                        ? formatFriendlyDate(registration.registrationDeadline)
+                        : 'Not set'}
+                    </span>
+                  </div>
+                  <div className="h-px w-full bg-border/70" />
                 </div>
-                <div className="h-px w-full bg-border/70" />
               </div>
             </div>
-          </div>
+          </FadeInSection>
+
+          {/* EVENT DETAILS — Metadata */}
+          <FadeInSection className="w-full" delay={240}>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <p className="heading-4">Event Details</p>
+                <div className="h-px w-full bg-border" />
+              </div>
+              <div className="grid gap-6 text-sm text-foreground sm:grid-cols-3">
+                {eventDetailItems.map(item => (
+                  <div key={item.label} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-muted-foreground">{item.label}</span>
+                      <span className="font-semibold text-right">{item.value}</span>
+                    </div>
+                    <div className="h-px w-full bg-border/70" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeInSection>
 
           {/* REGISTERED TEAMS — Receipt view */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <p className="heading-4">Registered Teams</p>
+          <FadeInSection className="w-full" delay={320}>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="heading-4">Registered Teams</p>
+                </div>
+                <div className="h-px w-full bg-border" />
+              </div>
+              {registeredTeamCard ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <RegisteredTeamCard card={registeredTeamCard} />
+                </div>
+              ) : (
+                <div className="text-muted-foreground rounded-md border border-dashed border-border/60 p-6 text-sm">
+                  No teams registered for this event yet.
+                </div>
+              )}
             </div>
-            <div className="h-px w-full bg-border" />
-            {registeredTeamCard ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <RegisteredTeamCard card={registeredTeamCard} />
-              </div>
-            ) : (
-              <div className="text-muted-foreground rounded-md border border-dashed border-border/60 p-6 text-sm">
-                No teams registered for this event yet.
-              </div>
-            )}
-          </div>
+          </FadeInSection>
         </div>
       </section>
     </main>
+  )
+}
+
+type PaymentStatusNoticeProps = {
+  status: 'Paid' | 'Overdue'
+  amountLabel: string
+  dueLabel?: string
+  eventName: string
+  invoiceHref: string
+}
+
+function PaymentStatusNotice({ status, amountLabel, dueLabel, eventName, invoiceHref }: PaymentStatusNoticeProps) {
+  const isPaid = status === 'Paid'
+  const containerClasses = isPaid
+    ? 'border-lime-200 bg-lime-50 text-lime-900'
+    : 'border-red-200 bg-red-50 text-red-900'
+  const supportingTextClasses = isPaid ? 'text-lime-800' : 'text-red-800'
+
+  return (
+    <div className={`rounded-md border px-4 py-4 text-sm ${containerClasses}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <p className="font-semibold">
+            {isPaid ? 'Payment received' : 'Payment overdue'}
+            {!isPaid && dueLabel ? <span className="font-normal">{` · Due ${dueLabel}`}</span> : null}
+          </p>
+          <p className={supportingTextClasses}>
+            {isPaid
+              ? `The invoice for ${eventName} is paid in full.`
+              : `The ${amountLabel} invoice for ${eventName} ${
+                  dueLabel ? `was due ${dueLabel}` : 'is overdue'
+                }. Pay immediately to keep this registration active.`}
+          </p>
+        </div>
+        {isPaid ? null : (
+          <Button
+            asChild
+            size="sm"
+            variant="destructive"
+            className="bg-red-600 text-white hover:bg-red-600/90"
+          >
+            <Link href={invoiceHref}>Pay Now</Link>
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }
 

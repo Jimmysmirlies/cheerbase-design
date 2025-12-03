@@ -16,6 +16,7 @@ import { Button } from "@workspace/ui/shadcn/button";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { useClubData } from "@/hooks/useClubData";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { FadeInSection } from "@/components/ui";
 import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
 import type { TeamOption } from "@/components/features/registration/flow/types";
@@ -26,8 +27,10 @@ function DetailsInner() {
   const params = useParams<{ teamId: string }>();
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-7xl space-y-8 px-6 py-10">
-        <TeamDetails teamId={params.teamId} />
+      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+        <FadeInSection className="w-full">
+          <TeamDetails teamId={params.teamId} />
+        </FadeInSection>
       </div>
     </main>
   );
@@ -149,64 +152,76 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
   };
 
   if (loading) {
-    return <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">Loading team...</div>;
+    return (
+      <FadeInSection className="w-full">
+        <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">Loading team...</div>
+      </FadeInSection>
+    );
   }
 
   if (error) {
-    return <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">Failed to load team.</div>;
+    return (
+      <FadeInSection className="w-full">
+        <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">Failed to load team.</div>
+      </FadeInSection>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Back + header */}
-      <div className="space-y-4">
-        {onNavigateToTeams ? (
-          <div>
-            <Button variant="ghost" size="icon" type="button" onClick={onNavigateToTeams} aria-label="Back to Teams">
-              <span className="text-xl leading-none">←</span>
-            </Button>
+      <FadeInSection className="w-full">
+        <div className="space-y-4">
+          {onNavigateToTeams ? (
+            <div>
+              <Button variant="ghost" size="icon" type="button" onClick={onNavigateToTeams} aria-label="Back to Teams">
+                <span className="text-xl leading-none">←</span>
+              </Button>
+            </div>
+          ) : null}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="heading-2 text-foreground">{team?.name ?? "Unknown Team"}</div>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+                Bulk Upload
+              </Button>
+              <Button type="button" variant="default" size="sm" onClick={() => setEditorOpen(true)}>
+                Edit Team
+              </Button>
+            </div>
           </div>
-        ) : null}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="heading-2 text-foreground">{team?.name ?? "Unknown Team"}</div>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
-              Bulk Upload
-            </Button>
-            <Button type="button" variant="default" size="sm" onClick={() => setEditorOpen(true)}>
-              Edit Team
-            </Button>
+          <div className="h-px w-full bg-border" />
+          <div className="grid gap-8 pb-4 text-sm text-foreground sm:grid-cols-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Division</span>
+                <span className="font-medium text-right">{divisionLabel}</span>
+              </div>
+              <div className="h-px w-full bg-border/80" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Level</span>
+                <span className="font-medium">{levelLabel}</span>
+              </div>
+              <div className="h-px w-full bg-border/80" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Members</span>
+                <span className="font-medium">{memberCount}</span>
+              </div>
+              <div className="h-px w-full bg-border/80" />
+            </div>
           </div>
         </div>
-        <div className="h-px w-full bg-border" />
-        <div className="grid gap-8 pb-4 text-sm text-foreground sm:grid-cols-3">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Division</span>
-              <span className="font-medium text-right">{divisionLabel}</span>
-            </div>
-            <div className="h-px w-full bg-border/80" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Level</span>
-              <span className="font-medium">{levelLabel}</span>
-            </div>
-            <div className="h-px w-full bg-border/80" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Members</span>
-              <span className="font-medium">{memberCount}</span>
-            </div>
-            <div className="h-px w-full bg-border/80" />
-          </div>
-        </div>
-      </div>
+      </FadeInSection>
 
-      <div className="flex flex-col gap-4">
-        <RosterTable people={combinedMembers} />
-      </div>
+      <FadeInSection className="w-full" delay={120}>
+        <div className="flex flex-col gap-4">
+          <RosterTable people={combinedMembers} />
+        </div>
+      </FadeInSection>
 
       <BulkUploadDialog
         open={bulkOpen}
