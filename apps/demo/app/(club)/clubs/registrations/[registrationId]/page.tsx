@@ -4,13 +4,21 @@ import Link from 'next/link'
 import { findEventById } from '@/data/events'
 import { formatCurrency, formatFriendlyDate } from '@/utils/format'
 import { isRegistrationLocked } from '@/utils/registrations'
-import { getClubData } from '@/lib/club-data'
+import {
+  buildInvoiceDataFromEntries,
+  buildInvoiceTeamEntries,
+  calculateInvoiceTotals,
+  convertInvoiceTeamsToRegistrationEntries,
+  type InvoiceTeamEntry,
+} from '@/lib/invoices'
+import { getClubData, type RegisteredMemberDTO } from '@/lib/club-data'
 import { ClubSidebar } from '@/components/layout/ClubSidebar'
 import { ClubPageHeader } from '@/components/layout/ClubPageHeader'
 import { Button } from '@workspace/ui/shadcn/button'
 import { RegistrationPaymentCTA } from '@/components/features/clubs/RegistrationPaymentCTA'
+import { RegisteredTeamCard } from '@/components/features/clubs/RegisteredTeamCard'
 import { FadeInSection } from '@/components/ui'
-import type { TeamRoster } from '@/types/club'
+import type { RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
 
 type PageParams = {
   registrationId: string
@@ -18,6 +26,14 @@ type PageParams = {
 
 type PageProps = {
   params?: Promise<PageParams>
+}
+
+type RegisteredTeamCardData = {
+  id: string
+  name: string
+  division: string
+  members?: RegisteredTeamMember[]
+  detailId: string
 }
 
 export default async function EditClubRegistrationPage({ params }: PageProps) {
@@ -28,6 +44,9 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
 
   const data = await getClubData()
   const user = { name: "Demo Club Owner", email: "demo@club.com", role: "club_owner" };
+  const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
+  const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
+  const ownerName = user.name ?? user.email ?? clubLabel;
 
   const registrationId = decodeURIComponent(resolvedParams.registrationId)
   const registration = data.registrations.find(item => item.id === registrationId)
@@ -35,64 +54,48 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     notFound()
   }
 
-  const registeredTeam =
-    registration.registeredTeam ??
-    (registration.registeredTeamId ? data.registeredTeams.find(rt => rt.id === registration.registeredTeamId) : null) ??
-    (registration.teamId ? data.registeredTeams.find(rt => rt.sourceTeamId === registration.teamId) : null) ??
-    null
-
-  const teamRecord = registration.teamId ? data.teams.find(team => team.id === registration.teamId) : undefined
-  const roster = registration.teamId ? data.rosters.find(r => r.teamId === registration.teamId) : undefined
-  const registeredTeamCard = registeredTeam
-    ? {
-        id: registeredTeam.id,
-        name: registeredTeam.name,
-        division: registeredTeam.division,
-        members: registeredTeam.members?.length ?? 0,
-        detailId: registeredTeam.sourceTeamId ?? registration.teamId ?? registeredTeam.id,
-      }
-    : teamRecord
-      ? {
-          id: teamRecord.id,
-          name: teamRecord.name,
-          division: teamRecord.division,
-          members: roster ? rosterMemberCount(roster) : 0,
-          detailId: teamRecord.id,
-        }
-      : null
-
   const event = findEventById(registration.eventId)
+  const invoiceTeamEntries = buildInvoiceTeamEntries(data, registration.eventId, event, { scope: 'event' })
+  const registeredTeamCards: RegisteredTeamCardData[] = invoiceTeamEntries.map(buildRegisteredTeamCardFromInvoiceEntry)
+
+  const participantsRegistered = invoiceTeamEntries.reduce(
+    (total, entry) => total + entry.members.length,
+    0
+  )
+  const teamsRegistered = invoiceTeamEntries.length
+  const participantsLabel = `${participantsRegistered} ${participantsRegistered === 1 ? 'participant' : 'participants'}`
+  const teamsLabel = `${teamsRegistered} ${teamsRegistered === 1 ? 'team' : 'teams'}`
+
   const isLocked = isRegistrationLocked({
     paymentDeadline: registration.paymentDeadline ?? undefined,
     registrationDeadline: registration.registrationDeadline ?? undefined,
     paidAt: registration.paidAt ?? undefined,
   })
 
+  const invoiceEntries = convertInvoiceTeamsToRegistrationEntries(invoiceTeamEntries)
+  const invoiceData = buildInvoiceDataFromEntries(invoiceEntries, registration, event ?? null, data, {
+    clubName: clubLabel,
+  })
+  const { total: computedInvoiceTotal } = calculateInvoiceTotals(invoiceData)
+
   const paymentDeadlineDate = registration.paymentDeadline ? new Date(registration.paymentDeadline) : undefined
   let paymentStatus: 'Paid' | 'Unpaid' | 'Overdue' = 'Unpaid'
   if (registration.paidAt || registration.status === 'paid') paymentStatus = 'Paid'
   else if (paymentDeadlineDate && paymentDeadlineDate < new Date()) paymentStatus = 'Overdue'
-  const invoiceTotalNumber = Number(registration.invoiceTotal ?? 0)
+  const fallbackInvoiceTotal = Number(registration.invoiceTotal ?? 0)
+  const invoiceTotalNumber =
+    Number.isFinite(computedInvoiceTotal) && computedInvoiceTotal > 0 ? computedInvoiceTotal : fallbackInvoiceTotal
   const invoiceTotalLabel = formatCurrency(invoiceTotalNumber)
   const paymentDeadlineLabel =
     paymentDeadlineDate && !Number.isNaN(paymentDeadlineDate.getTime())
       ? formatFriendlyDate(paymentDeadlineDate)
       : undefined
-  const eventDetailItems = [
-    { label: 'Location', value: registration.location ?? 'TBD' },
-    { label: 'Event Date', value: formatFriendlyDate(registration.eventDate) },
-    { label: 'Organizer', value: event?.organizer ?? 'TBD' },
-  ]
   const eventPageHref = `/events/${registration.eventId}`
   const invoiceHref = `/clubs/registrations/${registration.id}/invoice`
   const paymentCtaDescription =
     paymentStatus === 'Overdue'
       ? `This registration is overdue. Pay the ${invoiceTotalLabel} balance now to keep ${registration.eventName} active.`
       : `Pay the outstanding balance for ${registration.eventName} to keep this registration active.`
-
-  const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
-  const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
-  const ownerName = user.name ?? user.email ?? clubLabel;
 
   return (
     <main className="flex w-full">
@@ -168,7 +171,7 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
 
           {/* SUMMARY — Key figures */}
           <FadeInSection className="w-full" delay={160}>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 px-1">
               <div className="flex flex-col gap-2">
                 <p className="heading-4">Summary</p>
                 <div className="h-px w-full bg-border" />
@@ -190,11 +193,16 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
                     </span>
                   </div>
                   <div className="h-px w-full bg-border/70" />
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Participants registered</span>
+                    <span className="font-semibold">{participantsLabel}</span>
+                  </div>
+                  <div className="h-px w-full bg-border/70" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Registration ID</span>
-                    <span className="font-semibold">{registration.id}</span>
+                    <span className="text-muted-foreground">Invoice number</span>
+                    <span className="font-semibold">{invoiceData.invoiceNumber}</span>
                   </div>
                   <div className="h-px w-full bg-border/70" />
                   <div className="flex items-center justify-between gap-4">
@@ -206,44 +214,30 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
                     </span>
                   </div>
                   <div className="h-px w-full bg-border/70" />
-                </div>
-              </div>
-            </div>
-          </FadeInSection>
-
-          {/* EVENT DETAILS — Metadata */}
-          <FadeInSection className="w-full" delay={240}>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <p className="heading-4">Event Details</p>
-                <div className="h-px w-full bg-border" />
-              </div>
-              <div className="grid gap-6 text-sm text-foreground sm:grid-cols-3">
-                {eventDetailItems.map(item => (
-                  <div key={item.label} className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <span className="font-semibold text-right">{item.value}</span>
-                    </div>
-                    <div className="h-px w-full bg-border/70" />
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Teams registered</span>
+                    <span className="font-semibold">{teamsLabel}</span>
                   </div>
-                ))}
+                  <div className="h-px w-full bg-border/70" />
+                </div>
               </div>
             </div>
           </FadeInSection>
 
           {/* REGISTERED TEAMS — Receipt view */}
           <FadeInSection className="w-full" delay={320}>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 px-1">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <p className="heading-4">Registered Teams</p>
                 </div>
                 <div className="h-px w-full bg-border" />
               </div>
-              {registeredTeamCard ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <RegisteredTeamCard card={registeredTeamCard} />
+              {registeredTeamCards.length ? (
+                <div className="flex flex-col gap-4">
+                  {registeredTeamCards.map(card => (
+                    <RegisteredTeamCard key={card.id} card={card} />
+                  ))}
                 </div>
               ) : (
                 <div className="text-muted-foreground rounded-md border border-dashed border-border/60 p-6 text-sm">
@@ -256,6 +250,16 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
       </section>
     </main>
   )
+}
+
+function buildRegisteredTeamCardFromInvoiceEntry(entry: InvoiceTeamEntry): RegisteredTeamCardData {
+  return {
+    id: entry.id,
+    name: entry.teamName ?? 'Registered Team',
+    division: entry.division,
+    members: normalizeRegisteredMembers(entry.members),
+    detailId: entry.teamId ?? entry.registeredTeamId ?? entry.id,
+  }
 }
 
 type PaymentStatusNoticeProps = {
@@ -304,74 +308,16 @@ function PaymentStatusNotice({ status, amountLabel, dueLabel, eventName, invoice
   )
 }
 
-type RegisteredTeamCardProps = {
-  card: {
-    id: string
-    name: string
-    division: string
-    members: number
-    detailId: string
-  }
-}
-
-function RegisteredTeamCard({ card }: RegisteredTeamCardProps) {
-  const { divisionLabel, levelLabel } = parseDivision(card.division)
-  return (
-    <div className="border-border/70 bg-background/80 border shadow-sm">
-      <div className="px-5 pt-6 pb-4">
-        <h3 className="heading-4 text-foreground">{card.name}</h3>
-        <div className="bg-border mt-2 h-px w-full" />
-      </div>
-      <div className="px-5 pb-2 text-sm text-foreground">
-        <div className="flex items-center justify-between py-2">
-          <span className="text-muted-foreground">Division</span>
-          <span className="font-medium truncate text-right">{divisionLabel}</span>
-        </div>
-        <div className="flex items-center justify-between border-t border-border/70 py-2">
-          <span className="text-muted-foreground">Level</span>
-          <span className="font-medium">{levelLabel}</span>
-        </div>
-        <div className="flex items-center justify-between border-t border-border/70 py-2">
-          <span className="text-muted-foreground">Athletes</span>
-          <span className="font-medium">{card.members}</span>
-        </div>
-      </div>
-      <div className="border-t border-border/70 px-5 py-3">
-        <div className="flex justify-end">
-          <Link
-            href={`/clubs/teams/${card.detailId}`}
-            className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/50"
-          >
-            View team
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function parseDivision(division: string) {
-  const parts = division.split('-').map(part => part.trim()).filter(Boolean)
-  if (!parts.length) {
-    return { divisionLabel: '—', levelLabel: '—' }
-  }
-  if (parts.length === 1) {
-    return { divisionLabel: parts[0], levelLabel: '—' }
-  }
-  const level = parts.pop() ?? '—'
-  return { divisionLabel: parts.join(' - '), levelLabel: level }
-}
-
-function rosterMemberCount(roster: {
-  coaches?: TeamRoster['coaches']
-  athletes?: TeamRoster['athletes']
-  reservists?: TeamRoster['reservists']
-  chaperones?: TeamRoster['chaperones']
-}) {
-  return (
-    (roster.coaches?.length ?? 0) +
-    (roster.athletes?.length ?? 0) +
-    (roster.reservists?.length ?? 0) +
-    (roster.chaperones?.length ?? 0)
-  )
+function normalizeRegisteredMembers(members?: RegisteredMemberDTO[] | null): RegisteredTeamMember[] {
+  if (!members?.length) return []
+  return members.map((member, index) => ({
+    id: member.personId ?? member.id ?? `registered-member-${index}`,
+    name: `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim() || undefined,
+    firstName: member.firstName ?? null,
+    lastName: member.lastName ?? null,
+    email: member.email ?? null,
+    phone: member.phone ?? null,
+    dob: member.dob ?? null,
+    role: member.role ?? null,
+  }))
 }

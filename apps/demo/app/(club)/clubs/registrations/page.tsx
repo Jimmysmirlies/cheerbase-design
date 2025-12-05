@@ -218,35 +218,39 @@ function RegistrationsContent({
         <div className="space-y-6">
           {sections.map((section, sectionIndex) => (
             <FadeInSection key={section.key} className="w-full" delay={sectionIndex * 80}>
-              <div className="space-y-3 border-b border-border pb-4">
-                <div className="flex items-center justify-between">
+              <div className="space-y-3 border-b border-border pb-6">
+                <div className="flex items-center justify-between gap-3">
                   <div className="heading-3 text-foreground">{section.label}</div>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => toggleSection(section.key)}
-                    aria-label={collapsed[section.key] ? 'Expand month' : 'Collapse month'}
-                  >
-                    {collapsed[section.key] ? (
-                      <ChevronDownIcon className="size-5" />
-                    ) : (
-                      <ChevronUpIcon className="size-5" />
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <span className="text-foreground font-semibold">{section.items.length}</span>
+                      <span>{section.items.length === 1 ? 'event' : 'events'}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => toggleSection(section.key)}
+                      aria-label={collapsed[section.key] ? 'Expand month' : 'Collapse month'}
+                    >
+                      {collapsed[section.key] ? (
+                        <ChevronDownIcon className="size-5" />
+                      ) : (
+                        <ChevronUpIcon className="size-5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 {!collapsed[section.key] ? (
                   section.items.length ? (
-                    <div className="overflow-hidden">
-                      <div className="flex gap-4 overflow-x-auto pb-2">
-                        {section.items.map((row, rowIndex) => (
-                          <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full shrink-0">
-                            <div className={`h-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
-                              <EventRegisteredCard {...row} />
-                            </div>
-                          </FadeInSection>
-                        ))}
-                      </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {section.items.map((row, rowIndex) => (
+                        <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full">
+                          <div className={`h-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
+                            <EventRegisteredCard {...row} />
+                          </div>
+                        </FadeInSection>
+                      ))}
                     </div>
                   ) : (
                     <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
