@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
-import { ClubSidebar } from "@/components/layout/ClubSidebar";
 import { FadeInSection } from "@/components/ui";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -31,45 +30,37 @@ export default function ClubSettingsPage() {
   }
   if (!user || user.role !== "club_owner") return null;
 
-  const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
-  const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
-  const ownerName = user.name ?? user.email ?? clubLabel;
-
   return (
-    <main className="flex w-full">
-      <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="settings" />
+    <section className="flex flex-1 flex-col">
+      <ClubPageHeader
+        title="Club Settings"
+        subtitle="Manage your club profile, preferences, and visibility."
+        hideSubtitle
+        breadcrumbs={<span>Clubs / Settings</span>}
+      />
 
-      <section className="flex flex-1 flex-col">
-        <ClubPageHeader
-          title="Club Settings"
-          subtitle="Manage your club profile, preferences, and visibility."
-          hideSubtitle
-          breadcrumbs={<span>Clubs / Settings</span>}
-        />
-
-        <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
-          <FadeInSection className="w-full">
-            <section className="space-y-6">
-              <form className="grid max-w-xl gap-4">
-                <div className="grid gap-1">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Club Name</Label>
-                  <Input placeholder="e.g., Ralli All Stars" />
-                </div>
-                <div className="grid gap-1">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Contact Email</Label>
-                  <Input placeholder="club@example.com" type="email" />
-                </div>
-                <div className="flex gap-2">
-                  <Button type="button">Save Changes</Button>
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </section>
-          </FadeInSection>
-        </div>
-      </section>
-    </main>
+      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+        <FadeInSection className="w-full">
+          <section className="space-y-6">
+            <form className="grid max-w-xl gap-4">
+              <div className="grid gap-1">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Club Name</Label>
+                <Input placeholder="e.g., Ralli All Stars" />
+              </div>
+              <div className="grid gap-1">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Contact Email</Label>
+                <Input placeholder="club@example.com" type="email" />
+              </div>
+              <div className="flex gap-2">
+                <Button type="button">Save Changes</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </section>
+        </FadeInSection>
+      </div>
+    </section>
   );
 }

@@ -7,7 +7,7 @@ import { FadeInSection, Hero } from "@/components/ui";
 import { EventCard } from "@/components/ui/cards/EventCard";
 import { heroSlides, organizers, listEvents } from "@/data/events";
 import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
-import { LargeSelect } from "@workspace/ui/components/large-select";
+import { TextSelect } from "@workspace/ui/components/text-select";
 
 export default function HomePage() {
   const events = useMemo(() => listEvents(), []);
@@ -70,7 +70,12 @@ export default function HomePage() {
         <FadeInSection>
           <header className="flex flex-wrap items-center gap-3">
             <p className="heading-2">Find events in your area:</p>
-            <LargeSelect value={selectedProvince} onValueChange={setSelectedProvince} options={provinceSelectOptions} />
+            <TextSelect
+              value={selectedProvince}
+              onValueChange={setSelectedProvince}
+              options={provinceSelectOptions}
+              size="large"
+            />
           </header>
         </FadeInSection>
 
@@ -99,7 +104,12 @@ export default function HomePage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <header className="flex flex-wrap items-center gap-3">
               <p className="heading-2">Browse events by organizer:</p>
-              <LargeSelect value={selectedOrganizer} onValueChange={setSelectedOrganizer} options={organizerSelectOptions} />
+              <TextSelect
+                value={selectedOrganizer}
+                onValueChange={setSelectedOrganizer}
+                options={organizerSelectOptions}
+                size="large"
+              />
             </header>
             <Link className="text-primary text-sm font-semibold hover:underline sm:self-end" href="/events/search">
               Search all events

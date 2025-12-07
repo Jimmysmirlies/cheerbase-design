@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@workspace/ui/shadcn/dropdown-menu'
 import { Input } from '@workspace/ui/shadcn/input'
+import { cn } from '@workspace/ui/lib/utils'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -34,7 +35,7 @@ import { AuthSignUp } from '@/components/features/auth/AuthSignUp'
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { eventCategories } from '@/data/events/categories'
-import { SearchIcon } from 'lucide-react'
+import { SearchIcon, XIcon } from 'lucide-react'
 
 type SearchItem = {
   label: string
@@ -46,9 +47,12 @@ type NavBarProps = {
   mode?: 'default' | 'clubs'
   variant?: 'default' | 'organizer'
   showNavLinks?: boolean
+  showSidebarToggle?: boolean
+  sidebarOpen?: boolean
+  onSidebarToggle?: () => void
 }
 
-export function NavBar({ mode, variant, showNavLinks }: NavBarProps) {
+export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebarOpen = false, onSidebarToggle }: NavBarProps) {
   void mode
   void variant
   void showNavLinks
@@ -60,6 +64,8 @@ export function NavBar({ mode, variant, showNavLinks }: NavBarProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedTerm, setDebouncedTerm] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [isNarrow, setIsNarrow] = useState(false)
+  const [avatarSheetOpen, setAvatarSheetOpen] = useState(false)
 
   // Build event-only search list
   const eventSearchItems: SearchItem[] = useMemo(() => {
@@ -89,6 +95,24 @@ export function NavBar({ mode, variant, showNavLinks }: NavBarProps) {
     return list.slice(0, 5)
   }, [debouncedTerm, eventSearchItems])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const query = window.matchMedia('(max-width: 767px)')
+    const sync = (target: Pick<MediaQueryList, 'matches'>) => setIsNarrow(target.matches)
+    sync(query)
+    const handler = (event: MediaQueryListEvent) => sync(event)
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', handler)
+      return () => query.removeEventListener('change', handler)
+    }
+    query.addListener(handler)
+    return () => query.removeListener(handler)
+  }, [])
+
+  useEffect(() => {
+    if (!isNarrow) setAvatarSheetOpen(false)
+  }, [isNarrow])
+
   // Initialize theme state from localStorage
   useEffect(() => {
     try {
@@ -113,26 +137,56 @@ export function NavBar({ mode, variant, showNavLinks }: NavBarProps) {
     }
   }
 
+  const menuItems =
+    role == null
+      ? []
+      : [
+          { label: 'Toggle theme', onClick: toggleTheme, detail: isDark ? 'Dark' : 'Light' },
+          ...(role === 'club_owner'
+            ? [
+                { label: 'My Club', onClick: () => router.push('/clubs') },
+                { label: 'Registrations', onClick: () => router.push('/clubs/registrations') },
+              ]
+            : [
+                { label: 'Organizer Home', onClick: () => router.push('/organizer') },
+                { label: 'Events', onClick: () => router.push('/organizer/events') },
+              ]),
+          { label: 'Sign out', onClick: () => { signOut(); router.push('/'); } },
+        ]
+
   return (
     <>
       {/* Simple sticky header with full-width background and bottom border */}
       <AuthSignUp>
         {({ openStart }) => (
           <header className="sticky top-0 z-30 w-full border-b border-border bg-background">
-            <div className="mx-auto flex w-full items-center gap-4 px-6 py-4">
-              <Link href="/" className="flex items-center gap-2">
-                <span
-                  className="heading-3 bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
-                  }}
-                >
-                  cheerbase
-                </span>
-              </Link>
+            <div className="mx-auto grid w-full grid-cols-[auto,auto] grid-rows-[auto,auto] items-center gap-x-3 gap-y-3 px-6 py-4 lg:grid-cols-[auto,1fr,auto] lg:grid-rows-1 lg:items-center lg:gap-4">
+              <div className="col-start-1 row-start-1 flex items-center gap-3 lg:col-start-1 lg:row-start-1">
+                {showSidebarToggle && onSidebarToggle ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden"
+                    onClick={onSidebarToggle}
+                    aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                  >
+                    <MenuXToggle open={sidebarOpen} />
+                  </Button>
+                ) : null}
+                <Link href="/" className="flex items-center gap-2">
+                  <span
+                    className="heading-3 bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
+                    }}
+                  >
+                    cheerbase
+                  </span>
+                </Link>
+              </div>
 
-              <div className="flex flex-1 items-center justify-center">
-                <div className="relative mx-auto w-full max-w-xl">
+              <div className="col-span-2 row-start-2 w-full lg:col-start-2 lg:row-start-1 lg:col-span-1 lg:mx-auto lg:w-full lg:place-self-center">
+                <div className="relative w-full">
                   <Input
                     value={searchTerm}
                     onChange={e => {
@@ -187,52 +241,56 @@ export function NavBar({ mode, variant, showNavLinks }: NavBarProps) {
                 </div>
               </div>
 
-              <div className="ml-2 flex items-center justify-end">
+              <div className="col-start-2 row-start-1 ml-2 flex items-center justify-end justify-self-end lg:col-start-3 lg:row-start-1 lg:ml-4 lg:justify-self-end">
                 {role ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
-                        <Avatar className="h-11 w-11 bg-primary">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
-                            {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="min-w-52 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0"
+                  isNarrow ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                      onClick={() => setAvatarSheetOpen(true)}
+                      aria-label="Open account menu"
                     >
-                      <DropdownMenuLabel className="space-y-1">
-                        <span className="block text-xs uppercase tracking-[0.08em] text-muted-foreground">Signed in as</span>
-                        <span className="text-sm font-semibold">{user?.name ?? 'User'}</span>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {[
-                        { label: 'Toggle theme', onClick: toggleTheme, detail: isDark ? 'Dark' : 'Light' },
-                        ...(role === 'club_owner'
-                          ? [
-                              { label: 'My Club', onClick: () => router.push('/clubs') },
-                              { label: 'Registrations', onClick: () => router.push('/clubs/registrations') },
-                            ]
-                          : [
-                              { label: 'Organizer Home', onClick: () => router.push('/organizer') },
-                              { label: 'Events', onClick: () => router.push('/organizer/events') },
-                            ]),
-                        { label: 'Sign out', onClick: () => { signOut(); router.push('/'); } },
-                      ].map((item, idx) => (
-                        <DropdownMenuItem
-                          key={item.label}
-                          onClick={item.onClick}
-                          className="dropdown-fade-in flex items-center justify-between"
-                          style={{ animationDelay: `${idx * 60}ms` }}
-                        >
-                          <span>{item.label}</span>
-                          {item.detail ? <span className="text-xs text-muted-foreground">{item.detail}</span> : null}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      <Avatar className="h-11 w-11 bg-primary">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
+                          {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
+                          <Avatar className="h-11 w-11 bg-primary">
+                            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
+                              {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="min-w-52 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0"
+                      >
+                        <DropdownMenuLabel className="space-y-1">
+                          <span className="block text-xs uppercase tracking-[0.08em] text-muted-foreground">Signed in as</span>
+                          <span className="text-sm font-semibold">{user?.name ?? 'User'}</span>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {menuItems.map((item, idx) => (
+                          <DropdownMenuItem
+                            key={item.label}
+                            onClick={item.onClick}
+                            className="dropdown-fade-in flex items-center justify-between"
+                            style={{ animationDelay: `${idx * 60}ms` }}
+                          >
+                            <span>{item.label}</span>
+                            {item.detail ? <span className="text-xs text-muted-foreground">{item.detail}</span> : null}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )
                 ) : (
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" className="px-4" onClick={() => openStart('choose')}>
@@ -263,6 +321,96 @@ export function NavBar({ mode, variant, showNavLinks }: NavBarProps) {
           else router.push('/clubs')
         }}
       />
+
+      {isNarrow ? (
+        <AvatarSheet
+          open={avatarSheetOpen}
+          onClose={() => setAvatarSheetOpen(false)}
+          items={menuItems}
+          userName={user?.name ?? 'User'}
+        />
+      ) : null}
+    </>
+  )
+}
+
+function MenuXToggle({ open }: { open: boolean }) {
+  return (
+    <span className="relative block h-4 w-5">
+      <span
+        className={`absolute left-0 block h-0.5 w-full rounded-sm bg-current transition-all duration-300 ${
+          open ? 'top-1/2 -translate-y-1/2 rotate-45' : 'top-0'
+        }`}
+      />
+      <span
+        className={`absolute left-0 block h-0.5 w-full rounded-sm bg-current transition-all duration-300 ${
+          open ? 'top-1/2 opacity-0' : 'top-1/2 -translate-y-1/2'
+        }`}
+      />
+      <span
+        className={`absolute left-0 block h-0.5 w-full rounded-sm bg-current transition-all duration-300 ${
+          open ? 'top-1/2 -translate-y-1/2 -rotate-45' : 'bottom-0'
+        }`}
+      />
+    </span>
+  )
+}
+
+type SheetItem = {
+  label: string
+  detail?: string
+  onClick: () => void
+}
+
+function AvatarSheet({ open, onClose, items, userName }: { open: boolean; onClose: () => void; items: SheetItem[]; userName: string }) {
+  return (
+    <>
+      <div
+        className={cn(
+          'fixed inset-0 z-40 bg-black/50 transition-opacity duration-300',
+          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+        )}
+        onClick={onClose}
+      />
+      <div
+        className={cn(
+          'fixed inset-0 z-50 bg-background/95 backdrop-blur-xl transition-transform duration-300',
+          open ? 'translate-x-0' : 'translate-x-full'
+        )}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between px-5 pt-5">
+            <button
+              type="button"
+              className="flex items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+              onClick={onClose}
+              aria-label="Close account menu"
+            >
+              <XIcon className="size-5" />
+              Close
+            </button>
+            <span className="text-sm font-semibold text-muted-foreground">Signed in as {userName}</span>
+          </div>
+
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
+            {items.map((item, idx) => (
+              <button
+                key={item.label}
+                type="button"
+                className="dropdown-fade-in text-2xl font-semibold text-foreground transition hover:text-primary"
+                style={{ animationDelay: `${idx * 80}ms` }}
+                onClick={() => {
+                  onClose()
+                  item.onClick()
+                }}
+              >
+                {item.label}
+                {item.detail ? <span className="ml-2 text-base text-muted-foreground">({item.detail})</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     </>
   )
 }

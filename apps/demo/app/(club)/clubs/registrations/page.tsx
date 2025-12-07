@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Badge } from '@workspace/ui/shadcn/badge'
 import { Button } from '@workspace/ui/shadcn/button'
-import { LargeSelect } from '@workspace/ui/components/large-select'
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import { TextSelect } from '@workspace/ui/components/text-select'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@workspace/ui/shadcn/tooltip'
+import { CalendarRangeIcon, ChevronDownIcon, ChevronUpIcon, ListIcon } from 'lucide-react'
 
 import { EventRegisteredCard, type EventRegisteredCardProps } from '@/components/ui/cards/EventRegisteredCard'
 import { FadeInSection } from '@/components/ui'
 import { ClubPageHeader } from '@/components/layout/ClubPageHeader'
-import { ClubSidebar } from '@/components/layout/ClubSidebar'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useClubData } from '@/hooks/useClubData'
 import { findEventById } from '@/data/events'
@@ -40,37 +41,30 @@ export default function ClubRegistrationsPage() {
   if (!user || user.role !== 'club_owner') return null
 
   const selectedSeason = resolveSeasonById(selectedSeasonId)
-  const clubInitial = (user.name ?? 'Club')[0]?.toUpperCase() ?? 'C'
-  const clubLabel = user.name ? `${user.name}'s Club` : 'Your Club'
-  const ownerName = user.name ?? user.email ?? clubLabel
   const isHistoricalSeason = selectedSeason.type === 'past'
 
   return (
     // LAYOUT SHELL — "Club Canvas": nav rail, hero header, and content track everything in one frame
-    <main className="flex w-full">
-      <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="registrations" />
+    <section className="flex flex-1 flex-col">
+      <ClubPageHeader
+        title="Registrations"
+        subtitle="Review submissions, update rosters, and keep an eye on payment deadlines."
+        hideSubtitle
+        breadcrumbs={<span>Clubs / Registrations</span>}
+      />
 
-      <section className="flex flex-1 flex-col">
-        <ClubPageHeader
-          title="Registrations"
-          subtitle="Review submissions, update rosters, and keep an eye on payment deadlines."
-          hideSubtitle
-          breadcrumbs={<span>Clubs / Registrations</span>}
-        />
-
-        <div className="mx-auto w-full max-w-6xl px-4 lg:px-8 py-8">
-          <FadeInSection className="w-full">
-            <RegistrationsContent
-              userId={user.id}
-              season={selectedSeason}
-              readOnly={isHistoricalSeason}
-              selectedSeasonId={selectedSeasonId}
-              onSelectSeason={setSelectedSeasonId}
-            />
-          </FadeInSection>
-        </div>
-      </section>
-    </main>
+      <div className="mx-auto w-full max-w-6xl px-4 lg:px-8 py-8">
+        <FadeInSection className="w-full">
+          <RegistrationsContent
+            userId={user.id}
+            season={selectedSeason}
+            readOnly={isHistoricalSeason}
+            selectedSeasonId={selectedSeasonId}
+            onSelectSeason={setSelectedSeasonId}
+          />
+        </FadeInSection>
+      </div>
+    </section>
   )
 }
 
@@ -87,6 +81,7 @@ type SeasonOption = {
   end: Date
   type: 'current' | 'past'
 }
+type ViewMode = 'month' | 'all'
 
 const seasonOptions: SeasonOption[] = [
   {
@@ -142,7 +137,29 @@ function RegistrationsContent({
     [rows, season],
   )
   const sections = useMemo(() => buildMonthSections(filteredRows, season), [filteredRows, season])
+  const [viewMode, setViewMode] = useState<ViewMode>('month')
+  const [allEventsBucket, setAllEventsBucket] = useState<'upcoming' | 'past'>('upcoming')
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const bucketedSeasonRows = useMemo(() => {
+    const now = new Date()
+    const upcoming: RegistrationRow[] = []
+    const past: RegistrationRow[] = []
+
+    filteredRows.forEach(row => {
+      const bucket: 'upcoming' | 'past' = Number.isNaN(row.eventDate.getTime()) ? 'upcoming' : row.eventDate < now ? 'past' : 'upcoming'
+      if (bucket === 'past') {
+        past.push(row)
+      } else {
+        upcoming.push(row)
+      }
+    })
+
+    return { upcoming, past }
+  }, [filteredRows])
+  const listRows = useMemo(
+    () => (allEventsBucket === 'past' ? bucketedSeasonRows.past : bucketedSeasonRows.upcoming),
+    [allEventsBucket, bucketedSeasonRows],
+  )
   const seasonSelectSections = useMemo(() => {
     const current = seasonOptions
       .filter(option => option.type === 'current')
@@ -192,19 +209,102 @@ function RegistrationsContent({
 
       <FadeInSection className="w-full" delay={80}>
         <div className="border-b border-border pb-4">
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Viewing Season</p>
-            <LargeSelect
-              value={selectedSeasonId}
-              onValueChange={onSelectSeason}
-              sections={seasonSelectSections}
-              triggerClassName="justify-between heading-3 text-primary"
-              itemClassName="text-lg font-semibold"
-              contentClassName="w-[280px]"
-            />
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Viewing Season</p>
+              <TextSelect
+                value={selectedSeasonId}
+                onValueChange={onSelectSeason}
+                sections={seasonSelectSections}
+                size="large"
+                triggerClassName="justify-between heading-3 text-primary"
+                itemClassName="text-lg font-semibold"
+                contentClassName="min-w-[340px]"
+              />
+            </div>
+            <TooltipProvider delayDuration={120}>
+              <div className="relative inline-flex items-center rounded-md border border-border/70 bg-muted/40 p-1 shrink-0 ml-auto">
+                <div
+                  className={`absolute top-1 left-1 h-9 w-9 rounded-md bg-card shadow transition-transform duration-200 ease-out ${
+                    viewMode === 'all' ? 'translate-x-9' : ''
+                  }`}
+                  aria-hidden
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="size-9 rounded-md relative z-10"
+                      aria-label="Month view"
+                      aria-pressed={viewMode === 'month'}
+                      onClick={() => setViewMode('month')}
+                    >
+                      <CalendarRangeIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Month view</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="size-9 rounded-md relative z-10"
+                      aria-label="All events"
+                      aria-pressed={viewMode === 'all'}
+                      onClick={() => setViewMode('all')}
+                    >
+                      <ListIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">All events</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </FadeInSection>
+      {viewMode === 'all' ? (
+        <FadeInSection className="w-full" delay={100}>
+          <div className="flex items-center gap-2">
+            <Badge
+              role="button"
+              tabIndex={0}
+              variant={allEventsBucket === 'upcoming' ? 'default' : 'outline'}
+              className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+              aria-pressed={allEventsBucket === 'upcoming'}
+              onClick={() => setAllEventsBucket('upcoming')}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  setAllEventsBucket('upcoming')
+                }
+              }}
+            >
+              Upcoming
+            </Badge>
+            <Badge
+              role="button"
+              tabIndex={0}
+              variant={allEventsBucket === 'past' ? 'default' : 'outline'}
+              className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+              aria-pressed={allEventsBucket === 'past'}
+              onClick={() => setAllEventsBucket('past')}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  setAllEventsBucket('past')
+                }
+              }}
+            >
+              Past
+            </Badge>
+          </div>
+        </FadeInSection>
+      ) : null}
       {readOnly ? (
         <FadeInSection className="w-full">
           <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
@@ -213,56 +313,78 @@ function RegistrationsContent({
         </FadeInSection>
       ) : null}
 
-      <FadeInSection className="w-full" delay={120}>
-        {/* MONTHLY STACK — "Calendar Rack": month buckets with collapsible grids */}
-        <div className="space-y-6">
-          {sections.map((section, sectionIndex) => (
-            <FadeInSection key={section.key} className="w-full" delay={sectionIndex * 80}>
-              <div className="space-y-3 border-b border-border pb-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="heading-3 text-foreground">{section.label}</div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <span className="text-foreground font-semibold">{section.items.length}</span>
-                      <span>{section.items.length === 1 ? 'event' : 'events'}</span>
+      {viewMode === 'month' ? (
+        <FadeInSection className="w-full" delay={120}>
+          {/* MONTHLY STACK — "Calendar Rack": month buckets with collapsible grids */}
+          <div className="space-y-6">
+            {sections.map((section, sectionIndex) => (
+              <FadeInSection key={section.key} className="w-full" delay={sectionIndex * 80}>
+                <div className="space-y-3 border-b border-border pb-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="heading-3 text-foreground">{section.label}</div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <span className="text-foreground font-semibold">{section.items.length}</span>
+                        <span>{section.items.length === 1 ? 'event' : 'events'}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => toggleSection(section.key)}
+                        aria-label={collapsed[section.key] ? 'Expand month' : 'Collapse month'}
+                      >
+                        {collapsed[section.key] ? (
+                          <ChevronDownIcon className="size-5" />
+                        ) : (
+                          <ChevronUpIcon className="size-5" />
+                        )}
+                      </Button>
                     </div>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => toggleSection(section.key)}
-                      aria-label={collapsed[section.key] ? 'Expand month' : 'Collapse month'}
-                    >
-                      {collapsed[section.key] ? (
-                        <ChevronDownIcon className="size-5" />
-                      ) : (
-                        <ChevronUpIcon className="size-5" />
-                      )}
-                    </Button>
                   </div>
+                  {!collapsed[section.key] ? (
+                    section.items.length ? (
+                      <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 xl:grid-cols-3">
+                        {section.items.map((row, rowIndex) => (
+                          <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full w-full">
+                            <div className={`h-full w-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
+                              <EventRegisteredCard {...row} />
+                            </div>
+                          </FadeInSection>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
+                        No events this month.
+                      </div>
+                    )
+                  ) : null}
                 </div>
-                {!collapsed[section.key] ? (
-                  section.items.length ? (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {section.items.map((row, rowIndex) => (
-                        <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full">
-                          <div className={`h-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
-                            <EventRegisteredCard {...row} />
-                          </div>
-                        </FadeInSection>
-                      ))}
+              </FadeInSection>
+            ))}
+          </div>
+        </FadeInSection>
+      ) : (
+        <FadeInSection className="w-full" delay={120}>
+          <div className="space-y-4">
+            {listRows.length ? (
+              <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 xl:grid-cols-3">
+                {listRows.map((row, rowIndex) => (
+                  <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full w-full">
+                    <div className={`h-full w-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
+                      <EventRegisteredCard {...row} />
                     </div>
-                  ) : (
-                    <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
-                      No events this month.
-                    </div>
-                  )
-                ) : null}
+                  </FadeInSection>
+                ))}
               </div>
-            </FadeInSection>
-          ))}
-        </div>
-      </FadeInSection>
+            ) : (
+              <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
+                {allEventsBucket === 'past' ? 'No past events in this season.' : 'No upcoming events in this season.'}
+              </div>
+            )}
+          </div>
+        </FadeInSection>
+      )}
     </section>
   )
 }
@@ -301,6 +423,7 @@ function categorizeRegistrations(data?: ClubData) {
       eventDate,
       location: event?.location ?? reg.location,
       participants,
+      organizer: event?.organizer,
       statusLabel,
       actionHref: `/clubs/registrations/${reg.id}`,
     }

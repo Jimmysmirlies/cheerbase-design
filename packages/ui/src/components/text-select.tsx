@@ -14,40 +14,52 @@ import {
   SelectValue,
 } from "@workspace/ui/shadcn/select"
 
-export type LargeSelectOption = {
+export type TextSelectOption = {
   value: string
   label: ReactNode
 }
 
-export type LargeSelectSection = {
+export type TextSelectSection = {
   label?: ReactNode
-  options: LargeSelectOption[]
+  options: TextSelectOption[]
   showDivider?: boolean
 }
 
-type LargeSelectProps = {
+type TextSelectSize = "default" | "large"
+
+type TextSelectProps = {
   value: string
   onValueChange: (value: string) => void
-  options?: LargeSelectOption[]
-  sections?: LargeSelectSection[]
+  options?: TextSelectOption[]
+  sections?: TextSelectSection[]
+  size?: TextSelectSize
   triggerClassName?: string
   contentClassName?: string
   itemClassName?: string
 }
 
-export function LargeSelect({
+// "Type Switcher": select with responsive typography and optional grouped sections.
+export function TextSelect({
   value,
   onValueChange,
   options,
   sections,
+  size = "large",
   triggerClassName,
   contentClassName,
   itemClassName,
-}: LargeSelectProps) {
+}: TextSelectProps) {
+  // Size palette — "Responsive Duo": default (sm trigger) vs large (md-up heading-3 metrics).
   const hasSections = Boolean(sections?.length)
   let itemCounter = 0
 
-  const renderOptions = (list: LargeSelectOption[]) =>
+  const triggerSize = size === "large" ? "default" : "sm"
+  const arrowSize = size === "large" ? "lg" : "default"
+  const triggerTextClass = size === "large" ? "heading-3" : "heading-4"
+  const itemTextClass = size === "large" ? "heading-3" : "heading-4"
+
+  // Option renderer — "Cascade": staggers dropdown-fade animation for each item.
+  const renderOptions = (list: TextSelectOption[]) =>
     list.map(option => {
       const delay = itemCounter * 60
       itemCounter += 1
@@ -55,7 +67,11 @@ export function LargeSelect({
         <SelectItem
           key={option.value}
           value={option.value}
-          className={cn("dropdown-fade-in text-xl font-semibold", itemClassName)}
+          className={cn(
+            "dropdown-fade-in whitespace-nowrap pr-12",
+            itemTextClass,
+            itemClassName,
+          )}
           style={{ animationDelay: `${delay}ms` }}
         >
           {option.label}
@@ -66,15 +82,22 @@ export function LargeSelect({
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger
-        arrowSize="lg"
+        size={triggerSize}
+        arrowSize={arrowSize}
         className={cn(
-          "text-primary inline-flex w-fit items-center gap-2 border-0 bg-transparent text-2xl font-semibold shadow-none focus:ring-0 focus:ring-offset-0 p-0",
+          "text-primary inline-flex w-fit items-center gap-2 border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0 p-0",
+          triggerTextClass,
           triggerClassName,
         )}
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className={cn("bg-card/90 text-foreground backdrop-blur data-[state=open]:animate-in", contentClassName)}>
+      <SelectContent
+        className={cn(
+          "bg-card/90 text-foreground backdrop-blur data-[state=open]:animate-in min-w-[280px]",
+          contentClassName,
+        )}
+      >
         {hasSections && sections
           ? sections.map((section, sectionIndex) => (
               <div key={sectionIndex} className="space-y-1">

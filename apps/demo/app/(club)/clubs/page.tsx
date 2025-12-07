@@ -16,7 +16,6 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import TeamDetails from "@/components/features/clubs/TeamDetails";
-import { ClubSidebar } from "@/components/layout/ClubSidebar";
 import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
@@ -56,39 +55,31 @@ function ClubsPageInner() {
     return null;
   }
 
-  const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
-  const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
-  const ownerName = user.name ?? user.email ?? clubLabel;
-
   return (
-    <main className="flex w-full">
-      <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="teams" />
-
-      <section className="flex flex-1 flex-col">
-        <ClubPageHeader
-          title="Teams"
-          subtitle="Create teams and manage rosters for your club"
-          hideSubtitle
-          breadcrumbs={<span>Clubs / Teams</span>}
-        />
-        <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
-          <FadeInSection className="w-full">
-            {selectedTeamId ? (
-              <TeamDetails
-                teamId={selectedTeamId}
-                onNavigateToTeams={() => {
-                  const params = new URLSearchParams(Array.from(searchParams.entries()));
-                  params.delete("teamId");
-                  router.replace(`${pathname}?${params.toString()}`);
-                }}
-              />
-            ) : (
-              <TeamsContent userId={user.id} />
-            )}
-          </FadeInSection>
-        </div>
-      </section>
-    </main>
+    <section className="flex flex-1 flex-col">
+      <ClubPageHeader
+        title="Teams"
+        subtitle="Create teams and manage rosters for your club"
+        hideSubtitle
+        breadcrumbs={<span>Clubs / Teams</span>}
+      />
+      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+        <FadeInSection className="w-full">
+          {selectedTeamId ? (
+            <TeamDetails
+              teamId={selectedTeamId}
+              onNavigateToTeams={() => {
+                const params = new URLSearchParams(Array.from(searchParams.entries()));
+                params.delete("teamId");
+                router.replace(`${pathname}?${params.toString()}`);
+              }}
+            />
+          ) : (
+            <TeamsContent userId={user.id} />
+          )}
+        </FadeInSection>
+      </div>
+    </section>
   );
 }
 

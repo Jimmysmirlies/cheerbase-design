@@ -33,10 +33,7 @@ export default async function InvoicePage({ params }: PageProps) {
 
   const event = findEventById(registration.eventId)
 
-  const user = { name: 'Demo Club Owner', email: 'demo@club.com' }
-  const clubLabel = user.name ? `${user.name}'s Club` : 'Your Club'
-  const clubInitial = (user.name ?? 'Club')[0]?.toUpperCase() ?? 'C'
-  const ownerName = user.name ?? user.email ?? clubLabel
+  const clubLabel = "Demo Club Owner's Club"
 
   const invoiceTeamEntries = buildInvoiceTeamEntries(clubData, registration.eventId, event, { scope: 'event' })
   const invoiceEntries = convertInvoiceTeamsToRegistrationEntries(invoiceTeamEntries)
@@ -48,12 +45,6 @@ export default async function InvoicePage({ params }: PageProps) {
   const registrationHref = `/clubs/registrations/${registration.id}`
 
   return (
-    <InvoicePageClient
-      invoices={invoices}
-      registrationHref={registrationHref}
-      clubInitial={clubInitial}
-      clubLabel={clubLabel}
-      ownerName={ownerName}
-    />
+    <InvoicePageClient invoices={invoices} registrationHref={registrationHref} />
   )
 }

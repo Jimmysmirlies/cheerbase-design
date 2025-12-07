@@ -12,7 +12,6 @@ import {
   type InvoiceTeamEntry,
 } from '@/lib/invoices'
 import { getClubData, type RegisteredMemberDTO } from '@/lib/club-data'
-import { ClubSidebar } from '@/components/layout/ClubSidebar'
 import { ClubPageHeader } from '@/components/layout/ClubPageHeader'
 import { Button } from '@workspace/ui/shadcn/button'
 import { RegistrationPaymentCTA } from '@/components/features/clubs/RegistrationPaymentCTA'
@@ -43,11 +42,7 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
   }
 
   const data = await getClubData()
-  const user = { name: "Demo Club Owner", email: "demo@club.com", role: "club_owner" };
-  const clubLabel = user.name ? `${user.name}'s Club` : "Your Club";
-  const clubInitial = (user.name ?? "Club")[0]?.toUpperCase() ?? "C";
-  const ownerName = user.name ?? user.email ?? clubLabel;
-
+  const clubLabel = "Demo Club Owner's Club"
   const registrationId = decodeURIComponent(resolvedParams.registrationId)
   const registration = data.registrations.find(item => item.id === registrationId)
   if (!registration) {
@@ -98,157 +93,152 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
       : `Pay the outstanding balance for ${registration.eventName} to keep this registration active.`
 
   return (
-    <main className="flex w-full">
-      {/* NAV RAIL — Club navigation */}
-      <ClubSidebar clubInitial={clubInitial} clubLabel={clubLabel} ownerName={ownerName} active="registrations" />
+    <section className="flex flex-1 flex-col">
+      {/* HERO — Club header */}
+      <ClubPageHeader
+        title={registration.eventName}
+        hideSubtitle
+        breadcrumbs={<span>Clubs / Registrations / {registration.eventName}</span>}
+        eventStartDate={registration.eventDate}
+      />
 
-      <section className="flex flex-1 flex-col">
-        {/* HERO — Club header */}
-        <ClubPageHeader
-          title={registration.eventName}
-          hideSubtitle
-          breadcrumbs={<span>Clubs / Registrations / {registration.eventName}</span>}
-          eventStartDate={registration.eventDate}
-        />
+      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+        {/* ACTIONS + PAYMENT NOTICES */}
+        <div className="space-y-6">
+          {/* ACTIONS — Primary buttons */}
+          <FadeInSection className="w-full">
+            <div className="flex flex-wrap gap-3">
+              <Button asChild variant="outline">
+                <Link href={invoiceHref}>View Invoice</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href={eventPageHref}>View Event Listing</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href={`/clubs/registrations/${registration.id}?mode=edit`}>Update Registration</Link>
+              </Button>
+            </div>
+          </FadeInSection>
 
-        <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
-          {/* ACTIONS + PAYMENT NOTICES */}
-          <div className="space-y-6">
-            {/* ACTIONS — Primary buttons */}
-            <FadeInSection className="w-full">
-              <div className="flex flex-wrap gap-3">
-                <Button asChild variant="outline">
-                  <Link href={invoiceHref}>View Invoice</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href={eventPageHref}>View Event Listing</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href={`/clubs/registrations/${registration.id}?mode=edit`}>Update Registration</Link>
-                </Button>
-              </div>
-            </FadeInSection>
-
-            {/* PAYMENT NOTICES */}
-            {paymentStatus === 'Overdue' || paymentStatus === 'Paid' ? (
-              <div className="space-y-4">
-                {paymentStatus === 'Overdue' ? (
-                  <FadeInSection className="w-full" delay={40}>
-                    <PaymentStatusNotice
-                      status="Overdue"
-                      amountLabel={invoiceTotalLabel}
-                      dueLabel={paymentDeadlineLabel}
-                      eventName={registration.eventName}
-                      invoiceHref={invoiceHref}
-                    />
-                  </FadeInSection>
-                ) : null}
-                {paymentStatus === 'Paid' ? (
-                  <FadeInSection className="w-full" delay={40}>
-                    <PaymentStatusNotice
-                      status="Paid"
-                      amountLabel={invoiceTotalLabel}
-                      dueLabel={paymentDeadlineLabel}
-                      eventName={registration.eventName}
-                      invoiceHref={invoiceHref}
-                    />
-                  </FadeInSection>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          {/* PAYMENT CTA */}
-          {paymentStatus !== 'Paid' && !isLocked ? (
-            <FadeInSection className="w-full" delay={80}>
-              <RegistrationPaymentCTA
-                amountLabel={`Invoice total ${invoiceTotalLabel}`}
-                dueLabel={paymentDeadlineLabel}
-                description={paymentCtaDescription}
-              />
-            </FadeInSection>
+          {/* PAYMENT NOTICES */}
+          {paymentStatus === 'Overdue' || paymentStatus === 'Paid' ? (
+            <div className="space-y-4">
+              {paymentStatus === 'Overdue' ? (
+                <FadeInSection className="w-full" delay={40}>
+                  <PaymentStatusNotice
+                    status="Overdue"
+                    amountLabel={invoiceTotalLabel}
+                    dueLabel={paymentDeadlineLabel}
+                    eventName={registration.eventName}
+                    invoiceHref={invoiceHref}
+                  />
+                </FadeInSection>
+              ) : null}
+              {paymentStatus === 'Paid' ? (
+                <FadeInSection className="w-full" delay={40}>
+                  <PaymentStatusNotice
+                    status="Paid"
+                    amountLabel={invoiceTotalLabel}
+                    dueLabel={paymentDeadlineLabel}
+                    eventName={registration.eventName}
+                    invoiceHref={invoiceHref}
+                  />
+                </FadeInSection>
+              ) : null}
+            </div>
           ) : null}
-
-          {/* SUMMARY — Key figures */}
-          <FadeInSection className="w-full" delay={160}>
-            <div className="flex flex-col gap-4 px-1">
-              <div className="flex flex-col gap-2">
-                <p className="heading-4">Summary</p>
-                <div className="h-px w-full bg-border" />
-              </div>
-              <div className="grid gap-6 text-sm text-foreground sm:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Invoice total</span>
-                    <span className="font-semibold">{invoiceTotalLabel}</span>
-                  </div>
-                  <div className="h-px w-full bg-border/70" />
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Payment status</span>
-                    <span className="font-semibold">
-                      {paymentStatus}
-                      {paymentDeadlineLabel && paymentStatus !== 'Paid'
-                        ? ` · Due ${paymentDeadlineLabel}`
-                        : ''}
-                    </span>
-                  </div>
-                  <div className="h-px w-full bg-border/70" />
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Participants registered</span>
-                    <span className="font-semibold">{participantsLabel}</span>
-                  </div>
-                  <div className="h-px w-full bg-border/70" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Invoice number</span>
-                    <span className="font-semibold">{invoiceData.invoiceNumber}</span>
-                  </div>
-                  <div className="h-px w-full bg-border/70" />
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Registration deadline</span>
-                    <span className="font-semibold">
-                      {registration.registrationDeadline
-                        ? formatFriendlyDate(registration.registrationDeadline)
-                        : 'Not set'}
-                    </span>
-                  </div>
-                  <div className="h-px w-full bg-border/70" />
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Teams registered</span>
-                    <span className="font-semibold">{teamsLabel}</span>
-                  </div>
-                  <div className="h-px w-full bg-border/70" />
-                </div>
-              </div>
-            </div>
-          </FadeInSection>
-
-          {/* REGISTERED TEAMS — Receipt view */}
-          <FadeInSection className="w-full" delay={320}>
-            <div className="flex flex-col gap-4 px-1">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <p className="heading-4">Registered Teams</p>
-                </div>
-                <div className="h-px w-full bg-border" />
-              </div>
-              {registeredTeamCards.length ? (
-                <div className="flex flex-col gap-4">
-                  {registeredTeamCards.map(card => (
-                    <RegisteredTeamCard key={card.id} card={card} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-muted-foreground rounded-md border border-dashed border-border/60 p-6 text-sm">
-                  No teams registered for this event yet.
-                </div>
-              )}
-            </div>
-          </FadeInSection>
         </div>
-      </section>
-    </main>
+
+        {/* PAYMENT CTA */}
+        {paymentStatus !== 'Paid' && !isLocked ? (
+          <FadeInSection className="w-full" delay={80}>
+            <RegistrationPaymentCTA
+              amountLabel={`Invoice total ${invoiceTotalLabel}`}
+              dueLabel={paymentDeadlineLabel}
+              description={paymentCtaDescription}
+            />
+          </FadeInSection>
+        ) : null}
+
+        {/* SUMMARY — Key figures */}
+        <FadeInSection className="w-full" delay={160}>
+          <div className="flex flex-col gap-4 px-1">
+            <div className="flex flex-col gap-2">
+              <p className="heading-4">Summary</p>
+              <div className="h-px w-full bg-border" />
+            </div>
+            <div className="grid gap-6 text-sm text-foreground sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Invoice total</span>
+                  <span className="font-semibold">{invoiceTotalLabel}</span>
+                </div>
+                <div className="h-px w-full bg-border/70" />
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Payment status</span>
+                  <span className="font-semibold">
+                    {paymentStatus}
+                    {paymentDeadlineLabel && paymentStatus !== 'Paid'
+                      ? ` · Due ${paymentDeadlineLabel}`
+                      : ''}
+                  </span>
+                </div>
+                <div className="h-px w-full bg-border/70" />
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Participants registered</span>
+                  <span className="font-semibold">{participantsLabel}</span>
+                </div>
+                <div className="h-px w-full bg-border/70" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Invoice number</span>
+                  <span className="font-semibold">{invoiceData.invoiceNumber}</span>
+                </div>
+                <div className="h-px w-full bg-border/70" />
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Registration deadline</span>
+                  <span className="font-semibold">
+                    {registration.registrationDeadline
+                      ? formatFriendlyDate(registration.registrationDeadline)
+                      : 'Not set'}
+                  </span>
+                </div>
+                <div className="h-px w-full bg-border/70" />
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Teams registered</span>
+                  <span className="font-semibold">{teamsLabel}</span>
+                </div>
+                <div className="h-px w-full bg-border/70" />
+              </div>
+            </div>
+          </div>
+        </FadeInSection>
+
+        {/* REGISTERED TEAMS — Receipt view */}
+        <FadeInSection className="w-full" delay={320}>
+          <div className="flex flex-col gap-4 px-1">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="heading-4">Registered Teams</p>
+              </div>
+              <div className="h-px w-full bg-border" />
+            </div>
+            {registeredTeamCards.length ? (
+              <div className="flex flex-col gap-4">
+                {registeredTeamCards.map(card => (
+                  <RegisteredTeamCard key={card.id} card={card} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-muted-foreground rounded-md border border-dashed border-border/60 p-6 text-sm">
+                No teams registered for this event yet.
+              </div>
+            )}
+          </div>
+        </FadeInSection>
+      </div>
+    </section>
   )
 }
 
