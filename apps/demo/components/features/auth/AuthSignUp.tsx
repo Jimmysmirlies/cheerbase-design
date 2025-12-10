@@ -6,10 +6,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@workspace/ui/shadcn/button'
 import { Input } from '@workspace/ui/shadcn/input'
 import { Label } from '@workspace/ui/shadcn/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@workspace/ui/shadcn/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@workspace/ui/shadcn/card'
 import { toast } from '@workspace/ui/shadcn/sonner'
 import { useAuth } from '@/components/providers/AuthProvider'
-import { HomeIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -33,12 +33,15 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
   const [orgForm, setOrgForm] = useState({ contactName: '', email: '', companyName: '', website: '', notes: '' })
   const [signupSubmitting, setSignupSubmitting] = useState(false)
   const [orgSubmitting, setOrgSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const clubFormSchema = useMemo(
     () =>
       z
         .object({
-          name: z.string().min(1, 'Name is required'),
+          firstName: z.string().min(1, 'First name is required'),
+          lastName: z.string().min(1, 'Last name is required'),
           email: z.string().email('Enter a valid email'),
           clubName: z.string().min(1, 'Club name is required'),
         })
@@ -60,7 +63,8 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       clubName: '',
       password: '',
@@ -71,19 +75,37 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
   const handleClubSignup = async (values: z.infer<typeof clubFormSchema>) => {
     setSignupSubmitting(true)
     try {
+      // Simulate account creation delay for realistic feel
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      const fullName = `${values.firstName} ${values.lastName}`.trim()
+      
       await signUp({
-        name: values.name,
+        name: fullName,
         email: values.email,
+        password: values.password,
         role: 'club_owner',
         clubName: values.clubName,
       })
-      toast.success('Welcome! Your club profile is created.')
+      
+      // Store club name for the new account
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cheerbase-club-name', values.clubName)
+      }
+      
+      toast.success(`Welcome, ${values.firstName}! Your account has been created.`)
       setStartOpen(false)
       setStartStep('choose')
-      router.push('/clubs')
+      clubFormMethods.reset()
+      
+      // Brief delay before redirect so user sees the success message
+      setTimeout(() => {
+        router.push('/clubs')
+      }, 500)
     } catch (error) {
       console.error(error)
-      toast.error('Unable to sign up. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unable to sign up. Please try again.'
+      toast.error(errorMessage)
     } finally {
       setSignupSubmitting(false)
     }
@@ -136,68 +158,46 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
           if (!open) setStartStep('choose')
         }}
       >
-        <DialogContent className="max-w-[640px] p-8 sm:p-8">
+        <DialogContent className="!max-w-[800px] p-8 sm:p-8">
           {startStep === 'choose' ? (
             <>
               <DialogHeader className="text-left">
                 <DialogTitle>Step 1 of 2 · Choose your path</DialogTitle>
                 <DialogDescription>
-                  Pick how you want to get started. Club organizers create teams and people under their clubOwnerId; event organizers submit an application for verification.
+                  Select your role to get started.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-3">
-                <Card className="border-border/80">
-                  <CardHeader className="space-y-1">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <UsersIcon className="text-primary size-5" />
-                      Club Owner
-                    </CardTitle>
-                    <CardDescription>Create teams, manage rosters, and register for competitions.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <p className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary/70" /> Create and edit teams & rosters.
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary/70" /> Register teams into events.
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary/70" /> Track payments and deadlines.
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full justify-between" onClick={() => setStartStep('club')}>
-                      Start as Club Owner
-                      <HomeIcon className="size-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-                <Card className="border-border/80">
-                  <CardHeader className="space-y-1">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <ShieldCheckIcon className="text-primary size-5" />
-                      Organizer
-                    </CardTitle>
-                    <CardDescription>Manage events, registrations, and payouts from a dedicated portal.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <p className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary/70" /> Set up events, divisions, and pricing.
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary/70" /> Review club registrations.
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary/70" /> Track payments and logistics.
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="secondary" className="w-full justify-between" onClick={() => setStartStep('organizer')}>
-                      Start as Organizer
-                      <HomeIcon className="size-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setStartStep('club')}
+                  className="group block h-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <Card className="h-full border-border/60 transition duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:border-primary/40 cursor-pointer">
+                    <CardHeader className="space-y-1">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <UsersIcon className="text-primary size-5" />
+                        Club Owner
+                      </CardTitle>
+                      <CardDescription>Create teams, manage rosters, and register for competitions.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStartStep('organizer')}
+                  className="group block h-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <Card className="h-full border-border/60 transition duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:border-primary/40 cursor-pointer">
+                    <CardHeader className="space-y-1">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <ShieldCheckIcon className="text-primary size-5" />
+                        Organizer
+                      </CardTitle>
+                      <CardDescription>Manage events, registrations, and payouts from a dedicated portal.</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </button>
               </div>
             </>
             ) : startStep === 'club' ? (
@@ -208,19 +208,34 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
               </DialogHeader>
               <Form {...clubFormMethods}>
                 <form className="space-y-4" onSubmit={clubFormMethods.handleSubmit(handleClubSignup)}>
-                  <FormField
-                    control={clubFormMethods.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Your name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Alex Coach" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={clubFormMethods.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First name</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value ?? ''} placeholder="Alex" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={clubFormMethods.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last name</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value ?? ''} placeholder="Coach" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={clubFormMethods.control}
                     name="email"
@@ -228,7 +243,7 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" placeholder="you@example.com" />
+                          <Input {...field} value={field.value ?? ''} type="email" placeholder="you@example.com" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -241,7 +256,17 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" placeholder="Create a password" />
+                          <div className="relative">
+                            <Input {...field} value={field.value ?? ''} type={showPassword ? 'text' : 'password'} placeholder="Create a password" className="pr-10" />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              tabIndex={-1}
+                            >
+                              {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                            </button>
+                          </div>
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
                           At least 8 characters, with upper, lower, number, and special (!@#$%^&*).
@@ -257,7 +282,17 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
                       <FormItem>
                         <FormLabel>Confirm password</FormLabel>
                         <FormControl>
-                          <Input {...field} type="password" placeholder="Re-enter password" />
+                          <div className="relative">
+                            <Input {...field} value={field.value ?? ''} type={showConfirmPassword ? 'text' : 'password'} placeholder="Re-enter password" className="pr-10" />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              tabIndex={-1}
+                            >
+                              {showConfirmPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -270,7 +305,7 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
                       <FormItem>
                         <FormLabel>Club name</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Sapphire Cheer" />
+                          <Input {...field} value={field.value ?? ''} placeholder="Sapphire Cheer" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -284,7 +319,7 @@ export function AuthSignUp({ children }: AuthSignUpProps) {
                       type="submit"
                       disabled={signupSubmitting || !clubFormMethods.formState.isValid}
                     >
-                      {signupSubmitting ? 'Creating account...' : 'Continue to club workspace'}
+                      {signupSubmitting ? 'Creating account...' : 'Create Account'}
                     </Button>
                   </DialogFooter>
                 </form>

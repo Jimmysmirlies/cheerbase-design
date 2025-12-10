@@ -27,6 +27,7 @@ import UploadRosterDialog from "@/components/features/clubs/UploadRosterDialog";
 import { FadeInSection } from "@/components/ui";
 import { toast } from "@workspace/ui/shadcn/sonner";
 import { useClubData } from "@/hooks/useClubData";
+import { useUserTeams } from "@/hooks/useUserTeams";
 import type { TeamRoster } from "@/types/club";
 
 function ClubsPageInner() {
@@ -100,7 +101,8 @@ function ClubsPageInner() {
       <PageHeader
         title={selectedTeam?.name ?? "Teams"}
         subtitle="Create teams and manage rosters for your club"
-        hideSubtitle={!!selectedTeam}
+        hideSubtitle
+        hideSubtitleDivider
         breadcrumbItems={breadcrumbItems}
         metadataItems={
           selectedTeam
@@ -136,14 +138,15 @@ function TeamsContent({ userId }: { userId?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data, loading, error } = useClubData(userId);
+  const { data, loading, error, refresh } = useClubData(userId);
+  const { addTeam: addUserTeam } = useUserTeams(userId);
   const [teams, setTeams] = useState<TeamData[]>([]);
-  const [hasHydrated, setHasHydrated] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // Hydrate teams from data whenever data changes
   useEffect(() => {
-    if (!data || hasHydrated) return;
+    if (!data) return;
     const rosterMap = new Map<string, TeamRoster>(data.rosters.map(roster => [roster.teamId, roster]));
     const hydrated = data.teams.map(team => ({
       id: team.id,
@@ -152,16 +155,30 @@ function TeamsContent({ userId }: { userId?: string }) {
       members: rosterToMembers(rosterMap.get(team.id)),
     }));
     setTeams(hydrated);
-    setHasHydrated(true);
-  }, [data, hasHydrated]);
+  }, [data]);
 
   const handleCreateTeam = (teamData: CreateTeamData) => {
-    const newTeam: TeamData = {
-      ...teamData,
-      members: [],
-    };
-    setTeams(prev => [...prev, newTeam]);
-    toast.success(`${teamData.name} created successfully`);
+    // Persist to localStorage for non-demo users
+    const savedTeam = addUserTeam({
+      name: teamData.name,
+      division: teamData.division,
+      size: 0,
+      coedCount: 0,
+    });
+
+    if (savedTeam) {
+      // Refresh to get updated data from localStorage
+      refresh();
+      toast.success(`${teamData.name} created successfully`);
+    } else {
+      // Fallback for demo users - just update local state
+      const newTeam: TeamData = {
+        ...teamData,
+        members: [],
+      };
+      setTeams(prev => [...prev, newTeam]);
+      toast.success(`${teamData.name} created successfully`);
+    }
   };
 
   const sanitizedSearch = searchTerm.trim().toLowerCase();

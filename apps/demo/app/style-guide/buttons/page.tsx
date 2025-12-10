@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@workspace/ui/shadcn/button";
 import { PlusIcon, ExternalLinkIcon } from "lucide-react";
 
@@ -85,31 +86,41 @@ const buttonExamples: ButtonExample[] = [
 
 export default function ButtonsPage() {
   return (
-    <section className="space-y-8">
-      <header className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Button Variations</h2>
-        <p className="text-sm text-muted-foreground">
-          These examples map to shadcn button variants. Pair the purple primary with secondary, ghost, and accent styles
-          to build consistent call-to-action hierarchies.
-        </p>
-      </header>
-
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {buttonExamples.map((button) => (
-          <article
-            key={button.label}
-            className="flex h-full flex-col justify-between gap-4 rounded-xl border border-border bg-card/70 p-5 shadow-sm"
-          >
-            <div className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {button.label}
-              </span>
-              <p className="text-xs text-muted-foreground">{button.usage}</p>
+    <>
+      <PageHeader
+        title="Button Patterns"
+        subtitle="These examples map to shadcn button variants. Pair the purple primary with secondary, ghost, and accent styles to build consistent call-to-action hierarchies."
+        hideSubtitleDivider
+        breadcrumbItems={[
+          { label: "Brand Guidelines", href: "/style-guide" },
+        ]}
+      />
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
+        <div className="space-y-12">
+          {/* Button examples */}
+          <div className="flex flex-col gap-4 px-1">
+            <div className="flex flex-col gap-4">
+              <p className="text-lg font-semibold">Variants</p>
             </div>
-            <div className="flex flex-wrap gap-2">{button.render}</div>
-          </article>
-        ))}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {buttonExamples.map((button) => (
+                <article
+                  key={button.label}
+                  className="flex h-full flex-col justify-between gap-4 rounded-xl border border-border bg-card/70 p-5 shadow-sm"
+                >
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {button.label}
+                    </span>
+                    <p className="text-xs text-muted-foreground">{button.usage}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">{button.render}</div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </>
   );
 }

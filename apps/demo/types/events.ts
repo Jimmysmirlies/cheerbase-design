@@ -32,6 +32,8 @@ export type Event = {
   tags?: string[]
   gallery?: string[]
   availableDivisions?: DivisionPricing[]
+  /** ISO date string for registration deadline. If not provided, defaults to day before event. */
+  registrationDeadline?: string
 }
 
 export type EventCategory = {

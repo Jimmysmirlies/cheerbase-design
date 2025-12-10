@@ -91,9 +91,11 @@ export function PageHeader({
   metadataColumns = 3,
   gradientVariant = 'primary',
 }: PageHeaderProps) {
-  const [eventCountdown, setEventCountdown] = useState(() => getEventCountdown(eventStartDate))
+  // Initialize as null to avoid hydration mismatch (Date.now() differs between server and client)
+  const [eventCountdown, setEventCountdown] = useState<CountdownDisplay | null>(null)
 
   useEffect(() => {
+    // Calculate countdown only on client to avoid hydration issues
     setEventCountdown(getEventCountdown(eventStartDate))
     if (!eventStartDate) return
 
@@ -163,15 +165,18 @@ export function PageHeader({
                     Event Passed
                   </div>
                 ) : countdownSegments ? (
-                  <div className="flex flex-col items-end text-white">
-                    <div className="grid grid-flow-col items-end gap-5">
+                  <div className="flex flex-col items-end gap-2 text-white">
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                      Registration Closes
+                    </span>
+                    <div className="grid grid-flow-col items-start gap-4">
                       {countdownSegments.map((segment) => (
-                        <div key={segment.label} className="flex flex-col items-center text-right">
-                          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-white/80">
-                            {segment.label}
-                          </span>
+                        <div key={segment.label} className="flex flex-col items-center">
                           <span className="heading-2 leading-none">
                             {segment.value.toString().padStart(2, '0')}
+                          </span>
+                          <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/60">
+                            {segment.label}
                           </span>
                         </div>
                       ))}

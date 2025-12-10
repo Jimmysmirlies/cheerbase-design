@@ -2,9 +2,8 @@
 
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon } from "lucide-react"
+import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon, BoxIcon, CalendarIcon, UsersIcon, FilterIcon, LayoutGridIcon, ListIcon } from "lucide-react"
 
 import { Sidebar } from "@/components/layout/Sidebar"
 import { NavBar } from "@/components/layout/NavBar"
@@ -20,8 +19,20 @@ const guideNavSections = [
       { key: "typography", label: "Typography", icon: <TypeIcon className="size-4" />, href: "/style-guide/typography", nickname: "guide-typography" },
       { key: "spacing", label: "Spacing & Radii", icon: <ScanIcon className="size-4" />, href: "/style-guide/spacing", nickname: "guide-spacing" },
       { key: "buttons", label: "Button Patterns", icon: <MousePointerClickIcon className="size-4" />, href: "/style-guide/buttons", nickname: "guide-buttons" },
-      { key: "components", label: "Component Library", icon: <PuzzleIcon className="size-4" />, href: "/style-guide/components", nickname: "guide-components" },
       { key: "api-contracts", label: "API Contracts", icon: <BracesIcon className="size-4" />, href: "/style-guide/api-contracts", nickname: "guide-api-contracts" },
+    ],
+  },
+  {
+    label: "Components",
+    nickname: "components-shell",
+    items: [
+      { key: "components", label: "Overview", icon: <PuzzleIcon className="size-4" />, href: "/style-guide/components", nickname: "guide-components" },
+      { key: "hero", label: "Hero", icon: <BoxIcon className="size-4" />, href: "/style-guide/components/hero", nickname: "guide-hero" },
+      { key: "event-card", label: "Event Card", icon: <CalendarIcon className="size-4" />, href: "/style-guide/components/event-card", nickname: "guide-event-card" },
+      { key: "organizer-card", label: "Organizer Card", icon: <UsersIcon className="size-4" />, href: "/style-guide/components/organizer-card", nickname: "guide-organizer-card" },
+      { key: "quick-filter-rail", label: "Quick Filter Rail", icon: <FilterIcon className="size-4" />, href: "/style-guide/components/quick-filter-rail", nickname: "guide-quick-filter-rail" },
+      { key: "organizers-section", label: "Organizers Section", icon: <LayoutGridIcon className="size-4" />, href: "/style-guide/components/organizers-section", nickname: "guide-organizers-section" },
+      { key: "event-categories-section", label: "Event Categories", icon: <ListIcon className="size-4" />, href: "/style-guide/components/event-categories-section", nickname: "guide-event-categories-section" },
     ],
   },
 ]
@@ -39,8 +50,15 @@ export default function StyleGuideLayout({ children }: { children: ReactNode }) 
     if (pathname.includes("/typography")) return "typography"
     if (pathname.includes("/spacing")) return "spacing"
     if (pathname.includes("/buttons")) return "buttons"
-    if (pathname.includes("/components")) return "components"
     if (pathname.includes("/api-contracts")) return "api-contracts"
+    // Component sub-pages
+    if (pathname === "/style-guide/components/hero") return "hero"
+    if (pathname === "/style-guide/components/event-card") return "event-card"
+    if (pathname === "/style-guide/components/organizer-card") return "organizer-card"
+    if (pathname === "/style-guide/components/quick-filter-rail") return "quick-filter-rail"
+    if (pathname === "/style-guide/components/organizers-section") return "organizers-section"
+    if (pathname === "/style-guide/components/event-categories-section") return "event-categories-section"
+    if (pathname === "/style-guide/components") return "components"
     return "overview"
   }, [pathname])
 
@@ -105,23 +123,7 @@ export default function StyleGuideLayout({ children }: { children: ReactNode }) 
         supportTitle="Design System"
         supportText="Working on the guide? Ping the design systems team or email support@cheerbase.test."
       >
-        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col space-y-10 px-6 py-10 pb-20">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Design Toolkit</p>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Ralli Style Guide</h1>
-            </div>
-            <div className="hidden sm:block">
-              <Link
-                className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-foreground"
-                href="/"
-              >
-                ← Back to marketplace
-              </Link>
-            </div>
-          </div>
-          {children}
-        </main>
+        {children}
       </Sidebar>
     </div>
   )

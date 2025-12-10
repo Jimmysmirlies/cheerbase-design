@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <WalkthroughFloatingTrigger />
             <StyleGuideButton />
             <Toaster
-              position="top-center"
+              position="bottom-center"
               toastOptions={{
                 classNames: {
                   toast: 'border shadow-lg',

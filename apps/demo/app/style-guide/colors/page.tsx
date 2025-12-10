@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ColorSwatch } from "@workspace/ui/components/color-swatch";
 
 const colors = [
@@ -143,19 +144,30 @@ const colors = [
 
 export default function ColorsPage() {
   return (
-    <section className="space-y-6">
-      <header className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Color Roles</h2>
-        <p className="text-sm text-muted-foreground">
-          Core palette mapped to semantic roles. Default to these tokens across surfaces and activate extended brand
-          colors only for illustrations or analytics.
-        </p>
-      </header>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {colors.map((color) => (
-          <ColorSwatch key={color.name} name={color.name} token={color.token} textToken={color.text} usage={color.usage} />
-        ))}
+    <>
+      <PageHeader
+        title="Color Roles"
+        subtitle="Core palette mapped to semantic roles. Default to these tokens across surfaces and activate extended brand colors only for illustrations or analytics."
+        hideSubtitleDivider
+        breadcrumbItems={[
+          { label: "Brand Guidelines", href: "/style-guide" },
+        ]}
+      />
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
+        <div className="space-y-12">
+          {/* Color swatches */}
+          <div className="flex flex-col gap-4 px-1">
+            <div className="flex flex-col gap-4">
+              <p className="text-lg font-semibold">Semantic Tokens</p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {colors.map((color) => (
+                <ColorSwatch key={color.name} name={color.name} token={color.token} textToken={color.text} usage={color.usage} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </>
   );
 }

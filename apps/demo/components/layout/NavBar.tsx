@@ -53,6 +53,7 @@ type SearchItem = {
   label: string
   href: string
   meta?: string
+  searchText?: string
 }
 
 type NavBarProps = {
@@ -83,11 +84,15 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
   // Build event-only search list
   const eventSearchItems: SearchItem[] = useMemo(() => {
     return eventCategories.flatMap(category =>
-      category.events.map(event => ({
-        label: event.name,
-        href: `/events/${encodeURIComponent(event.id)}`,
-        meta: `${event.location} · ${event.date}`,
-      }))
+      category.events.map(event => {
+        const divisionNames = event.availableDivisions?.map(d => d.name).join(' ') ?? ''
+        return {
+          label: event.name,
+          href: `/events/${encodeURIComponent(event.id)}`,
+          meta: `${event.organizer} · ${event.location} · ${event.date}`,
+          searchText: `${event.name} ${event.organizer} ${event.location} ${divisionNames}`.toLowerCase(),
+        }
+      })
     )
   }, [])
 
@@ -101,9 +106,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
     const term = debouncedTerm.toLowerCase()
     if (!term) return []
     const list = eventSearchItems.filter(
-      item =>
-        item.label.toLowerCase().includes(term) ||
-        (item.meta ? item.meta.toLowerCase().includes(term) : false)
+      item => item.searchText?.includes(term) ?? item.label.toLowerCase().includes(term)
     )
     return list.slice(0, 5)
   }, [debouncedTerm, eventSearchItems])
@@ -171,6 +174,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
       {/* Simple sticky header with full-width background and bottom border */}
       <AuthSignUp>
         {({ openStart }) => (
+          <>
           <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
             <div className="mx-auto grid w-full grid-cols-[auto,auto] grid-rows-[auto,auto] items-center gap-x-3 gap-y-3 px-6 py-4 lg:grid-cols-[auto,1fr,auto] lg:grid-rows-1 lg:items-center lg:gap-4">
               <div className="col-start-1 row-start-1 flex items-center gap-3 lg:col-start-1 lg:row-start-1">
@@ -198,7 +202,17 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
               </div>
 
               <div className="col-span-2 row-start-2 w-full lg:col-start-2 lg:row-start-1 lg:col-span-1 lg:mx-auto lg:w-full lg:place-self-center">
-                <div className="relative w-full">
+                <form
+                className="relative w-full"
+                onSubmit={e => {
+                  e.preventDefault()
+                  const trimmed = searchTerm.trim()
+                  if (trimmed) {
+                    setSearchOpen(false)
+                    router.push(`/events/search?q=${encodeURIComponent(trimmed)}`)
+                  }
+                }}
+              >
                   <Input
                     value={searchTerm}
                     onChange={e => {
@@ -209,7 +223,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                       if (searchTerm.trim().length > 0) setSearchOpen(true)
                     }}
                     onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
-                    placeholder="Search teams, events, or divisions"
+                    placeholder="Search events, divisions, organizers, and locations"
                     className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
                   />
                   <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
@@ -250,7 +264,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                       </ul>
                     </div>
                   )}
-                </div>
+                </form>
               </div>
 
               <div className="col-start-2 row-start-1 ml-2 flex items-center justify-end justify-self-end lg:col-start-3 lg:row-start-1 lg:ml-4 lg:justify-self-end">
@@ -331,27 +345,29 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
               </div>
             </div>
           </header>
+
+          <AuthDialog
+            open={loginOpen}
+            onOpenChange={setLoginOpen}
+            onDemoLogin={nextRole => {
+              const demoId = nextRole === 'club_owner' ? 'club-owner-1' : 'organizer-demo-1'
+              signInAsRole(nextRole, nextRole === 'club_owner' ? 'Demo Club Owner' : 'Demo Organizer', `${nextRole}@demo.test`, {
+                demoId,
+                isDemo: true,
+              })
+              setLoginOpen(false)
+              // Advance walkthrough when logging in as club owner
+              if (nextRole === 'club_owner' && walkthrough?.isStepActive('login')) {
+                walkthrough.nextStep()
+              }
+              if (nextRole === 'organizer') router.push('/organizer')
+              else router.push('/clubs')
+            }}
+            onJoinClick={() => openStart('choose')}
+          />
+          </>
         )}
       </AuthSignUp>
-
-      <AuthDialog
-        open={loginOpen}
-        onOpenChange={setLoginOpen}
-        onDemoLogin={nextRole => {
-          const demoId = nextRole === 'club_owner' ? 'club-owner-1' : 'organizer-demo-1'
-          signInAsRole(nextRole, nextRole === 'club_owner' ? 'Demo Club Owner' : 'Demo Organizer', `${nextRole}@demo.test`, {
-            demoId,
-            isDemo: true,
-          })
-          setLoginOpen(false)
-          // Advance walkthrough when logging in as club owner
-          if (nextRole === 'club_owner' && walkthrough?.isStepActive('login')) {
-            walkthrough.nextStep()
-          }
-          if (nextRole === 'organizer') router.push('/organizer')
-          else router.push('/clubs')
-        }}
-      />
 
       {isNarrow ? (
         <AvatarSheet

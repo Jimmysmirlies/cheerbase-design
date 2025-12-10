@@ -42,6 +42,8 @@ export type RegistrationDTO = {
   status?: "pending" | "paid";
   paidAt?: string | null;
   createdAt?: string | null;
+  /** Parent registration ID for multi-team localStorage registrations */
+  _parentRegistrationId?: string;
 };
 
 export type ClubData = {
@@ -51,10 +53,14 @@ export type ClubData = {
   registrations: RegistrationDTO[];
 };
 
-const DEFAULT_CLUB_OWNER_ID = "club-owner-1";
+const DEMO_CLUB_OWNER_ID = "club-owner-1";
 
-export async function getClubData(clubOwnerId: string = DEFAULT_CLUB_OWNER_ID): Promise<ClubData> {
-  void clubOwnerId; // static demo ignores dynamic club owner
+export async function getClubData(clubOwnerId?: string): Promise<ClubData> {
+  // Only return demo data for the demo account
+  // Real accounts start empty and use localStorage for their data
+  if (clubOwnerId !== DEMO_CLUB_OWNER_ID) {
+    return { teams: [], rosters: [], registeredTeams: [], registrations: [] };
+  }
 
   // Build registered teams from the static rosters/teams
   const registeredTeams: RegisteredTeamDTO[] = demoRosters.map((roster) => {
@@ -67,7 +73,7 @@ export async function getClubData(clubOwnerId: string = DEFAULT_CLUB_OWNER_ID): 
     ];
     return {
       id: `rt-${roster.teamId}`,
-      clubOwnerId: DEFAULT_CLUB_OWNER_ID,
+      clubOwnerId: DEMO_CLUB_OWNER_ID,
       sourceType: "club_team",
       sourceTeamId: roster.teamId,
       name: team?.name ?? roster.teamId,
@@ -84,7 +90,7 @@ export async function getClubData(clubOwnerId: string = DEFAULT_CLUB_OWNER_ID): 
     const registeredTeamId = `rt-${reg.teamId}`;
     return {
       id: reg.id,
-      clubOwnerId: DEFAULT_CLUB_OWNER_ID,
+      clubOwnerId: DEMO_CLUB_OWNER_ID,
     eventId: reg.eventId,
     eventName: reg.eventName,
     organizer: reg.organizer,

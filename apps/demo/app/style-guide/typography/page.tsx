@@ -1,5 +1,7 @@
 "use client";
 
+import { PageHeader } from "@/components/layout/PageHeader";
+
 type TypeToken = {
   label: string;
   className: string;
@@ -60,26 +62,38 @@ const typeTokens: TypeToken[] = [
 
 export default function TypographyPage() {
   return (
-    <section className="space-y-6">
-      <header className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Typography</h2>
-        <p className="text-sm text-muted-foreground">
-          The type scale is built on Inter. Pair these sizes with consistent spacing to keep hierarchy predictable.
-        </p>
-      </header>
-      <div className="space-y-6 rounded-2xl border border-border bg-card/70 p-6">
-        {typeTokens.map((type) => (
-          <div key={type.label} className="space-y-2 border-l-2 border-dashed border-border/70 pl-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{type.label}</p>
-            <p className={`${type.className} font-semibold`}>The quick brown fox jumps over the lazy dog.</p>
-            <div className="text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">CSS:</span>{' '}
-              <code>font-size: {type.css.fontSize}; line-height: {type.css.lineHeight};{type.css.fontWeight ? ` font-weight: ${type.css.fontWeight};` : ''}</code>
+    <>
+      <PageHeader
+        title="Typography"
+        subtitle="The type scale is built on Inter. Pair these sizes with consistent spacing to keep hierarchy predictable."
+        hideSubtitleDivider
+        breadcrumbItems={[
+          { label: "Brand Guidelines", href: "/style-guide" },
+        ]}
+      />
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
+        <div className="space-y-12">
+          {/* Type scale */}
+          <div className="flex flex-col gap-4 px-1">
+            <div className="flex flex-col gap-4">
+              <p className="text-lg font-semibold">Type Scale</p>
             </div>
-            <p className="text-xs text-muted-foreground">{type.description}</p>
+            <div className="space-y-6 rounded-2xl border border-border bg-card/70 p-6">
+              {typeTokens.map((type) => (
+                <div key={type.label} className="space-y-2 border-l-2 border-dashed border-border/70 pl-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{type.label}</p>
+                  <p className={`${type.className} font-semibold`}>The quick brown fox jumps over the lazy dog.</p>
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">CSS:</span>{' '}
+                    <code>font-size: {type.css.fontSize}; line-height: {type.css.lineHeight};{type.css.fontWeight ? ` font-weight: ${type.css.fontWeight};` : ''}</code>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{type.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
+        </div>
       </div>
-    </section>
+    </>
   );
 }

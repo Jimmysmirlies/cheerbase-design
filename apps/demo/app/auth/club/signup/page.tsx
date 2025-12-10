@@ -16,7 +16,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 export default function ClubSignUpPage() {
   const router = useRouter();
   const { signUp } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", clubName: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", clubName: "" });
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,8 +25,12 @@ export default function ClubSignUpPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.clubName.trim()) {
+    if (!form.name.trim() || !form.email.trim() || !form.password.trim() || !form.clubName.trim()) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
       return;
     }
     setSubmitting(true);
@@ -34,6 +38,7 @@ export default function ClubSignUpPage() {
       await signUp({
         name: form.name,
         email: form.email,
+        password: form.password,
         role: "club_owner",
         clubName: form.clubName,
       });
@@ -41,7 +46,8 @@ export default function ClubSignUpPage() {
       router.push("/clubs");
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -72,6 +78,10 @@ export default function ClubSignUpPage() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" value={form.email} onChange={handleChange("email")} placeholder="you@example.com" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" value={form.password} onChange={handleChange("password")} placeholder="Create a password" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="clubName">Club name</Label>

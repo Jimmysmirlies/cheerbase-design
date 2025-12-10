@@ -31,7 +31,7 @@ import { EventGallery } from "@/components/ui/gallery/EventGallery";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
-import { findEventById, listEvents } from "@/data/events";
+import { findEventById, listEvents, isRegistrationClosed } from "@/data/events";
 import { findOrganizerByName, formatFollowers, formatHostingDuration } from "@/data/events/organizers";
 import { divisionPricingDefaults } from "@/data/divisions";
 import { buildEventGalleryImages } from "./image-gallery";
@@ -92,8 +92,14 @@ export default async function EventPage({ params }: EventPageProps) {
   const competitionDate = new Date(event.date);
   const dayBefore = new Date(competitionDate);
   dayBefore.setDate(dayBefore.getDate() - 1);
-  const registrationDeadlineDate = new Date(dayBefore);
-  const registrationDeadlineISO = registrationDeadlineDate.toISOString();
+  
+  // Use event's registration deadline if available, otherwise day before event
+  const registrationDeadlineISO = event.registrationDeadline 
+    ? new Date(event.registrationDeadline).toISOString()
+    : dayBefore.toISOString();
+  
+  // Check if registration is closed
+  const registrationClosed = isRegistrationClosed(event);
 
   const timeline = [
     {
@@ -199,6 +205,7 @@ export default async function EventPage({ params }: EventPageProps) {
           { label: event.name },
         ]}
         eventStartDate={registrationDeadlineISO}
+        hideCountdown
       />
 
       <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
@@ -430,6 +437,7 @@ export default async function EventPage({ params }: EventPageProps) {
                   eventId={event.id}
                   registrationDeadline={registrationDeadlineISO}
                   slotLabel={slotLabel}
+                  isRegistrationClosed={registrationClosed}
                 />
                 <p className="text-xs text-muted-foreground">
                   Need help with registration? Contact our events concierge to coordinate rosters, invoices, and travel.
@@ -446,20 +454,29 @@ export default async function EventPage({ params }: EventPageProps) {
           <div className="flex flex-col gap-0.5">
             <p className="text-sm font-semibold text-foreground">{slotLabel} teams confirmed</p>
             <p className="text-xs text-muted-foreground">
-              {(() => {
-                const deadlineDate = new Date(registrationDeadlineISO);
-                const now = new Date();
-                const msPerDay = 1000 * 60 * 60 * 24;
-                const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / msPerDay));
-                return daysRemaining === 0
-                  ? 'Registration closes today'
-                  : `Closes in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}`;
-              })()}
+              {registrationClosed 
+                ? 'Registration has closed'
+                : (() => {
+                    const deadlineDate = new Date(registrationDeadlineISO);
+                    const now = new Date();
+                    const msPerDay = 1000 * 60 * 60 * 24;
+                    const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / msPerDay));
+                    return daysRemaining === 0
+                      ? 'Registration closes today'
+                      : `Closes in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}`;
+                  })()
+              }
             </p>
           </div>
-          <Button asChild size="sm">
-            <Link href={`/events/${encodeURIComponent(event.id)}/register`}>Register</Link>
-          </Button>
+          {registrationClosed ? (
+            <Button size="sm" disabled>
+              Closed
+            </Button>
+          ) : (
+            <Button asChild size="sm">
+              <Link href={`/events/${encodeURIComponent(event.id)}/register`}>Register</Link>
+            </Button>
+          )}
         </div>
       </div>
       {/* Spacer to prevent content from being hidden behind sticky footer */}

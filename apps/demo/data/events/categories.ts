@@ -2,6 +2,16 @@ import { eventDivisionNames } from "@/data/divisions";
 import type { EventCategory } from "@/types/events";
 import { getLocalEventImage, getLocalGalleryImages } from "@/utils/localImages";
 
+/**
+ * Helper to calculate registration deadline from event date.
+ * Returns 7 days before the event date as ISO string.
+ */
+function getRegistrationDeadline(eventDate: string, daysBeforeEvent = 7): string {
+  const date = new Date(eventDate);
+  date.setDate(date.getDate() - daysBeforeEvent);
+  return date.toISOString().split('T')[0] as string;
+}
+
 export const eventCategories: EventCategory[] = [
   {
     title: "Junior Level 3 & 4",
@@ -13,6 +23,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Cheer Elite Events",
         type: "Championship",
         date: "Nov 14, 2025",
+        registrationDeadline: getRegistrationDeadline("Nov 14, 2025"),
         location: "Madison Square Garden, NY",
         teams: "32 / 48 teams",
         fee: "$450",
@@ -67,6 +78,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Spirit Sports Co.",
         type: "Friendly Competition",
         date: "Apr 19, 2025",
+        registrationDeadline: getRegistrationDeadline("Apr 19, 2025"),
         location: "Dallas Convention Center, TX",
         teams: "18 / 32 teams",
         fee: "$325",
@@ -121,6 +133,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "East Region Events",
         type: "Friendly Competition",
         date: "May 03, 2025",
+        registrationDeadline: getRegistrationDeadline("May 03, 2025"),
         location: "Boston Convention Center, MA",
         teams: "12 / 24 teams",
         fee: "$375",
@@ -174,6 +187,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Southern Spirit",
         type: "Championship",
         date: "Jul 19, 2025",
+        registrationDeadline: getRegistrationDeadline("Jul 19, 2025"),
         location: "Austin Sports Center, TX",
         teams: "28 / 36 teams",
         fee: "$410",
@@ -234,6 +248,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Cheer Squad Prestige Academy",
         type: "Championship",
         date: "Sep 06, 2025",
+        registrationDeadline: getRegistrationDeadline("Sep 06, 2025"),
         location: "Buffalo Convention Center, NY",
         teams: "20 / 40 teams",
         fee: "$390",
@@ -287,6 +302,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "West Coast Cheer",
         type: "Friendly Competition",
         date: "Oct 11, 2025",
+        registrationDeadline: getRegistrationDeadline("Oct 11, 2025"),
         location: "Los Angeles Convention Center, CA",
         teams: "25 / 30 teams",
         fee: "$460",
@@ -341,6 +357,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Spirit Sports Co.",
         type: "Friendly Competition",
         date: "Aug 23, 2025",
+        registrationDeadline: getRegistrationDeadline("Aug 23, 2025"),
         location: "Phoenix Civic Center, AZ",
         teams: "14 / 28 teams",
         fee: "$340",
@@ -394,6 +411,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Midwest Athletics",
         type: "Championship",
         date: "Oct 25, 2025",
+        registrationDeadline: getRegistrationDeadline("Oct 25, 2025"),
         location: "United Center, IL",
         teams: "30 / 48 teams",
         fee: "$445",
@@ -454,6 +472,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Championship",
         date: "Nov 29, 2025",
+        registrationDeadline: getRegistrationDeadline("Nov 29, 2025"),
         location: "Palais des congrès de Montréal, Montreal, QC, Canada",
         teams: "30 / 50 teams",
         fee: "$430",
@@ -492,6 +511,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Friendly Competition",
         date: "Jan 17, 2026",
+        registrationDeadline: getRegistrationDeadline("Jan 17, 2026"),
         location: "Centre Pierre-Charbonneau, Montreal, QC, Canada",
         teams: "22 / 40 teams",
         fee: "$390",
@@ -529,6 +549,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Championship",
         date: "Feb 06, 2026",
+        registrationDeadline: getRegistrationDeadline("Feb 06, 2026"),
         location: "Palais des congrès de Montréal, Montreal, QC, Canada",
         teams: "34 / 50 teams",
         fee: "$420",
@@ -562,6 +583,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Friendly Competition",
         date: "Feb 28, 2026",
+        registrationDeadline: getRegistrationDeadline("Feb 28, 2026"),
         location: "École secondaire Casavant, Saint-Hyacinthe, QC, Canada",
         teams: "18 / 32 teams",
         fee: "$360",
@@ -594,6 +616,7 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Friendly Competition",
         date: "Mar 28, 2026",
+        registrationDeadline: getRegistrationDeadline("Mar 28, 2026"),
         location: "Théâtre Marcellin-Champagnat, Laval, QC, Canada",
         teams: "24 / 36 teams",
         fee: "$380",
@@ -634,4 +657,32 @@ export function findEventById(id: string) {
 
 export function listEvents() {
   return Array.from(eventById.values());
+}
+
+/**
+ * Check if registration is closed for an event.
+ * Registration is closed if the deadline has passed or the event date has passed.
+ */
+export function isRegistrationClosed(event: { registrationDeadline?: string; date: string }): boolean {
+  const now = new Date();
+  
+  // If there's a registration deadline, check against that
+  if (event.registrationDeadline) {
+    const deadline = new Date(event.registrationDeadline);
+    // Set to end of day for the deadline
+    deadline.setHours(23, 59, 59, 999);
+    if (now > deadline) return true;
+  }
+  
+  // Also check if event date has passed
+  const eventDate = new Date(event.date);
+  eventDate.setHours(23, 59, 59, 999);
+  return now > eventDate;
+}
+
+/**
+ * List only events with open registration.
+ */
+export function listOpenEvents() {
+  return listEvents().filter(event => !isRegistrationClosed(event));
 }

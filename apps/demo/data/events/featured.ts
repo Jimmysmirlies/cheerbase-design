@@ -1,6 +1,6 @@
 import type { Event, EventCategory } from "@/types/events";
 
-import { eventCategories } from "./categories";
+import { eventCategories, isRegistrationClosed } from "./categories";
 
 type EventSummary = {
   id: string;
@@ -15,6 +15,7 @@ type EventSummary = {
   description: string;
   pricePerParticipant?: string;
   tags?: string[];
+  registrationDeadline?: string;
 };
 
 const allEvents: EventSummary[] = eventCategories.flatMap((category: EventCategory) =>
@@ -31,10 +32,16 @@ const allEvents: EventSummary[] = eventCategories.flatMap((category: EventCatego
     description: event.description,
     pricePerParticipant: event.pricePerParticipant,
     tags: event.tags,
+    registrationDeadline: event.registrationDeadline,
   })),
 );
 
-export const featuredEvents: Array<EventSummary & { href: string }> = allEvents.slice(0, 3).map((event) => ({
+// Filter to only show events with open registration, sorted by date
+const openEvents = allEvents
+  .filter((event) => !isRegistrationClosed(event))
+  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+export const featuredEvents: Array<EventSummary & { href: string }> = openEvents.slice(0, 3).map((event) => ({
   ...event,
   href: `/events/${encodeURIComponent(event.id)}`,
 }));

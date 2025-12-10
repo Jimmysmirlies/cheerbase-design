@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { PrinterIcon, ArrowLeftIcon } from 'lucide-react'
 
@@ -277,6 +277,19 @@ export function InvoicePageClient({
   
   const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState(currentInvoiceNumber)
   const [isPrinting, setIsPrinting] = useState(false)
+  
+  // Track the previous current invoice to detect when the invoice list changes
+  const [prevCurrentInvoiceNumber, setPrevCurrentInvoiceNumber] = useState(currentInvoiceNumber)
+
+  // Sync selected invoice to current invoice when the invoice list changes (e.g., after storage loads)
+  useEffect(() => {
+    // If current invoice number changed (e.g., storage loaded with new invoices),
+    // update selected to the new current invoice
+    if (currentInvoiceNumber && currentInvoiceNumber !== prevCurrentInvoiceNumber) {
+      setSelectedInvoiceNumber(currentInvoiceNumber)
+      setPrevCurrentInvoiceNumber(currentInvoiceNumber)
+    }
+  }, [currentInvoiceNumber, prevCurrentInvoiceNumber])
   const [showPaymentMethods, setShowPaymentMethods] = useState(false)
   const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>('A')
 

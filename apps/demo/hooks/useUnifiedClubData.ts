@@ -141,7 +141,7 @@ export function getRegistrationById(
   // Check if it's a parent ID (for localStorage registrations with multiple teams)
   // Return the first team's registration
   const byParent = registrations.find(r => 
-    (r as any)._parentRegistrationId === registrationId
+    r._parentRegistrationId === registrationId
   )
   if (byParent) return byParent
 
@@ -156,7 +156,7 @@ export function getRegistrationsByParentId(
   return registrations.filter(r => 
     r.id === parentId || 
     r.id.startsWith(`${parentId}-`) ||
-    (r as any)._parentRegistrationId === parentId
+    r._parentRegistrationId === parentId
   )
 }
 
@@ -170,8 +170,8 @@ export function useUnifiedClubData() {
     try {
       setIsLoading(true)
       
-      // Fetch demo data from API
-      const response = await fetch('/api/demo/club-data')
+      // Fetch demo data from API - explicitly request demo account data
+      const response = await fetch(`/api/demo/club-data?clubOwnerId=${DEFAULT_CLUB_OWNER_ID}`)
       if (!response.ok) {
         throw new Error('Failed to fetch club data')
       }

@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/layout/PageHeader";
+
 const eventDiscovery = [
   {
     endpoint: "GET /events",
@@ -19,7 +21,7 @@ const eventDiscovery = [
   ],
   "pagination": { "cursor": "..." }
 }`,
-    uiStates: "Loading skeleton cards, Empty prompt “Reset filters”, Error banner with retry",
+    uiStates: "Loading skeleton cards, Empty prompt \"Reset filters\", Error banner with retry",
   },
   {
     endpoint: "GET /events/{id}",
@@ -80,14 +82,14 @@ const registrationLifecycle = [
     }
   ]
 }`,
-    uiStates: "Loading table skeleton, Empty state CTA “Browse events”, Error inline alert",
+    uiStates: "Loading table skeleton, Empty state CTA \"Browse events\", Error inline alert",
   },
 ];
 
 const organizerOnboarding = [
   {
     endpoint: "POST /host-applications",
-    purpose: "Submit “Host Events” inquiry",
+    purpose: "Submit \"Host Events\" inquiry",
     params: "Body { companyName, contactEmail, phone, sportFocus, sampleEventUrl }",
     response: `{
   "id": "apply_456",
@@ -128,8 +130,8 @@ type ContractRow = (typeof eventDiscovery)[number];
 
 function ContractTable({ title, rows }: { title: string; rows: ContractRow[] }) {
   return (
-    <section className="space-y-4">
-      <h3 className="text-xl font-semibold">{title}</h3>
+    <div className="flex flex-col gap-4">
+      <p className="text-lg font-semibold">{title}</p>
       <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-muted/60 text-muted-foreground">
@@ -158,24 +160,41 @@ function ContractTable({ title, rows }: { title: string; rows: ContractRow[] }) 
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
 }
 
 export default function ApiContractsPage() {
   return (
-    <div className="space-y-10">
-      <header className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">API Contract Tables</h2>
-        <p className="text-sm text-muted-foreground">
-          Reference endpoints that power the discovery-first experience. Each table pairs the request/response shape with the UI states
-          designers need to mock.
-        </p>
-      </header>
+    <>
+      <PageHeader
+        title="API Contracts"
+        subtitle="Reference endpoints that power the discovery-first experience. Each table pairs the request/response shape with the UI states designers need to mock."
+        hideSubtitleDivider
+        breadcrumbItems={[
+          { label: "Brand Guidelines", href: "/style-guide" },
+        ]}
+      />
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
+        <div className="space-y-12">
+          {/* Event Discovery */}
+          <div className="flex flex-col gap-4 px-1">
+            <ContractTable title="Event Discovery" rows={eventDiscovery} />
+          </div>
 
-      <ContractTable title="Event Discovery" rows={eventDiscovery} />
-      <ContractTable title="Registration Lifecycle" rows={registrationLifecycle} />
-      <ContractTable title="Organizer Onboarding" rows={organizerOnboarding} />
-    </div>
+          {/* Registration Lifecycle */}
+          <div className="flex flex-col gap-4 px-1">
+            <div className="h-px w-full bg-border" />
+            <ContractTable title="Registration Lifecycle" rows={registrationLifecycle} />
+          </div>
+
+          {/* Organizer Onboarding */}
+          <div className="flex flex-col gap-4 px-1">
+            <div className="h-px w-full bg-border" />
+            <ContractTable title="Organizer Onboarding" rows={organizerOnboarding} />
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

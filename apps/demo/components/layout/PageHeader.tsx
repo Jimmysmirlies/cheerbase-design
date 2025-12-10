@@ -17,8 +17,10 @@ type PageHeaderProps = {
   subtitle?: string
   action?: ReactNode
   hideSubtitle?: boolean
+  hideSubtitleDivider?: boolean
   hideTitle?: boolean
   hideBorder?: boolean
+  hideCountdown?: boolean
   eventStartDate?: string | Date
   breadcrumbs?: ReactNode
   breadcrumbItems?: BreadcrumbItem[]
@@ -86,8 +88,10 @@ export function PageHeader({
   subtitle,
   action,
   hideSubtitle,
+  hideSubtitleDivider,
   hideTitle,
   hideBorder,
+  hideCountdown,
   eventStartDate,
   breadcrumbs,
   breadcrumbItems,
@@ -95,9 +99,11 @@ export function PageHeader({
   metadataColumns = 3,
   gradientVariant = 'primary',
 }: PageHeaderProps) {
-  const [eventCountdown, setEventCountdown] = useState(() => getEventCountdown(eventStartDate))
+  // Initialize as null to avoid hydration mismatch (Date.now() differs between server and client)
+  const [eventCountdown, setEventCountdown] = useState<CountdownDisplay | null>(null)
 
   useEffect(() => {
+    // Calculate countdown only on client to avoid hydration issues
     setEventCountdown(getEventCountdown(eventStartDate))
     if (!eventStartDate) return
 
@@ -163,22 +169,25 @@ export function PageHeader({
               ) : null}
               {!hideTitle ? <h1 className="heading-2 text-white">{title}</h1> : null}
             </div>
-            {eventCountdown ? (
+            {eventCountdown && !hideCountdown ? (
               <div className="flex w-full flex-col items-end gap-4 sm:flex-row sm:items-end sm:justify-end sm:gap-6 lg:w-auto lg:flex-col">
                 {eventCountdown.state === 'past' ? (
                   <div className="text-right text-sm font-semibold uppercase tracking-[0.2em] text-white">
                     Event Passed
                   </div>
                 ) : countdownSegments ? (
-                  <div className="flex flex-col items-end text-white">
-                    <div className="grid grid-flow-col items-end gap-5">
+                  <div className="flex flex-col items-end gap-2 text-white">
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                      Registration Closes
+                    </span>
+                    <div className="grid grid-flow-col items-start gap-4">
                       {countdownSegments.map((segment) => (
-                        <div key={segment.label} className="flex flex-col items-center text-right">
-                          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-white/80">
-                            {segment.label}
-                          </span>
+                        <div key={segment.label} className="flex flex-col items-center">
                           <span className="heading-2 leading-none">
                             {segment.value.toString().padStart(2, '0')}
+                          </span>
+                          <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/60">
+                            {segment.label}
                           </span>
                         </div>
                       ))}
@@ -189,7 +198,7 @@ export function PageHeader({
             ) : null}
           </div>
           {subtitle && !hideSubtitle ? <p className="text-base text-white/85">{subtitle}</p> : null}
-          {(subtitle && !hideSubtitle) || metadataItems?.length ? (
+          {((subtitle && !hideSubtitle && !hideSubtitleDivider) || metadataItems?.length) ? (
             <div className="h-px w-full bg-white/30" />
           ) : null}
           {metadataItems?.length ? (
