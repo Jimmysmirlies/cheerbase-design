@@ -8,6 +8,7 @@ import { Button } from '@workspace/ui/shadcn/button'
 import { ToggleGroup, ToggleGroupItem } from '@workspace/ui/shadcn/toggle-group'
 import { InvoiceView, type InvoiceData, type InvoiceChangeInfo, type InvoiceSelectOption, type InvoiceHistoryItem } from '@/components/features/registration/invoice/InvoiceView'
 import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
+import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 import { FadeInSection } from '@/components/ui'
 import { formatFriendlyDate } from '@/utils/format'
 import { useRegistrationStorage } from '@/hooks/useRegistrationStorage'
@@ -318,9 +319,11 @@ export function InvoicePageClient({
         Print
       </Button>
       {isPayable && (
-        <Button size="sm" onClick={() => setShowPaymentMethods(true)}>
-          Pay Invoice
-        </Button>
+        <WalkthroughSpotlight step="complete" side="bottom" align="end">
+          <Button size="sm" onClick={() => setShowPaymentMethods(true)}>
+            Pay Invoice
+          </Button>
+        </WalkthroughSpotlight>
       )}
     </>
   )
@@ -335,13 +338,15 @@ export function InvoicePageClient({
             <div className="border-b border-border pb-3">
               <button
                 type="button"
-                className={`flex w-full items-center justify-between text-left transition ${
-                  selectedInvoiceNumber === currentInvoiceNumber ? 'text-primary' : 'text-foreground hover:text-primary'
+                className={`flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm transition ${
+                  selectedInvoiceNumber === currentInvoiceNumber 
+                    ? 'bg-primary/10 text-primary' 
+                    : 'text-foreground hover:bg-muted hover:text-primary'
                 }`}
                 aria-label="Current invoice"
                 onClick={() => setSelectedInvoiceNumber(currentInvoiceNumber)}
               >
-                <span className="body-text font-medium">#{currentInvoiceNumber}</span>
+                <span className="font-medium">#{currentInvoiceNumber}</span>
                 <span className="text-muted-foreground text-xs">
                   {formatFriendlyDate(currentInvoice.issuedDate)}
                 </span>
@@ -350,20 +355,20 @@ export function InvoicePageClient({
           )}
           <div className="text-muted-foreground text-xs uppercase tracking-wide pt-2">Past Invoices</div>
           {pastInvoices.length > 0 ? (
-            <div className="flex flex-col divide-y divide-border">
+            <div className="flex flex-col gap-1">
               {pastInvoices.map(invoice => (
                 <button
                   key={invoice.invoiceNumber}
                   type="button"
                   onClick={() => setSelectedInvoiceNumber(invoice.invoiceNumber)}
-                  className={`flex h-10 w-full items-center justify-between text-left transition ${
+                  className={`flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm transition ${
                     invoice.invoiceNumber === selectedInvoiceNumber
-                      ? 'text-primary'
-                      : 'text-foreground hover:text-primary'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground hover:bg-muted hover:text-primary'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="body-text font-medium">#{invoice.invoiceNumber}</span>
+                    <span className="font-medium">#{invoice.invoiceNumber}</span>
                     {invoice.status === 'paid' && (
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
                         Paid

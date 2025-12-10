@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@workspace/ui/shadcn/dropdown-menu'
 import { Input } from '@workspace/ui/shadcn/input'
+import { Switch } from '@workspace/ui/shadcn/switch'
 import { cn } from '@workspace/ui/lib/utils'
 
 import Link from 'next/link'
@@ -34,8 +35,19 @@ import { useRouter } from 'next/navigation'
 import { AuthSignUp } from '@/components/features/auth/AuthSignUp'
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { WalkthroughSpotlight, useRegistrationWalkthroughSafe } from '@/components/ui/RegistrationWalkthrough'
 import { eventCategories } from '@/data/events/categories'
-import { SearchIcon, XIcon } from 'lucide-react'
+import { 
+  SearchIcon, 
+  XIcon, 
+  SunIcon, 
+  MoonIcon, 
+  BuildingIcon, 
+  ClipboardListIcon, 
+  LogOutIcon, 
+  LayoutDashboardIcon, 
+  CalendarIcon 
+} from 'lucide-react'
 
 type SearchItem = {
   label: string
@@ -58,6 +70,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
   void showNavLinks
   const router = useRouter()
   const { user, signOut, signInAsRole } = useAuth()
+  const walkthrough = useRegistrationWalkthroughSafe()
   const role = user?.role ?? null
   const [isDark, setIsDark] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
@@ -141,17 +154,16 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
     role == null
       ? []
       : [
-          { label: 'Toggle theme', onClick: toggleTheme, detail: isDark ? 'Dark' : 'Light' },
           ...(role === 'club_owner'
             ? [
-                { label: 'My Club', onClick: () => router.push('/clubs') },
-                { label: 'Registrations', onClick: () => router.push('/clubs/registrations') },
+                { label: 'My Club', icon: BuildingIcon, onClick: () => router.push('/clubs') },
+                { label: 'Registrations', icon: ClipboardListIcon, onClick: () => router.push('/clubs/registrations') },
               ]
             : [
-                { label: 'Organizer Home', onClick: () => router.push('/organizer') },
-                { label: 'Events', onClick: () => router.push('/organizer/events') },
+                { label: 'Organizer Home', icon: LayoutDashboardIcon, onClick: () => router.push('/organizer') },
+                { label: 'Events', icon: CalendarIcon, onClick: () => router.push('/organizer/events') },
               ]),
-          { label: 'Sign out', onClick: () => { signOut(); router.push('/'); } },
+          { label: 'Sign out', icon: LogOutIcon, onClick: () => { signOut(); router.push('/'); } },
         ]
 
   return (
@@ -277,15 +289,23 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                           <span className="text-sm font-semibold">{user?.name ?? 'User'}</span>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <div className="flex items-center justify-between px-2 py-1.5">
+                          <div className="flex items-center gap-2 text-sm">
+                            {isDark ? <MoonIcon className="size-4" /> : <SunIcon className="size-4" />}
+                            <span>Theme</span>
+                          </div>
+                          <Switch checked={isDark} onCheckedChange={toggleTheme} />
+                        </div>
+                        <DropdownMenuSeparator />
                         {menuItems.map((item, idx) => (
                           <DropdownMenuItem
                             key={item.label}
                             onClick={item.onClick}
-                            className="dropdown-fade-in flex items-center justify-between"
+                            className="dropdown-fade-in flex items-center gap-2"
                             style={{ animationDelay: `${idx * 60}ms` }}
                           >
+                            {item.icon && <item.icon className="size-4 text-muted-foreground" />}
                             <span>{item.label}</span>
-                            {item.detail ? <span className="text-xs text-muted-foreground">{item.detail}</span> : null}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -296,9 +316,16 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                     <Button variant="ghost" size="sm" className="px-4" onClick={() => openStart('choose')}>
                       Get Started
                     </Button>
-                    <Button variant="default" size="sm" className="px-4" onClick={() => setLoginOpen(true)}>
-                      Log in
-                    </Button>
+                    <WalkthroughSpotlight 
+                      step="login" 
+                      side="bottom" 
+                      align="end"
+                      onAction={() => setLoginOpen(true)}
+                    >
+                      <Button variant="default" size="sm" className="px-4" onClick={() => setLoginOpen(true)}>
+                        Log in
+                      </Button>
+                    </WalkthroughSpotlight>
                   </div>
                 )}
               </div>
@@ -317,6 +344,10 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
             isDemo: true,
           })
           setLoginOpen(false)
+          // Advance walkthrough when logging in as club owner
+          if (nextRole === 'club_owner' && walkthrough?.isStepActive('login')) {
+            walkthrough.nextStep()
+          }
           if (nextRole === 'organizer') router.push('/organizer')
           else router.push('/clubs')
         }}

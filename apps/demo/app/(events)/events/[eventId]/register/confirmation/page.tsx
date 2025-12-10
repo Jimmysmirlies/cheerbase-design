@@ -2,15 +2,16 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { CheckCircle2Icon, CreditCardIcon } from 'lucide-react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Card } from '@workspace/ui/shadcn/card'
 import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
-
-// In production, this would come from the registration submission response
-const MOCK_REGISTRATION_ID = 'reg_001'
+import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 
 export default function RegistrationConfirmationPage() {
+  const searchParams = useSearchParams()
+  const registrationId = searchParams.get('registrationId') ?? 'reg_001'
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
 
   return (
@@ -29,11 +30,13 @@ export default function RegistrationConfirmationPage() {
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button asChild>
-            <Link href={`/clubs/registrations/${MOCK_REGISTRATION_ID}`}>View Registration</Link>
-          </Button>
+          <WalkthroughSpotlight step="view-registration" side="bottom" align="center" advanceOnClick>
+            <Button asChild>
+              <Link href={`/clubs/registrations/${registrationId}`}>View Registration</Link>
+            </Button>
+          </WalkthroughSpotlight>
           <Button variant="outline" asChild>
-            <Link href={`/clubs/registrations/${MOCK_REGISTRATION_ID}/invoice`}>View Invoice</Link>
+            <Link href={`/clubs/registrations/${registrationId}/invoice`}>View Invoice</Link>
           </Button>
           <Button variant="outline" onClick={() => setPaymentDialogOpen(true)}>
             <CreditCardIcon className="mr-2 h-4 w-4" />

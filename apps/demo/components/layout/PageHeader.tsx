@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 
+import { cn } from '@workspace/ui/lib/utils'
+
 import { brandGradients, noiseTexture, type BrandGradient } from '@/lib/gradients'
 
 type BreadcrumbItem = {
@@ -16,6 +18,7 @@ type PageHeaderProps = {
   action?: ReactNode
   hideSubtitle?: boolean
   hideTitle?: boolean
+  hideBorder?: boolean
   eventStartDate?: string | Date
   breadcrumbs?: ReactNode
   breadcrumbItems?: BreadcrumbItem[]
@@ -84,6 +87,7 @@ export function PageHeader({
   action,
   hideSubtitle,
   hideTitle,
+  hideBorder,
   eventStartDate,
   breadcrumbs,
   breadcrumbItems,
@@ -118,7 +122,10 @@ export function PageHeader({
 
   return (
     <div
-      className="relative w-full overflow-hidden border-b border-border/70 backdrop-blur-sm"
+      className={cn(
+        "relative w-full overflow-hidden backdrop-blur-sm",
+        !hideBorder && "border-b border-border/70"
+      )}
       style={createGradientStyle(gradientVariant)}
     >
       <header className="flex min-h-[240px] w-full max-w-full flex-col justify-between px-4 pb-8 pt-4 lg:mx-auto lg:max-w-7xl lg:px-8">

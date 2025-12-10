@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { FadeInSection, Hero } from "@/components/ui";
 import { EventCard } from "@/components/ui/cards/EventCard";
+import { WalkthroughSpotlight } from "@/components/ui/RegistrationWalkthrough";
 import { heroSlides, organizers, listEvents } from "@/data/events";
 import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
 import { TextSelect } from "@workspace/ui/components/text-select";
@@ -83,15 +84,29 @@ export default function HomePage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {provinceEvents.map((event, index) => (
               <FadeInSection key={`${event.id}-${event.location}`} delay={index * 80} className="h-full">
-                <EventCard
-                  image={event.image}
-                  title={event.name}
-                  organizer={event.organizer}
-                  date={event.date}
-                  location={event.location}
-                  teams={event.teams}
-                  href={`/events/${encodeURIComponent(event.id)}`}
-                />
+                {index === 0 ? (
+                  <WalkthroughSpotlight step="select-event" side="bottom" align="start" advanceOnClick>
+                    <EventCard
+                      image={event.image}
+                      title={event.name}
+                      organizer={event.organizer}
+                      date={event.date}
+                      location={event.location}
+                      teams={event.teams}
+                      href={`/events/${encodeURIComponent(event.id)}`}
+                    />
+                  </WalkthroughSpotlight>
+                ) : (
+                  <EventCard
+                    image={event.image}
+                    title={event.name}
+                    organizer={event.organizer}
+                    date={event.date}
+                    location={event.location}
+                    teams={event.teams}
+                    href={`/events/${encodeURIComponent(event.id)}`}
+                  />
+                )}
               </FadeInSection>
             ))}
           </div>

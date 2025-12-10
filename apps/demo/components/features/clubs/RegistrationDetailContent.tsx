@@ -25,6 +25,7 @@ import { RosterEditorDialog } from '@/components/features/registration/flow/Rost
 import type { RegistrationMember, RegistrationEntry } from '@/components/features/registration/flow/types'
 import { toast } from '@workspace/ui/shadcn/sonner'
 import { useRegistrationStorage, mapToRecord, recordToMap } from '@/hooks/useRegistrationStorage'
+import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 
 type LayoutVariant = 'A' | 'B' | 'C'
 
@@ -1053,11 +1054,13 @@ export function RegistrationDetailContent({
                 
                 return (
                   <>
-                    <Button asChild className="w-full">
-                      <Link href={invoiceHref}>
-                        {effectiveStatus === 'Paid' ? 'View Invoice' : 'Pay Invoice'}
-                      </Link>
-                    </Button>
+                    <WalkthroughSpotlight step="pay-invoice" side="left" align="center" advanceOnClick>
+                      <Button asChild className="w-full">
+                        <Link href={invoiceHref}>
+                          {effectiveStatus === 'Paid' ? 'View Invoice' : 'Pay Invoice'}
+                        </Link>
+                      </Button>
+                    </WalkthroughSpotlight>
 
                     {effectiveStatus !== 'Paid' && paymentDeadlineLabel ? (
                       <p className="text-xs text-muted-foreground text-center">Payment due by {paymentDeadlineLabel}</p>

@@ -1,3 +1,5 @@
+'use client'
+
 import { cn } from '@workspace/ui/lib/utils'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
 import { Separator } from '@workspace/ui/shadcn/separator'
@@ -6,6 +8,7 @@ import { Button } from '@workspace/ui/shadcn/button'
 import { UsersIcon } from 'lucide-react'
 
 import { PricingScrollButton } from '@/components/features/events/PricingScrollButton'
+import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 
 import Link from 'next/link'
 
@@ -59,9 +62,11 @@ export function RegistrationSummaryCard({
           {slotLabel} teams confirmed
         </div>
         <div className="space-y-2">
-          <Button asChild className="w-full">
-            <Link href={`/events/${encodeURIComponent(eventId)}/register`}>{registerButtonLabel}</Link>
-          </Button>
+          <WalkthroughSpotlight step="start-registration" side="left" align="center" advanceOnClick>
+            <Button asChild className="w-full">
+              <Link href={`/events/${encodeURIComponent(eventId)}/register`}>{registerButtonLabel}</Link>
+            </Button>
+          </WalkthroughSpotlight>
           <PricingScrollButton targetId={pricingTargetId} className="w-full">
             {pricingButtonLabel}
           </PricingScrollButton>
