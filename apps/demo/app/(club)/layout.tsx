@@ -3,9 +3,33 @@
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { ClipboardListIcon, Settings2Icon, UserIcon, UsersIcon } from 'lucide-react'
 
 import { NavBar } from '@/components/layout/NavBar'
-import { ClubSidebar } from '@/components/layout/ClubSidebar'
+import { Sidebar } from '@/components/layout/Sidebar'
+
+const clubNavSections = [
+  {
+    label: 'Club',
+    nickname: 'club-core',
+    items: [
+      { key: 'teams', label: 'Teams', icon: <UsersIcon className="size-4" />, href: '/clubs', nickname: 'teams-hub' },
+      { key: 'athletes', label: 'Athletes', icon: <UserIcon className="size-4" />, disabled: true, badge: 'Coming soon', nickname: 'athletes-roster' },
+      {
+        key: 'registrations',
+        label: 'Registrations',
+        icon: <ClipboardListIcon className="size-4" />,
+        href: '/clubs/registrations',
+        nickname: 'registrations-hub',
+      },
+    ],
+  },
+  {
+    label: 'Management',
+    nickname: 'club-management',
+    items: [{ key: 'settings', label: 'Club Settings', icon: <Settings2Icon className="size-4" />, href: '/clubs/settings', nickname: 'club-settings' }],
+  },
+]
 
 export default function ClubLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
@@ -70,16 +94,16 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div ref={navWrapperRef} className="fixed inset-x-0 top-0 z-40">
-        <NavBar
-          mode="clubs"
-          showSidebarToggle={isMobile}
-          sidebarOpen={isSidebarOpen}
-          onSidebarToggle={() => setIsSidebarOpen(prev => !prev)}
-        />
-      </div>
-      <ClubSidebar active={active} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)}>
-        {children}
-      </ClubSidebar>
+      <NavBar
+        mode="clubs"
+        showSidebarToggle={isMobile}
+        sidebarOpen={isSidebarOpen}
+        onSidebarToggle={() => setIsSidebarOpen(prev => !prev)}
+      />
     </div>
-  )
+    <Sidebar active={active} navSections={clubNavSections} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)}>
+      {children}
+    </Sidebar>
+  </div>
+)
 }

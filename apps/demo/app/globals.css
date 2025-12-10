@@ -94,3 +94,83 @@ body {
 .hero__meta strong {
   color: #1f2937;
 }
+
+/* Toast / Sonner custom styling */
+[data-sonner-toast][data-type="success"] {
+  --normal-bg: #f0fdf4 !important;
+  --normal-border: #bbf7d0 !important;
+  --normal-text: #14532d !important;
+  background-color: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  color: #14532d !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-title] {
+  color: #14532d !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-description] {
+  color: #166534 !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-button] {
+  background-color: #16a34a !important;
+  color: white !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-button]:hover {
+  background-color: #15803d !important;
+}
+
+/* Error toast */
+[data-sonner-toast][data-type="error"] {
+  --normal-bg: #fef2f2 !important;
+  --normal-border: #fecaca !important;
+  --normal-text: #7f1d1d !important;
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #7f1d1d !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-title] {
+  color: #7f1d1d !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-description] {
+  color: #991b1b !important;
+}
+
+/* Dark mode toast styling */
+.dark [data-sonner-toast][data-type="success"] {
+  --normal-bg: rgba(5, 46, 22, 0.5) !important;
+  --normal-border: #166534 !important;
+  --normal-text: #dcfce7 !important;
+  background-color: rgba(5, 46, 22, 0.5) !important;
+  border-color: #166534 !important;
+  color: #dcfce7 !important;
+}
+
+.dark [data-sonner-toast][data-type="success"] [data-title] {
+  color: #dcfce7 !important;
+}
+
+.dark [data-sonner-toast][data-type="success"] [data-description] {
+  color: #bbf7d0 !important;
+}
+
+.dark [data-sonner-toast][data-type="error"] {
+  --normal-bg: rgba(69, 10, 10, 0.5) !important;
+  --normal-border: #991b1b !important;
+  --normal-text: #fee2e2 !important;
+  background-color: rgba(69, 10, 10, 0.5) !important;
+  border-color: #991b1b !important;
+  color: #fee2e2 !important;
+}
+
+.dark [data-sonner-toast][data-type="error"] [data-title] {
+  color: #fee2e2 !important;
+}
+
+.dark [data-sonner-toast][data-type="error"] [data-description] {
+  color: #fecaca !important;
+}

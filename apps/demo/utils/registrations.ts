@@ -39,7 +39,7 @@ function simpleHash(input: string): string {
 }
 
 export function isRegistrationLocked(meta: RegistrationLockMeta, referenceDate: Date = new Date()): boolean {
-  if (meta.paidAt) return true
+  // Registration is locked if the registration deadline has passed
   const deadlineString = meta.registrationDeadline ?? meta.paymentDeadline
   if (!deadlineString) return false
   const deadline = new Date(deadlineString)

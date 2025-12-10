@@ -33,9 +33,11 @@ type TextSelectProps = {
   options?: TextSelectOption[]
   sections?: TextSelectSection[]
   size?: TextSelectSize
+  label?: string
   triggerClassName?: string
   contentClassName?: string
   itemClassName?: string
+  labelClassName?: string
 }
 
 // "Type Switcher": select with responsive typography and optional grouped sections.
@@ -45,9 +47,11 @@ export function TextSelect({
   options,
   sections,
   size = "large",
+  label,
   triggerClassName,
   contentClassName,
   itemClassName,
+  labelClassName,
 }: TextSelectProps) {
   // Size palette — "Responsive Duo": default (sm trigger) vs large (md-up heading-3 metrics).
   const hasSections = Boolean(sections?.length)
@@ -80,12 +84,21 @@ export function TextSelect({
     })
 
   return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger
+    <div className="flex flex-col gap-1">
+      {label && (
+        <p className={cn(
+          "body-small font-semibold uppercase tracking-[0.2em] text-muted-foreground",
+          labelClassName
+        )}>
+          {label}
+        </p>
+      )}
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger
         size={triggerSize}
         arrowSize={arrowSize}
         className={cn(
-          "text-primary inline-flex w-fit items-center gap-2 border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0 p-0",
+          "text-primary inline-flex w-fit items-center gap-2 border-0 bg-transparent dark:bg-transparent dark:hover:bg-transparent shadow-none focus:ring-0 focus:ring-offset-0 p-0",
           triggerTextClass,
           triggerClassName,
         )}
@@ -117,5 +130,6 @@ export function TextSelect({
               : null}
       </SelectContent>
     </Select>
+    </div>
   )
 }

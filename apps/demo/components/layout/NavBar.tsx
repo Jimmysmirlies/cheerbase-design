@@ -159,7 +159,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
       {/* Simple sticky header with full-width background and bottom border */}
       <AuthSignUp>
         {({ openStart }) => (
-          <header className="sticky top-0 z-30 w-full border-b border-border bg-background">
+          <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
             <div className="mx-auto grid w-full grid-cols-[auto,auto] grid-rows-[auto,auto] items-center gap-x-3 gap-y-3 px-6 py-4 lg:grid-cols-[auto,1fr,auto] lg:grid-rows-1 lg:items-center lg:gap-4">
               <div className="col-start-1 row-start-1 flex items-center gap-3 lg:col-start-1 lg:row-start-1">
                 {showSidebarToggle && onSidebarToggle ? (

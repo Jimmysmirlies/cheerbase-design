@@ -430,7 +430,7 @@
     @apply text-2xl font-semibold leading-[1.2] tracking-tight;
   }
   .heading-4 {
-    @apply text-lg font-semibold leading-[1.25] tracking-tight;
+    @apply text-xl font-semibold leading-[1.25] tracking-tight;
   }
   .body-large {
     @apply text-lg leading-relaxed;

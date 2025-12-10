@@ -4,19 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/shadcn/c
 
 export default function OrganizerAnalyticsPage() {
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="text-sm text-muted-foreground">High-level metrics for registrations and payouts.</p>
+    <section className="flex flex-1 flex-col">
+      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+          <p className="text-sm text-muted-foreground">High-level metrics for registrations and payouts.</p>
+        </div>
+        <Card className="border-dashed border-border/70">
+          <CardHeader>
+            <CardTitle className="text-base">Coming soon</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            We’ll add dashboards for pipeline, conversion, and payment timelines.
+          </CardContent>
+        </Card>
       </div>
-      <Card className="border-dashed border-border/70">
-        <CardHeader>
-          <CardTitle className="text-base">Coming soon</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          We’ll add dashboards for pipeline, conversion, and payment timelines.
-        </CardContent>
-      </Card>
-    </div>
+    </section>
   );
 }

@@ -16,7 +16,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import TeamDetails from "@/components/features/clubs/TeamDetails";
-import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { SearchIcon, UserPlusIcon } from "lucide-react";
@@ -35,6 +35,46 @@ function ClubsPageInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedTeamId = searchParams.get("teamId");
+  const { data } = useClubData(user?.id);
+
+  const selectedTeam = useMemo(
+    () => data?.teams.find(team => team.id === selectedTeamId),
+    [data?.teams, selectedTeamId]
+  );
+  const selectedRoster = useMemo(
+    () => data?.rosters.find(roster => roster.teamId === selectedTeamId),
+    [data?.rosters, selectedTeamId]
+  );
+  const { divisionLabel, levelLabel } = useMemo(() => {
+    const parts = (selectedTeam?.division ?? "").split("-").map(p => p.trim()).filter(Boolean);
+    if (!parts.length) return { divisionLabel: "—", levelLabel: "—" };
+    if (parts.length === 1) return { divisionLabel: parts[0], levelLabel: "—" };
+    const level = parts.pop() ?? "—";
+    return { divisionLabel: parts.join(" - "), levelLabel: level };
+  }, [selectedTeam?.division]);
+  const memberCount = useMemo(() => {
+    if (!selectedRoster) return 0;
+    return (
+      (selectedRoster.coaches?.length ?? 0) +
+      (selectedRoster.athletes?.length ?? 0) +
+      (selectedRoster.reservists?.length ?? 0) +
+      (selectedRoster.chaperones?.length ?? 0)
+    );
+  }, [selectedRoster]);
+  const breadcrumbItems = useMemo(
+    () =>
+      selectedTeam
+        ? [
+            { label: "Clubs", href: "/clubs" },
+            { label: "Teams", href: "/clubs" },
+            { label: selectedTeam.name },
+          ]
+        : [
+            { label: "Clubs", href: "/clubs" },
+            { label: "Teams" },
+          ],
+    [selectedTeam]
+  );
 
   useEffect(() => {
     if (status === "loading") return;
@@ -57,13 +97,22 @@ function ClubsPageInner() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <ClubPageHeader
-        title="Teams"
+      <PageHeader
+        title={selectedTeam?.name ?? "Teams"}
         subtitle="Create teams and manage rosters for your club"
-        hideSubtitle
-        breadcrumbs={<span>Clubs / Teams</span>}
+        hideSubtitle={!!selectedTeam}
+        breadcrumbItems={breadcrumbItems}
+        metadataItems={
+          selectedTeam
+            ? [
+                { label: "Division", value: divisionLabel },
+                { label: "Level", value: levelLabel },
+                { label: "Members", value: memberCount },
+              ]
+            : undefined
+        }
       />
-      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+      <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8">
         <FadeInSection className="w-full">
           {selectedTeamId ? (
             <TeamDetails

@@ -18,11 +18,11 @@ const badgeVariants = cva(
           'border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline: 'text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
         green:
-          'bg-green-100 border-green-200 text-green-900 dark:bg-green-900/20 dark:border-green-800 dark:text-green-100',
-        red: 'bg-red-100 border-red-200 text-red-900 dark:bg-red-900/20 dark:border-red-800 dark:text-red-100',
+          'bg-green-100 border-green-200 text-green-900',
+        red: 'bg-red-100 border-red-200 text-red-900',
         amber:
-          'bg-amber-100 border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-100',
-        blue: 'bg-blue-100 border-blue-200 text-blue-900 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-100',
+          'bg-amber-100 border-amber-200 text-amber-900',
+        blue: 'bg-blue-100 border-blue-200 text-blue-900',
         olivine:
           'bg-[var(--olivine-50)] border-[var(--olivine-100)] text-[var(--olivine-text)] dark:bg-[var(--olivine-900)]/20 dark:border-[var(--olivine-800)] dark:text-[var(--olivine-100)]',
         lilac:

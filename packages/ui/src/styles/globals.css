@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
@@ -75,8 +75,8 @@
   --card-foreground: oklch(0.9850 0 0);
   --popover: oklch(0.2690 0 0);
   --popover-foreground: oklch(0.9850 0 0);
-  --primary: oklch(0.9220 0 0);
-  --primary-foreground: oklch(0.2050 0 0);
+  --primary: oklch(0.7500 0.1500 296.71);
+  --primary-foreground: oklch(0.1450 0 0);
   --secondary: oklch(0.2690 0 0);
   --secondary-foreground: oklch(0.9850 0 0);
   --muted: oklch(0.2690 0 0);
@@ -101,7 +101,7 @@
   --sidebar-accent-foreground: oklch(0.9850 0 0);
   --sidebar-border: oklch(0.2750 0 0);
   --sidebar-ring: oklch(0.4390 0 0);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: 'Barlow', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --radius: 0.625rem;
@@ -184,6 +184,7 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: var(--font-sans);
     letter-spacing: var(--tracking-normal);
   }
 
@@ -197,6 +198,114 @@
 }
 
 @layer utilities {
+  .barlow-thin {
+    font-family: var(--font-sans);
+    font-weight: 100;
+    font-style: normal;
+  }
+
+  .barlow-extralight {
+    font-family: var(--font-sans);
+    font-weight: 200;
+    font-style: normal;
+  }
+
+  .barlow-light {
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-style: normal;
+  }
+
+  .barlow-regular {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  .barlow-medium {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  .barlow-semibold {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  .barlow-bold {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  .barlow-extrabold {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    font-style: normal;
+  }
+
+  .barlow-black {
+    font-family: var(--font-sans);
+    font-weight: 900;
+    font-style: normal;
+  }
+
+  .barlow-thin-italic {
+    font-family: var(--font-sans);
+    font-weight: 100;
+    font-style: italic;
+  }
+
+  .barlow-extralight-italic {
+    font-family: var(--font-sans);
+    font-weight: 200;
+    font-style: italic;
+  }
+
+  .barlow-light-italic {
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .barlow-regular-italic {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .barlow-medium-italic {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  .barlow-semibold-italic {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-style: italic;
+  }
+
+  .barlow-bold-italic {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .barlow-extrabold-italic {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    font-style: italic;
+  }
+
+  .barlow-black-italic {
+    font-family: var(--font-sans);
+    font-weight: 900;
+    font-style: italic;
+  }
+
   .heading-1 {
     font-size: 2.25rem;
     line-height: 1.1;
@@ -214,12 +323,14 @@
     font-size: 1.5rem;
     line-height: 1.2;
     font-weight: 600;
+    letter-spacing: 0.01em;
   }
 
   .heading-4 {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     line-height: 1.25;
     font-weight: 600;
+    letter-spacing: 0.01em;
   }
 
   .body-large {
@@ -235,6 +346,14 @@
   .body-small {
     font-size: 0.875rem;
     line-height: 1.625;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .dropdown-fade-in {

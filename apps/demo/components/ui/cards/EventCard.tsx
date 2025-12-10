@@ -9,11 +9,9 @@
  * Structure
  * - Media banner with hero image
  * - Content: title, organizer, details (date/location/teams)
- * - Footer: fee + Register CTA
  */
 import { cn } from '@workspace/ui/lib/utils'
-import { Button } from '@workspace/ui/shadcn/button'
-import { Card, CardContent, CardFooter } from '@workspace/ui/shadcn/card'
+import { Card, CardContent } from '@workspace/ui/shadcn/card'
 
 import { CalendarDaysIcon, MapPinIcon, UsersIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -45,67 +43,81 @@ export function EventCard({
 }: EventCardProps) {
   const isCompact = size === 'compact'
   const mediaImage = image || FALLBACK_EVENT_IMAGE
+  const heroStyle = { backgroundImage: `url(${mediaImage})` }
 
-  return (
+  // CARD INTERACTION — "Lift": hover/focus treatment for clickable cards
+  const cardHoverState = 'hover:-translate-y-[2px] hover:shadow-lg hover:border-primary/40'
+  const linkLabel = `View event: ${title}`
+
+  const cardContent = (
     <Card
       className={cn(
-        'h-full overflow-hidden p-0 shadow-lg transition hover:shadow-xl',
-        isCompact ? 'gap-4' : 'gap-6'
+        'flex h-full w-full gap-0 overflow-hidden !rounded-md border border-border/60 p-0 transition duration-200 ease-out',
+        cardHoverState
       )}
     >
-      {/* Media */}
+      {/* HERO BAND — "Marquee" */}
       <div
-        className={cn('relative bg-muted bg-cover bg-center', isCompact ? 'h-32' : 'h-40')}
-        style={{ backgroundImage: `url(${mediaImage})` }}
+        className={cn('relative w-full bg-muted bg-cover bg-center', isCompact ? 'aspect-[2.5/1]' : 'aspect-[2/1]')}
+        style={heroStyle}
       />
-      {/* Meta */}
-      <CardContent className={cn('flex flex-1 flex-col px-6 py-0', isCompact ? 'gap-4' : 'gap-5')}>
-        <div className={cn('space-y-2', isCompact && 'space-y-1.5')}>
+      {/* BODY STACK — "Details Rail" */}
+      <CardContent className={cn('flex flex-1 flex-col px-6 py-6', isCompact ? 'gap-3' : 'gap-4')}>
+        {/* TITLE BLOCK — "Header Duo" */}
+        <div className={cn('space-y-1', isCompact && 'space-y-0.5')}>
           <h3 className={cn('text-foreground', isCompact ? 'text-base font-semibold leading-tight' : 'heading-4')}>
             {title}
           </h3>
-          <p className={cn('text-muted-foreground', isCompact ? 'text-xs' : 'text-sm')}>
+          <p className={cn('text-muted-foreground', isCompact ? 'text-xs' : 'body-text')}>
             {organizer}
           </p>
         </div>
-        <div
-          className={cn('text-muted-foreground space-y-3 text-sm', {
-            'space-y-2 text-xs': isCompact,
-          })}
-        >
+        {/* META GRID — "Quick Facts" */}
+        <div className={cn('body-small text-muted-foreground space-y-2.5', isCompact && 'space-y-2 text-xs')}>
           <p className="flex items-center gap-2">
             <CalendarDaysIcon className={cn('text-primary/70 size-4', isCompact && 'size-3.5')} />
             {date}
           </p>
           <p className="flex items-start gap-2">
-            <MapPinIcon className={cn('text-primary/70 size-4 shrink-0', isCompact && 'size-3.5')} />
-            <span className={cn('line-clamp-2 break-words leading-tight', isCompact && 'text-xs')}>
-              {location}
-            </span>
+            <MapPinIcon className={cn('text-primary/70 size-4 shrink-0 translate-y-[2px]', isCompact && 'size-3.5')} />
+            <span className="line-clamp-2 break-words leading-tight">{location}</span>
           </p>
           <p className="flex items-center gap-2">
             <UsersIcon className={cn('text-primary/70 size-4', isCompact && 'size-3.5')} />
-            {teams}
+            <span className="font-medium">{teams}</span>
           </p>
         </div>
       </CardContent>
-      {/* Actions */}
-      <CardFooter className={cn('border-border/80 mt-auto border-t !px-6 !py-4', isCompact && 'p-5')}>
-        {onRegister ? (
-          <Button
-            type="button"
-            variant="default"
-            onClick={onRegister}
-            className={cn('w-full', isCompact && 'py-3 text-sm')}
-          >
-            View
-          </Button>
-        ) : href ? (
-          <Button asChild variant="default" className={cn('w-full', isCompact && 'py-3 text-sm')}>
-            <Link href={href}>View</Link>
-          </Button>
-        ) : null}
-      </CardFooter>
     </Card>
   )
+
+  // If onRegister callback provided, use button behavior
+  if (onRegister) {
+    return (
+      <button
+        type="button"
+        onClick={onRegister}
+        aria-label={linkLabel}
+        className="group block h-full rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        {cardContent}
+      </button>
+    )
+  }
+
+  // WRAPPER — "Clickable Shell": makes the whole card actionable
+  if (href) {
+    return (
+      <Link
+        href={href}
+        aria-label={linkLabel}
+        className="group block h-full rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        {cardContent}
+      </Link>
+    )
+  }
+
+  // Fallback: non-interactive card
+  return cardContent
 }

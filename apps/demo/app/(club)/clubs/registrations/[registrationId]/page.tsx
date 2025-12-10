@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 
-import { findEventById } from '@/data/events'
+import { findEventById, listEvents, organizers } from '@/data/events'
 import { formatCurrency, formatFriendlyDate } from '@/utils/format'
 import { isRegistrationLocked } from '@/utils/registrations'
 import {
@@ -12,19 +11,21 @@ import {
   type InvoiceTeamEntry,
 } from '@/lib/invoices'
 import { getClubData, type RegisteredMemberDTO } from '@/lib/club-data'
-import { ClubPageHeader } from '@/components/layout/ClubPageHeader'
-import { Button } from '@workspace/ui/shadcn/button'
-import { RegistrationPaymentCTA } from '@/components/features/clubs/RegistrationPaymentCTA'
-import { RegisteredTeamCard } from '@/components/features/clubs/RegisteredTeamCard'
-import { FadeInSection } from '@/components/ui'
+import { RegistrationDetailContent, type TeamRosterData } from '@/components/features/clubs/RegistrationDetailContent'
 import type { RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
+import { demoRosters } from '@/data/clubs/members'
 
 type PageParams = {
   registrationId: string
 }
 
+type SearchParams = {
+  mode?: string
+}
+
 type PageProps = {
   params?: Promise<PageParams>
+  searchParams?: Promise<SearchParams>
 }
 
 type RegisteredTeamCardData = {
@@ -35,11 +36,14 @@ type RegisteredTeamCardData = {
   detailId: string
 }
 
-export default async function EditClubRegistrationPage({ params }: PageProps) {
+export default async function EditClubRegistrationPage({ params, searchParams }: PageProps) {
   const resolvedParams = params ? await params : null
   if (!resolvedParams) {
     notFound()
   }
+
+  const resolvedSearchParams = searchParams ? await searchParams : null
+  const isEditMode = resolvedSearchParams?.mode === 'edit'
 
   const data = await getClubData()
   const clubLabel = "Demo Club Owner's Club"
@@ -53,13 +57,18 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
   const invoiceTeamEntries = buildInvoiceTeamEntries(data, registration.eventId, event, { scope: 'event' })
   const registeredTeamCards: RegisteredTeamCardData[] = invoiceTeamEntries.map(buildRegisteredTeamCardFromInvoiceEntry)
 
-  const participantsRegistered = invoiceTeamEntries.reduce(
-    (total, entry) => total + entry.members.length,
-    0
-  )
-  const teamsRegistered = invoiceTeamEntries.length
-  const participantsLabel = `${participantsRegistered} ${participantsRegistered === 1 ? 'participant' : 'participants'}`
-  const teamsLabel = `${teamsRegistered} ${teamsRegistered === 1 ? 'team' : 'teams'}`
+  // Group registered teams by division
+  const teamsByDivision = new Map<string, RegisteredTeamCardData[]>()
+  registeredTeamCards.forEach(card => {
+    const existing = teamsByDivision.get(card.division) ?? []
+    existing.push(card)
+    teamsByDivision.set(card.division, existing)
+  })
+
+  // Get all available divisions from event, or fall back to registered divisions
+  const availableDivisions = event?.availableDivisions?.map(d => d.name) ?? Array.from(teamsByDivision.keys())
+  // Also include any registered divisions not in availableDivisions
+  const allDivisions = [...new Set([...availableDivisions, ...Array.from(teamsByDivision.keys())])]
 
   const isLocked = isRegistrationLocked({
     paymentDeadline: registration.paymentDeadline ?? undefined,
@@ -71,7 +80,8 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
   const invoiceData = buildInvoiceDataFromEntries(invoiceEntries, registration, event ?? null, data, {
     clubName: clubLabel,
   })
-  const { total: computedInvoiceTotal } = calculateInvoiceTotals(invoiceData)
+  const invoiceTotals = calculateInvoiceTotals(invoiceData)
+  const { total: computedInvoiceTotal, lineItems, subtotal, totalTax } = invoiceTotals
 
   const paymentDeadlineDate = registration.paymentDeadline ? new Date(registration.paymentDeadline) : undefined
   let paymentStatus: 'Paid' | 'Unpaid' | 'Overdue' = 'Unpaid'
@@ -85,160 +95,166 @@ export default async function EditClubRegistrationPage({ params }: PageProps) {
     paymentDeadlineDate && !Number.isNaN(paymentDeadlineDate.getTime())
       ? formatFriendlyDate(paymentDeadlineDate)
       : undefined
+  const dueDateMonth = paymentDeadlineDate && !Number.isNaN(paymentDeadlineDate.getTime())
+    ? paymentDeadlineDate.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+    : null
+  const dueDateDay = paymentDeadlineDate && !Number.isNaN(paymentDeadlineDate.getTime())
+    ? paymentDeadlineDate.getDate()
+    : null
+  const paidAtDate = registration.paidAt ? new Date(registration.paidAt) : null
+  const paidAtLabel = paidAtDate && !Number.isNaN(paidAtDate.getTime())
+    ? formatFriendlyDate(paidAtDate)
+    : null
+  const paymentTitle = paymentStatus === 'Paid'
+    ? 'Payment received'
+    : paymentStatus === 'Overdue'
+      ? 'Payment overdue'
+      : 'Payment required'
   const eventPageHref = `/events/${registration.eventId}`
   const invoiceHref = `/clubs/registrations/${registration.id}/invoice`
-  const paymentCtaDescription =
-    paymentStatus === 'Overdue'
-      ? `This registration is overdue. Pay the ${invoiceTotalLabel} balance now to keep ${registration.eventName} active.`
-      : `Pay the outstanding balance for ${registration.eventName} to keep this registration active.`
+  
+  // Generate invoice number (based on registration ID)
+  const invoiceNumber = registration.id.replace('r-', '').padStart(6, '0') + '-001'
+  // Use registration snapshot date or event date for invoice date
+  const invoiceDate = registration.snapshotTakenAt || registration.eventDate
+  const organizerName = registration.organizer ?? event?.organizer ?? 'Event organizer'
+  const organizerData = organizers.find(org => org.name === organizerName)
+  const organizerGradientVariant = organizerData?.gradient ?? 'primary'
+  const organizerEvents = listEvents().filter(evt => evt.organizer === organizerName)
+  const organizerEventsCount = organizerEvents.length
+  const organizerFollowers = organizerName
+    .split('')
+    .reduce((total, char) => total + char.charCodeAt(0), 0)
+  const organizerFollowersLabel = organizerFollowers ? organizerFollowers.toLocaleString() : '—'
+  const organizerHostingYears = (() => {
+    const years = organizerEvents
+      .map(evt => new Date(evt.date).getFullYear())
+      .filter(year => Number.isFinite(year))
+    if (!years.length) return null
+    const earliest = Math.min(...years)
+    const currentYear = new Date().getFullYear()
+    return Math.max(1, currentYear - earliest)
+  })()
+  const organizerHostingLabel =
+    organizerHostingYears !== null
+      ? `${organizerHostingYears} year${organizerHostingYears === 1 ? '' : 's'}`
+      : '—'
+  const locationLabel = registration.location ?? event?.location ?? 'Location to be announced'
+  const googleMapsHref =
+    locationLabel && locationLabel !== 'Location to be announced'
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`
+      : null
+  const eventDateLabel = registration.eventDate ? formatFriendlyDate(registration.eventDate) : 'Date pending'
+  const eventDateObj = registration.eventDate ? new Date(registration.eventDate) : null
+  const eventDateWeekday =
+    eventDateObj && !Number.isNaN(eventDateObj.getTime())
+      ? eventDateObj.toLocaleString('en-US', { weekday: 'long' })
+      : null
+  const registrationDeadlineLabel = registration.registrationDeadline
+    ? formatFriendlyDate(registration.registrationDeadline)
+    : null
+
+  // Convert Map to serializable format for client component
+  const teamsByDivisionArray = Array.from(teamsByDivision.entries())
+
+  // Division pricing for registration dialogs
+  const divisionPricing = event?.availableDivisions ?? []
+
+  // Team options for registration dialogs
+  const teamOptions = (data.teams ?? []).map(team => ({
+    id: team.id,
+    name: team.name,
+    division: team.division ?? undefined,
+    size: team.size,
+  }))
+
+  // Build roster map for team lookups
+  const teamRosters: TeamRosterData[] = demoRosters.map(roster => ({
+    teamId: roster.teamId,
+    members: [
+      ...roster.coaches.map(p => ({
+        id: p.id,
+        name: `${p.firstName} ${p.lastName}`.trim(),
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        dob: p.dob,
+        role: 'Coach' as const,
+      })),
+      ...roster.athletes.map(p => ({
+        id: p.id,
+        name: `${p.firstName} ${p.lastName}`.trim(),
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        dob: p.dob,
+        role: 'Athlete' as const,
+      })),
+      ...roster.reservists.map(p => ({
+        id: p.id,
+        name: `${p.firstName} ${p.lastName}`.trim(),
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        dob: p.dob,
+        role: 'Reservist' as const,
+      })),
+      ...roster.chaperones.map(p => ({
+        id: p.id,
+        name: `${p.firstName} ${p.lastName}`.trim(),
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        dob: p.dob,
+        role: 'Chaperone' as const,
+      })),
+    ],
+  }))
 
   return (
-    <section className="flex flex-1 flex-col">
-      {/* HERO — Club header */}
-      <ClubPageHeader
-        title={registration.eventName}
-        hideSubtitle
-        breadcrumbs={<span>Clubs / Registrations / {registration.eventName}</span>}
-        eventStartDate={registration.eventDate}
-      />
-
-      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
-        {/* ACTIONS + PAYMENT NOTICES */}
-        <div className="space-y-6">
-          {/* ACTIONS — Primary buttons */}
-          <FadeInSection className="w-full">
-            <div className="flex flex-wrap gap-3">
-              <Button asChild variant="outline">
-                <Link href={invoiceHref}>View Invoice</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href={eventPageHref}>View Event Listing</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href={`/clubs/registrations/${registration.id}?mode=edit`}>Update Registration</Link>
-              </Button>
-            </div>
-          </FadeInSection>
-
-          {/* PAYMENT NOTICES */}
-          {paymentStatus === 'Overdue' || paymentStatus === 'Paid' ? (
-            <div className="space-y-4">
-              {paymentStatus === 'Overdue' ? (
-                <FadeInSection className="w-full" delay={40}>
-                  <PaymentStatusNotice
-                    status="Overdue"
-                    amountLabel={invoiceTotalLabel}
-                    dueLabel={paymentDeadlineLabel}
-                    eventName={registration.eventName}
-                    invoiceHref={invoiceHref}
-                  />
-                </FadeInSection>
-              ) : null}
-              {paymentStatus === 'Paid' ? (
-                <FadeInSection className="w-full" delay={40}>
-                  <PaymentStatusNotice
-                    status="Paid"
-                    amountLabel={invoiceTotalLabel}
-                    dueLabel={paymentDeadlineLabel}
-                    eventName={registration.eventName}
-                    invoiceHref={invoiceHref}
-                  />
-                </FadeInSection>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-
-        {/* PAYMENT CTA */}
-        {paymentStatus !== 'Paid' && !isLocked ? (
-          <FadeInSection className="w-full" delay={80}>
-            <RegistrationPaymentCTA
-              amountLabel={`Invoice total ${invoiceTotalLabel}`}
-              dueLabel={paymentDeadlineLabel}
-              description={paymentCtaDescription}
-            />
-          </FadeInSection>
-        ) : null}
-
-        {/* SUMMARY — Key figures */}
-        <FadeInSection className="w-full" delay={160}>
-          <div className="flex flex-col gap-4 px-1">
-            <div className="flex flex-col gap-2">
-              <p className="heading-4">Summary</p>
-              <div className="h-px w-full bg-border" />
-            </div>
-            <div className="grid gap-6 text-sm text-foreground sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Invoice total</span>
-                  <span className="font-semibold">{invoiceTotalLabel}</span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Payment status</span>
-                  <span className="font-semibold">
-                    {paymentStatus}
-                    {paymentDeadlineLabel && paymentStatus !== 'Paid'
-                      ? ` · Due ${paymentDeadlineLabel}`
-                      : ''}
-                  </span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Participants registered</span>
-                  <span className="font-semibold">{participantsLabel}</span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Invoice number</span>
-                  <span className="font-semibold">{invoiceData.invoiceNumber}</span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Registration deadline</span>
-                  <span className="font-semibold">
-                    {registration.registrationDeadline
-                      ? formatFriendlyDate(registration.registrationDeadline)
-                      : 'Not set'}
-                  </span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Teams registered</span>
-                  <span className="font-semibold">{teamsLabel}</span>
-                </div>
-                <div className="h-px w-full bg-border/70" />
-              </div>
-            </div>
-          </div>
-        </FadeInSection>
-
-        {/* REGISTERED TEAMS — Receipt view */}
-        <FadeInSection className="w-full" delay={320}>
-          <div className="flex flex-col gap-4 px-1">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <p className="heading-4">Registered Teams</p>
-              </div>
-              <div className="h-px w-full bg-border" />
-            </div>
-            {registeredTeamCards.length ? (
-              <div className="flex flex-col gap-4">
-                {registeredTeamCards.map(card => (
-                  <RegisteredTeamCard key={card.id} card={card} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-muted-foreground rounded-md border border-dashed border-border/60 p-6 text-sm">
-                No teams registered for this event yet.
-              </div>
-            )}
-          </div>
-        </FadeInSection>
-      </div>
-    </section>
+    <RegistrationDetailContent
+      registration={{
+        id: registration.id,
+        eventName: registration.eventName,
+        eventId: registration.eventId,
+      }}
+      isEditMode={isEditMode}
+      divisionPricing={divisionPricing}
+      teamOptions={teamOptions}
+      teamRosters={teamRosters}
+      organizerName={organizerName}
+      organizerGradientVariant={organizerGradientVariant}
+      organizerFollowersLabel={organizerFollowersLabel}
+      organizerEventsCount={organizerEventsCount}
+      organizerHostingLabel={organizerHostingLabel}
+      locationLabel={locationLabel}
+      googleMapsHref={googleMapsHref}
+      eventDateLabel={eventDateLabel}
+      eventDateWeekday={eventDateWeekday}
+      registrationDeadlineLabel={registrationDeadlineLabel}
+      isLocked={isLocked}
+      allDivisions={allDivisions}
+      teamsByDivisionArray={teamsByDivisionArray}
+      invoiceLineItems={lineItems}
+      subtotal={subtotal}
+      totalTax={totalTax}
+      invoiceTotal={invoiceTotalNumber}
+      invoiceTotalLabel={invoiceTotalLabel}
+      invoiceNumber={invoiceNumber}
+      invoiceDate={invoiceDate}
+      invoiceHref={invoiceHref}
+      eventPageHref={eventPageHref}
+      paymentStatus={paymentStatus}
+      paymentDeadlineLabel={paymentDeadlineLabel}
+      paymentTitle={paymentTitle}
+      paidAtLabel={paidAtLabel}
+      dueDateMonth={dueDateMonth}
+      dueDateDay={dueDateDay}
+    />
   )
 }
 
@@ -250,52 +266,6 @@ function buildRegisteredTeamCardFromInvoiceEntry(entry: InvoiceTeamEntry): Regis
     members: normalizeRegisteredMembers(entry.members),
     detailId: entry.teamId ?? entry.registeredTeamId ?? entry.id,
   }
-}
-
-type PaymentStatusNoticeProps = {
-  status: 'Paid' | 'Overdue'
-  amountLabel: string
-  dueLabel?: string
-  eventName: string
-  invoiceHref: string
-}
-
-function PaymentStatusNotice({ status, amountLabel, dueLabel, eventName, invoiceHref }: PaymentStatusNoticeProps) {
-  const isPaid = status === 'Paid'
-  const containerClasses = isPaid
-    ? 'border-lime-200 bg-lime-50 text-lime-900'
-    : 'border-red-200 bg-red-50 text-red-900'
-  const supportingTextClasses = isPaid ? 'text-lime-800' : 'text-red-800'
-
-  return (
-    <div className={`rounded-md border px-4 py-4 text-sm ${containerClasses}`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="font-semibold">
-            {isPaid ? 'Payment received' : 'Payment overdue'}
-            {!isPaid && dueLabel ? <span className="font-normal">{` · Due ${dueLabel}`}</span> : null}
-          </p>
-          <p className={supportingTextClasses}>
-            {isPaid
-              ? `The invoice for ${eventName} is paid in full.`
-              : `The ${amountLabel} invoice for ${eventName} ${
-                  dueLabel ? `was due ${dueLabel}` : 'is overdue'
-                }. Pay immediately to keep this registration active.`}
-          </p>
-        </div>
-        {isPaid ? null : (
-          <Button
-            asChild
-            size="sm"
-            variant="destructive"
-            className="bg-red-600 text-white hover:bg-red-600/90"
-          >
-            <Link href={invoiceHref}>Pay Now</Link>
-          </Button>
-        )}
-      </div>
-    </div>
-  )
 }
 
 function normalizeRegisteredMembers(members?: RegisteredMemberDTO[] | null): RegisteredTeamMember[] {

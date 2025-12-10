@@ -37,14 +37,20 @@ export default async function InvoicePage({ params }: PageProps) {
 
   const invoiceTeamEntries = buildInvoiceTeamEntries(clubData, registration.eventId, event, { scope: 'event' })
   const invoiceEntries = convertInvoiceTeamsToRegistrationEntries(invoiceTeamEntries)
+  
+  // Build the current invoice (this is the base invoice from server data)
   const invoice = buildInvoiceDataFromEntries(invoiceEntries, registration, event ?? null, clubData, {
     clubName: clubLabel,
   })
-  const invoices = [invoice]
 
   const registrationHref = `/clubs/registrations/${registration.id}`
 
   return (
-    <InvoicePageClient invoices={invoices} registrationHref={registrationHref} />
+    <InvoicePageClient 
+      invoices={[invoice]} 
+      registrationHref={registrationHref}
+      registrationId={registrationId}
+      originalPaymentStatus={registration.status === 'paid' ? 'paid' : 'unpaid'}
+    />
   )
 }

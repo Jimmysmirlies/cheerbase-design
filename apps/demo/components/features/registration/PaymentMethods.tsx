@@ -73,12 +73,12 @@ export function PaymentMethodsCard({
         {methods.map(method => {
           const Icon = method.icon
           return (
-            <div key={method.id} className="rounded-lg border border-border/60 p-4">
+            <div key={method.id} className="rounded-md border border-border/70 bg-card/60 p-4">
               <div className="mb-3 flex items-center gap-3">
                 <div className="rounded-full bg-primary/10 p-2">
-                  <Icon className="h-4 w-4 text-primary" />
+                  <Icon className="size-4 text-primary" />
                 </div>
-                <h3 className="heading-5">{method.type}</h3>
+                <h3 className="heading-4">{method.type}</h3>
               </div>
               <ul className="ml-9 space-y-2">
                 {method.instructions.map((instruction, index) => (
@@ -115,10 +115,10 @@ export function PaymentMethodsDialog({
 }: PaymentMethodsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl rounded-2xl sm:max-w-4xl">
+      <DialogContent className="max-w-lg rounded-md sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Payment Methods</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="heading-3">Payment Methods</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground">
             Choose your preferred payment method below
           </DialogDescription>
         </DialogHeader>
@@ -126,12 +126,12 @@ export function PaymentMethodsDialog({
           {methods.map(method => {
             const Icon = method.icon
             return (
-              <div key={method.id} className="rounded-lg border border-border/60 p-4">
+              <div key={method.id} className="rounded-md border border-border/70 bg-card/60 p-4">
                 <div className="mb-3 flex items-center gap-3">
                   <div className="rounded-full bg-primary/10 p-2">
-                    <Icon className="h-4 w-4 text-primary" />
+                    <Icon className="size-4 text-primary" />
                   </div>
-                  <h3 className="heading-5">{method.type}</h3>
+                  <h3 className="heading-4">{method.type}</h3>
                 </div>
                 <ul className="ml-9 space-y-2">
                   {method.instructions.map((instruction, index) => (

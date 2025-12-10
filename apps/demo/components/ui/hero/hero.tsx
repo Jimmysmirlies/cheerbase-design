@@ -146,9 +146,9 @@ function HeroCarouselFullBleed({ slides }: { slides: HeroSlide[] }) {
 
   return (
     /* Hero Carousel Variant: "Full-Bleed Storyboard" */
-    <section className="bg-background lg:p-12 sm:p-6">
+    <section className="bg-background px-6 py-8">
       <div className="mx-auto max-w-7xl shadow-lg overflow-hidden rounded-[1rem]">
-        <div className="relative min-h-[520px]">
+        <div className="relative min-h-[400px]">
           {slides.map((slide, index) => (
             <div
               key={slide.id}

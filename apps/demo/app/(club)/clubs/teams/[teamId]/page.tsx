@@ -17,6 +17,7 @@ import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { useClubData } from "@/hooks/useClubData";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { FadeInSection } from "@/components/ui";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
 import type { TeamOption } from "@/components/features/registration/flow/types";
@@ -26,12 +27,8 @@ import type { Person, TeamRoster } from "@/types/club";
 function DetailsInner() {
   const params = useParams<{ teamId: string }>();
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
-        <FadeInSection className="w-full">
-          <TeamDetails teamId={params.teamId} />
-        </FadeInSection>
-      </div>
+    <main className="flex min-h-screen flex-col bg-background text-foreground">
+      <TeamDetails teamId={params.teamId} />
     </main>
   );
 }
@@ -151,6 +148,18 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
     return empty;
   };
 
+  const pageTitle = team?.name ?? "Unknown Team";
+  const breadcrumbItems = [
+    { label: "Clubs", href: "/clubs" },
+    { label: "Teams", href: "/clubs" },
+    { label: pageTitle },
+  ];
+  const metadataItems = [
+    { label: "Division", value: divisionLabel },
+    { label: "Level", value: levelLabel },
+    { label: "Members", value: memberCount },
+  ];
+
   if (loading) {
     return (
       <FadeInSection className="w-full">
@@ -168,20 +177,18 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back + header */}
-      <FadeInSection className="w-full">
-        <div className="space-y-4">
-          {onNavigateToTeams ? (
-            <div>
-              <Button variant="ghost" size="icon" type="button" onClick={onNavigateToTeams} aria-label="Back to Teams">
-                <span className="text-xl leading-none">←</span>
-              </Button>
-            </div>
-          ) : null}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="heading-2 text-foreground">{team?.name ?? "Unknown Team"}</div>
-            <div className="flex items-center gap-2">
+    <section className="flex flex-1 flex-col">
+      <PageHeader title={pageTitle} breadcrumbItems={breadcrumbItems} metadataItems={metadataItems} />
+
+      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+        <div className="space-y-6">
+          <FadeInSection className="w-full">
+            <div className="flex flex-wrap items-center gap-3">
+              {onNavigateToTeams ? (
+                <Button variant="ghost" size="sm" type="button" onClick={onNavigateToTeams}>
+                  ← Back to Teams
+                </Button>
+              ) : null}
               <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
                 Bulk Upload
               </Button>
@@ -189,39 +196,15 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
                 Edit Team
               </Button>
             </div>
-          </div>
-          <div className="h-px w-full bg-border" />
-          <div className="grid gap-8 pb-4 text-sm text-foreground sm:grid-cols-3">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Division</span>
-                <span className="font-medium text-right">{divisionLabel}</span>
-              </div>
-              <div className="h-px w-full bg-border/80" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Level</span>
-                <span className="font-medium">{levelLabel}</span>
-              </div>
-              <div className="h-px w-full bg-border/80" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Members</span>
-                <span className="font-medium">{memberCount}</span>
-              </div>
-              <div className="h-px w-full bg-border/80" />
-            </div>
-          </div>
-        </div>
-      </FadeInSection>
+          </FadeInSection>
 
-      <FadeInSection className="w-full" delay={120}>
-        <div className="flex flex-col gap-4">
-          <RosterTable people={combinedMembers} />
+          <FadeInSection className="w-full" delay={120}>
+            <div className="flex flex-col gap-4">
+              <RosterTable people={combinedMembers} />
+            </div>
+          </FadeInSection>
         </div>
-      </FadeInSection>
+      </div>
 
       <BulkUploadDialog
         open={bulkOpen}
@@ -250,6 +233,6 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
           setEditorOpen(false);
         }}
       />
-    </div>
+    </section>
   );
 }

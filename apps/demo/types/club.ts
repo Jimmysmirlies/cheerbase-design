@@ -19,6 +19,7 @@ export type Registration = {
   id: string;
   eventId: string;
   eventName: string;
+  organizer: string;
   eventDate: string;
   location: string;
   division: string;

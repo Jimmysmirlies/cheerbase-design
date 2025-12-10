@@ -1,51 +1,52 @@
-"use client";
-/**
- * EditRegistrationDialog
- *
- * Purpose
- * - Demo editing for a registration: adjust athlete count and preview invoice total.
- */
-import { useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@workspace/ui/shadcn/dialog";
-import { Button } from "@workspace/ui/shadcn/button";
-import { Input } from "@workspace/ui/shadcn/input";
-import type { Registration } from "@/types/club";
+'use client'
 
-const FEE_PER_ATHLETE = 20; // demo only
+import { useRouter } from 'next/navigation'
+import { AlertCircleIcon } from 'lucide-react'
 
-export default function EditRegistrationDialog({ trigger, reg }: { trigger: React.ReactNode; reg: Registration }) {
-  const [open, setOpen] = useState(false);
-  const [athletes, setAthletes] = useState(reg.athletes);
+import { Button } from '@workspace/ui/shadcn/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@workspace/ui/shadcn/dialog'
 
-  const total = useMemo(() => `$${athletes * FEE_PER_ATHLETE}`, [athletes]);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="rounded-3xl p-6">
-        <DialogHeader>
-          <DialogTitle>Edit registration</DialogTitle>
-          <DialogDescription>Adjust counts before the deadline; totals update automatically.</DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4">
-          <div className="grid gap-1">
-            <label className="text-xs uppercase tracking-wide text-muted-foreground">Athletes</label>
-            <Input type="number" value={athletes} onChange={(e) => setAthletes(Number(e.target.value))} />
-          </div>
-          <div className="rounded-2xl border bg-muted/30 p-3 text-sm">
-            <p>
-              Invoice total: <span className="font-semibold">{total}</span>
-              <span className="text-muted-foreground"> (demo rate ${FEE_PER_ATHLETE}/athlete)</span>
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="button" onClick={() => setOpen(false)}>Save</Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+type EditRegistrationDialogProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  registrationId: string
 }
 
+export function EditRegistrationDialog({ open, onOpenChange, registrationId }: EditRegistrationDialogProps) {
+  const router = useRouter()
+
+  const handleConfirm = () => {
+    onOpenChange(false)
+    router.push(`/clubs/registrations/${registrationId}?mode=edit`)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-lg">
+        <DialogHeader className="gap-3">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+            <AlertCircleIcon className="size-6 text-amber-600 dark:text-amber-400" />
+          </div>
+          <DialogTitle className="text-center">Edit Registration?</DialogTitle>
+          <DialogDescription className="text-center">
+            Any changes you make to your teams will be reflected in a new invoice. Your current invoice will be updated
+            to show the revised totals.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm}>Yes, Edit Registration</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

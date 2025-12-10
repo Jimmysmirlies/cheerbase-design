@@ -66,10 +66,10 @@ export default function HomePage() {
       <Hero slides={heroSlides} />
 
             {/* Location-first browsing */}
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-12">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-8">
         <FadeInSection>
           <header className="flex flex-wrap items-center gap-3">
-            <p className="heading-2">Find events in your area:</p>
+            <p className="heading-3">Find events in your area:</p>
             <TextSelect
               value={selectedProvince}
               onValueChange={setSelectedProvince}
@@ -80,7 +80,7 @@ export default function HomePage() {
         </FadeInSection>
 
         <FadeInSection key={`province-${selectedProvince || "all"}`} delay={120}>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {provinceEvents.map((event, index) => (
               <FadeInSection key={`${event.id}-${event.location}`} delay={index * 80} className="h-full">
                 <EventCard
@@ -99,11 +99,11 @@ export default function HomePage() {
       </section>
 
       {/* Organizer-first browsing: select an organizer, see their events */}
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-12">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-8">
         <FadeInSection>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <header className="flex flex-wrap items-center gap-3">
-              <p className="heading-2">Browse events by organizer:</p>
+              <p className="heading-3">Browse events by organizer:</p>
               <TextSelect
                 value={selectedOrganizer}
                 onValueChange={setSelectedOrganizer}
@@ -118,7 +118,7 @@ export default function HomePage() {
         </FadeInSection>
 
         <FadeInSection delay={160}>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {organizerEvents.map((event, index) => (
               <FadeInSection key={`${event.id}-organizer`} delay={index * 80} className="h-full">
                 <EventCard
@@ -138,7 +138,7 @@ export default function HomePage() {
 
       {/* Footer: Global links and product tagline */}
       <footer className="border-t border-border bg-card/60">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-12 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-lg font-semibold">Ralli</p>
             <p className="text-sm text-muted-foreground">

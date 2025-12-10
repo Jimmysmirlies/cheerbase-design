@@ -1,11 +1,13 @@
 'use client'
 
 import { useMemo, useState, type KeyboardEvent } from 'react'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, PencilIcon, UsersIcon } from 'lucide-react'
 
 import { cn } from '@workspace/ui/lib/utils'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
 import { Button } from '@workspace/ui/shadcn/button'
+import { Badge } from '@workspace/ui/shadcn/badge'
+import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
 
 export type RegisteredTeamMember = {
   id?: string | null
@@ -26,14 +28,14 @@ type RegisteredTeamCardProps = {
     members?: RegisteredTeamMember[]
     detailId: string
   }
+  isEditMode?: boolean
+  onEdit?: (teamId: string) => void
 }
 
-export function RegisteredTeamCard({ card }: RegisteredTeamCardProps) {
+export function RegisteredTeamCard({ card, isEditMode = false, onEdit }: RegisteredTeamCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const { divisionLabel, levelLabel } = useMemo(() => parseDivision(card.division), [card.division])
   const roster = useMemo(() => card.members ?? [], [card.members])
   const memberCount = roster.length
-  const memberLabel = memberCount === 1 ? 'member' : 'members'
   const prioritizedRoster = useMemo(() => {
     if (!roster.length) return []
     const coaches = roster.filter(member => member.role?.toLowerCase() === 'coach')
@@ -50,35 +52,52 @@ export function RegisteredTeamCard({ card }: RegisteredTeamCardProps) {
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-sm border border-border/70 bg-background/80 shadow-sm">
+    <div className="w-full overflow-hidden rounded-md border border-border/70 bg-card/60 transition-all hover:border-primary/20">
       <div
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
         onClick={toggleExpanded}
         onKeyDown={handleKeyDown}
-        className="flex cursor-pointer items-center gap-4 px-5 py-4 focus:outline-none"
+        className="flex cursor-pointer items-center gap-4 p-5 focus:outline-none"
       >
-        <div className="min-w-0 flex-1 space-y-1">
+        <GradientAvatar name={card.name} size="sm" />
+        <div className="min-w-0 flex-1">
           <h3 className="heading-4 truncate text-foreground">{card.name}</h3>
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">Division:</span> {divisionLabel}
-            {levelLabel !== '—' ? ` · Level ${levelLabel}` : ''}
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <UsersIcon className="size-3.5 text-muted-foreground" aria-hidden="true" />
+            <span className="body-small text-muted-foreground">
+              {memberCount} {memberCount === 1 ? 'Participant' : 'Participants'}
+            </span>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex items-center gap-2 text-sm text-muted-foreground"
-          onClick={event => {
-            event.stopPropagation()
-            toggleExpanded()
-          }}
-        >
-          <span className="text-foreground font-medium">{memberCount}</span>
-          <span>{memberLabel}</span>
-          <ChevronDownIcon className={cn('size-4 transition-transform', expanded && 'rotate-180')} aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {isEditMode && onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={event => {
+                event.stopPropagation()
+                onEdit(card.detailId)
+              }}
+            >
+              <PencilIcon className="size-3.5" />
+              Edit
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={event => {
+              event.stopPropagation()
+              toggleExpanded()
+            }}
+          >
+            <ChevronDownIcon className={cn('size-5 transition-transform', expanded && 'rotate-180')} aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
       <div
@@ -103,8 +122,8 @@ export function RegisteredTeamCard({ card }: RegisteredTeamCardProps) {
                   <tr>
                     <th className="px-3 py-3 font-medium sm:px-4">Name</th>
                     <th className="px-3 py-3 font-medium sm:px-4">DOB</th>
-                    <th className="px-3 py-3 font-medium sm:px-5">Email</th>
-                    <th className="px-3 py-3 font-medium sm:px-5">Phone</th>
+                    <th className="hidden px-3 py-3 font-medium md:table-cell md:px-5">Email</th>
+                    <th className="hidden px-3 py-3 font-medium sm:table-cell sm:px-5">Phone</th>
                     <th className="px-3 py-3 text-right font-medium sm:px-4">Role</th>
                   </tr>
                 </thead>
@@ -117,9 +136,11 @@ export function RegisteredTeamCard({ card }: RegisteredTeamCardProps) {
                     >
                       <td className="text-foreground px-3 py-3 sm:px-4">{formatMemberName(member)}</td>
                       <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob ?? undefined)}</td>
-                      <td className="px-3 py-3 sm:px-5">{member.email ?? '—'}</td>
-                      <td className="px-3 py-3 sm:px-5">{formatPhoneNumber(member.phone ?? undefined)}</td>
-                      <td className="px-3 py-3 text-right sm:px-4">{formatRole(member.role)}</td>
+                      <td className="hidden px-3 py-3 md:table-cell md:px-5">{member.email ?? '—'}</td>
+                      <td className="hidden px-3 py-3 sm:table-cell sm:px-5">{formatPhoneNumber(member.phone ?? undefined)}</td>
+                      <td className="px-3 py-3 text-right sm:px-4">
+                        <RoleBadge role={member.role} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -134,22 +155,6 @@ export function RegisteredTeamCard({ card }: RegisteredTeamCardProps) {
   )
 }
 
-function parseDivision(division: string) {
-  const parts = division
-    .split('-')
-    .map(part => part.trim())
-    .filter(Boolean)
-  if (!parts.length) {
-    return { divisionLabel: '—', levelLabel: '—' }
-  }
-  if (parts.length === 1) {
-    return { divisionLabel: parts[0] ?? '—', levelLabel: '—' }
-  }
-  const level = parts.pop() ?? '—'
-  const divisionLabel = parts.length ? parts.join(' - ') : '—'
-  return { divisionLabel, levelLabel: level }
-}
-
 function formatMemberName(member: RegisteredTeamMember) {
   if (member.name?.trim()) return member.name.trim()
   const name = [member.firstName, member.lastName].filter(Boolean).join(' ').trim()
@@ -161,4 +166,42 @@ function formatRole(role?: string | null) {
   const normalized = role.trim()
   if (!normalized) return '—'
   return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
+function RoleBadge({ role }: { role?: string | null }) {
+  const normalizedRole = role?.trim().toLowerCase()
+  
+  if (!normalizedRole) {
+    return <span className="text-muted-foreground">—</span>
+  }
+
+  const roleConfig: Record<string, { label: string; className: string }> = {
+    coach: {
+      label: 'Coach',
+      className: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
+    },
+    athlete: {
+      label: 'Athlete',
+      className: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
+    },
+    reservist: {
+      label: 'Reservist',
+      className: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
+    },
+    chaperone: {
+      label: 'Chaperone',
+      className: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
+    },
+  }
+
+  const config = roleConfig[normalizedRole] ?? {
+    label: formatRole(role),
+    className: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800/30 dark:text-gray-300 dark:border-gray-700',
+  }
+
+  return (
+    <Badge variant="outline" className={cn('font-medium', config.className)}>
+      {config.label}
+    </Badge>
+  )
 }

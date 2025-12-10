@@ -17,6 +17,7 @@
 import Link from "next/link";
 import { OrganizerCard, FadeInSection } from "@/components/ui";
 import type { Organizer } from "@/types/events";
+import { brandGradients } from "@/lib/gradients";
 
 type OrganizersSectionProps = {
   organizers: Organizer[];
@@ -57,7 +58,7 @@ export default function OrganizersSection({
             {organizers.map((organizer) => (
               <OrganizerCard
                 key={organizer.name}
-                accentGradient={organizer.accent}
+                accentGradient={brandGradients[organizer.gradient].tailwind}
                 name={organizer.name}
                 region={organizer.region}
                 visibility={organizer.visibility}

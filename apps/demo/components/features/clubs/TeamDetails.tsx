@@ -78,18 +78,6 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
       ...roster.chaperones.map((person) => ({ ...person, role: "Chaperone" })),
     ];
   }, [roster]);
-  const { divisionLabel, levelLabel } = useMemo(() => {
-    const parts = (team?.division ?? "").split("-").map((p) => p.trim()).filter(Boolean);
-    if (!parts.length) return { divisionLabel: "—", levelLabel: "—" };
-    if (parts.length === 1) return { divisionLabel: parts[0], levelLabel: "—" };
-    const level = parts.pop() ?? "—";
-    return { divisionLabel: parts.join(" - "), levelLabel: level };
-  }, [team?.division]);
-  const memberCount =
-    (roster?.coaches?.length ?? 0) +
-    (roster?.athletes?.length ?? 0) +
-    (roster?.reservists?.length ?? 0) +
-    (roster?.chaperones?.length ?? 0);
 
   const editorMembers = useMemo(
     () =>
@@ -134,49 +122,19 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
 
   return (
     <div className="space-y-6">
-      {/* Back + header */}
       <div className="space-y-4">
-        {onNavigateToTeams ? (
-          <div>
-            <Button variant="ghost" size="icon" type="button" onClick={onNavigateToTeams} aria-label="Back to Teams">
-              <span className="text-xl leading-none">←</span>
+        <div className="flex flex-wrap items-center gap-3">
+          {onNavigateToTeams ? (
+            <Button variant="ghost" size="sm" type="button" onClick={onNavigateToTeams}>
+              ← Back to Teams
             </Button>
-          </div>
-        ) : null}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="heading-2 text-foreground">{team?.name ?? "Unknown Team"}</div>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
-              Bulk Upload
-            </Button>
-            <Button type="button" variant="default" size="sm" onClick={() => setEditorOpen(true)}>
-              Edit Team
-            </Button>
-          </div>
-        </div>
-        <div className="h-px w-full bg-border" />
-        <div className="grid gap-6 pb-4 text-sm text-foreground sm:grid-cols-3">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Division</span>
-              <span className="font-medium text-right">{divisionLabel}</span>
-            </div>
-            <div className="h-px w-full bg-border/80" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Level</span>
-              <span className="font-medium">{levelLabel}</span>
-            </div>
-            <div className="h-px w-full bg-border/80" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Members</span>
-              <span className="font-medium">{memberCount}</span>
-            </div>
-            <div className="h-px w-full bg-border/80" />
-          </div>
+          ) : null}
+          <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+            Bulk Upload
+          </Button>
+          <Button type="button" variant="default" size="sm" onClick={() => setEditorOpen(true)}>
+            Edit Team
+          </Button>
         </div>
       </div>
 

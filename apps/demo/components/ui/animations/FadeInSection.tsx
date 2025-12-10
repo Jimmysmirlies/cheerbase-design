@@ -12,26 +12,34 @@ type FadeInSectionProps = {
 export function FadeInSection({ children, className, delay = 0 }: FadeInSectionProps) {
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
+    const element = ref.current
+    if (!element) return
+
+    // Small delay to ensure layout is settled before observing
+    const timeoutId = setTimeout(() => {
+      observerRef.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            setIsVisible(true)
+            observerRef.current?.disconnect()
+          }
+        },
+        {
+          threshold: 0.05,
+          rootMargin: '50px 0px 0px 0px', // Trigger slightly before element enters viewport from top
         }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px',
-      }
-    )
+      )
 
-    if (ref.current) {
-      observer.observe(ref.current)
+      observerRef.current.observe(element)
+    }, 50)
+
+    return () => {
+      clearTimeout(timeoutId)
+      observerRef.current?.disconnect()
     }
-
-    return () => observer.disconnect()
   }, [])
 
   return (

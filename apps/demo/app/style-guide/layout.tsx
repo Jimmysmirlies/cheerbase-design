@@ -1,69 +1,110 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
+import type { ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon } from "lucide-react"
 
-const guideSections = [
-  { href: "/style-guide", label: "Overview" },
-  { href: "/style-guide/colors", label: "Color Roles" },
-  { href: "/style-guide/typography", label: "Typography" },
-  { href: "/style-guide/spacing", label: "Spacing & Radii" },
-  { href: "/style-guide/buttons", label: "Button Patterns" },
-  { href: "/style-guide/components", label: "Component Library" },
-  { href: "/style-guide/api-contracts", label: "API Contracts" },
-];
+import { Sidebar } from "@/components/layout/Sidebar"
+import { NavBar } from "@/components/layout/NavBar"
+
+// Style guide navigation map with nicknames for quick referencing in code.
+const guideNavSections = [
+  {
+    label: "Style Guide",
+    nickname: "style-guide-shell",
+    items: [
+      { key: "overview", label: "Overview", icon: <BookOpenIcon className="size-4" />, href: "/style-guide", nickname: "guide-overview" },
+      { key: "colors", label: "Color Roles", icon: <PaletteIcon className="size-4" />, href: "/style-guide/colors", nickname: "guide-colors" },
+      { key: "typography", label: "Typography", icon: <TypeIcon className="size-4" />, href: "/style-guide/typography", nickname: "guide-typography" },
+      { key: "spacing", label: "Spacing & Radii", icon: <ScanIcon className="size-4" />, href: "/style-guide/spacing", nickname: "guide-spacing" },
+      { key: "buttons", label: "Button Patterns", icon: <MousePointerClickIcon className="size-4" />, href: "/style-guide/buttons", nickname: "guide-buttons" },
+      { key: "components", label: "Component Library", icon: <PuzzleIcon className="size-4" />, href: "/style-guide/components", nickname: "guide-components" },
+      { key: "api-contracts", label: "API Contracts", icon: <BracesIcon className="size-4" />, href: "/style-guide/api-contracts", nickname: "guide-api-contracts" },
+    ],
+  },
+]
 
 export default function StyleGuideLayout({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
-  const sectionItems = useMemo(() => guideSections, []);
+  const pathname = usePathname()
+  const navWrapperRef = useRef<HTMLDivElement | null>(null)
+  const [navHeight, setNavHeight] = useState(72)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  const active = useMemo(() => {
+    if (!pathname) return "overview"
+    if (pathname.includes("/colors")) return "colors"
+    if (pathname.includes("/typography")) return "typography"
+    if (pathname.includes("/spacing")) return "spacing"
+    if (pathname.includes("/buttons")) return "buttons"
+    if (pathname.includes("/components")) return "components"
+    if (pathname.includes("/api-contracts")) return "api-contracts"
+    return "overview"
+  }, [pathname])
+
+  useEffect(() => {
+    const element = navWrapperRef.current
+    if (!element) return
+
+    const updateHeight = () => {
+      const next = element.getBoundingClientRect().height
+      if (!next) return
+      setNavHeight(next)
+    }
+
+    updateHeight()
+
+    if (typeof window !== "undefined" && "ResizeObserver" in window) {
+      const observer = new window.ResizeObserver(entries => {
+        const entry = entries[0]
+        if (!entry) return
+        const next = entry.contentRect.height
+        if (next) {
+          setNavHeight(next)
+        }
+      })
+      observer.observe(element)
+      return () => observer.disconnect()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const mediaQuery = window.matchMedia("(max-width: 1023px)")
+    const syncFromQuery = (target: Pick<MediaQueryList, "matches">) => {
+      setIsMobile(target.matches)
+      setIsSidebarOpen(target.matches ? false : true)
+    }
+
+    syncFromQuery(mediaQuery)
+    const handler = (event: MediaQueryListEvent) => syncFromQuery(event)
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handler)
+      return () => mediaQuery.removeEventListener("change", handler)
+    }
+
+    mediaQuery.addListener(handler)
+    return () => mediaQuery.removeListener(handler)
+  }, [])
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <aside
-        className="border-border/80 sticky top-0 flex h-screen shrink-0 flex-col justify-between border-r bg-card/80 p-3 text-sm backdrop-blur"
-        style={{ width: collapsed ? "76px" : "240px" }}
+    <div className="min-h-screen bg-background text-foreground">
+      <div ref={navWrapperRef} className="fixed inset-x-0 top-0 z-40">
+        <NavBar showSidebarToggle={isMobile} sidebarOpen={isSidebarOpen} onSidebarToggle={() => setIsSidebarOpen(prev => !prev)} />
+      </div>
+      <Sidebar
+        active={active}
+        navSections={guideNavSections}
+        navOffset={navHeight}
+        isOpen={isSidebarOpen}
+        isMobile={isMobile}
+        onClose={() => setIsSidebarOpen(false)}
+        supportTitle="Design System"
+        supportText="Working on the guide? Ping the design systems team or email support@cheerbase.test."
       >
-        <div className="space-y-4">
-          <button
-            type="button"
-            onClick={() => setCollapsed((prev) => !prev)}
-            className="hover:bg-muted focus-visible:ring-ring/60 text-muted-foreground hover:text-foreground inline-flex h-10 w-full items-center justify-between rounded-xl px-3 font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            aria-label={collapsed ? "Expand style guide navigation" : "Collapse style guide navigation"}
-          >
-            <span className="flex items-center gap-2">
-              {collapsed ? <PanelLeftOpenIcon className="h-4 w-4" /> : <PanelLeftCloseIcon className="h-4 w-4" />}
-              {!collapsed && <span>Sections</span>}
-            </span>
-          </button>
-          <nav className="grid gap-2">
-            {sectionItems.map((section) => {
-              const initial = section.label.slice(0, 1).toUpperCase();
-              return (
-                <Link
-                  key={section.href}
-                  className="hover:bg-muted focus-visible:ring-ring/60 text-muted-foreground hover:text-foreground group relative flex items-center gap-3 rounded-xl px-3 py-2 font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  href={section.href}
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/80 text-foreground text-xs font-semibold">
-                    {initial}
-                  </span>
-                  {!collapsed ? <span className="truncate">{section.label}</span> : null}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-        <Link
-          className="hover:bg-muted focus-visible:ring-ring/60 text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          href="/"
-        >
-          {!collapsed ? "← Back to marketplace" : "←"}
-        </Link>
-      </aside>
-
-      <div className="flex min-h-screen flex-1 flex-col">
         <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col space-y-10 px-6 py-10 pb-20">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -81,7 +122,7 @@ export default function StyleGuideLayout({ children }: { children: ReactNode }) 
           </div>
           {children}
         </main>
-      </div>
+      </Sidebar>
     </div>
-  );
+  )
 }

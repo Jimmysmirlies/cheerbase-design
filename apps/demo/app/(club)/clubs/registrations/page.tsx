@@ -10,7 +10,7 @@ import { CalendarRangeIcon, ChevronDownIcon, ChevronUpIcon, ListIcon } from 'luc
 
 import { EventRegisteredCard, type EventRegisteredCardProps } from '@/components/ui/cards/EventRegisteredCard'
 import { FadeInSection } from '@/components/ui'
-import { ClubPageHeader } from '@/components/layout/ClubPageHeader'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useClubData } from '@/hooks/useClubData'
 import { findEventById } from '@/data/events'
@@ -44,16 +44,18 @@ export default function ClubRegistrationsPage() {
   const isHistoricalSeason = selectedSeason.type === 'past'
 
   return (
-    // LAYOUT SHELL — "Club Canvas": nav rail, hero header, and content track everything in one frame
     <section className="flex flex-1 flex-col">
-      <ClubPageHeader
+      <PageHeader
         title="Registrations"
         subtitle="Review submissions, update rosters, and keep an eye on payment deadlines."
         hideSubtitle
-        breadcrumbs={<span>Clubs / Registrations</span>}
+        breadcrumbItems={[
+          { label: 'Clubs', href: '/clubs' },
+          { label: 'Registrations', href: '/clubs/registrations' },
+        ]}
       />
 
-      <div className="mx-auto w-full max-w-6xl px-4 lg:px-8 py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
         <FadeInSection className="w-full">
           <RegistrationsContent
             userId={user.id}
@@ -210,18 +212,16 @@ function RegistrationsContent({
       <FadeInSection className="w-full" delay={80}>
         <div className="border-b border-border pb-4">
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Viewing Season</p>
-              <TextSelect
-                value={selectedSeasonId}
-                onValueChange={onSelectSeason}
-                sections={seasonSelectSections}
-                size="large"
-                triggerClassName="justify-between heading-3 text-primary"
-                itemClassName="text-lg font-semibold"
-                contentClassName="min-w-[340px]"
-              />
-            </div>
+            <TextSelect
+              value={selectedSeasonId}
+              onValueChange={onSelectSeason}
+              sections={seasonSelectSections}
+              size="large"
+              label="Viewing Season"
+              triggerClassName="justify-between heading-3 text-primary"
+              itemClassName="text-lg font-semibold"
+              contentClassName="min-w-[340px]"
+            />
             <TooltipProvider delayDuration={120}>
               <div className="relative inline-flex items-center rounded-md border border-border/70 bg-muted/40 p-1 shrink-0 ml-auto">
                 <div
@@ -344,7 +344,7 @@ function RegistrationsContent({
                   </div>
                   {!collapsed[section.key] ? (
                     section.items.length ? (
-                      <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {section.items.map((row, rowIndex) => (
                           <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full w-full">
                             <div className={`h-full w-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
@@ -368,7 +368,7 @@ function RegistrationsContent({
         <FadeInSection className="w-full" delay={120}>
           <div className="space-y-4">
             {listRows.length ? (
-              <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {listRows.map((row, rowIndex) => (
                   <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full w-full">
                     <div className={`h-full w-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
@@ -396,8 +396,14 @@ function categorizeRegistrations(data?: ClubData) {
   const registeredTeamMap = new Map(registeredTeams.map(rt => [rt.id, rt]))
   const rosterByTeam = new Map(rosters.map(r => [r.teamId, r]))
   const now = new Date()
-  const upcoming: RegistrationRow[] = []
-  const past: RegistrationRow[] = []
+
+  // Group registrations by eventId to avoid duplicate cards
+  const eventMap = new Map<string, {
+    reg: typeof registrations[0]
+    participants: number
+    isPaid: boolean
+    paymentDeadline?: Date
+  }>()
 
   registrations.forEach(reg => {
     const inferredRegisteredTeamId = reg.registeredTeamId ?? (reg.teamId ? `rt-${reg.teamId}` : undefined)
@@ -405,9 +411,28 @@ function categorizeRegistrations(data?: ClubData) {
     const roster = registeredTeam?.sourceTeamId ? rosterByTeam.get(registeredTeam.sourceTeamId) : null
     const participants =
       registeredTeam?.members?.length ?? (roster ? countRosterParticipants(roster) : reg.athletes ?? registeredTeam?.size ?? 0)
-    const event = findEventById(reg.eventId)
     const isPaid = reg.status === 'paid' || Boolean(reg.paidAt)
     const paymentDeadline = reg.paymentDeadline ? new Date(reg.paymentDeadline) : undefined
+
+    const existing = eventMap.get(reg.eventId)
+    if (existing) {
+      // Aggregate participants and track if ANY team is unpaid
+      existing.participants += participants
+      existing.isPaid = existing.isPaid && isPaid
+      // Use earliest payment deadline
+      if (paymentDeadline && (!existing.paymentDeadline || paymentDeadline < existing.paymentDeadline)) {
+        existing.paymentDeadline = paymentDeadline
+      }
+    } else {
+      eventMap.set(reg.eventId, { reg, participants, isPaid, paymentDeadline })
+    }
+  })
+
+  const upcoming: RegistrationRow[] = []
+  const past: RegistrationRow[] = []
+
+  eventMap.forEach(({ reg, participants, isPaid, paymentDeadline }) => {
+    const event = findEventById(reg.eventId)
     let statusLabel: 'PAID' | 'UNPAID' | 'OVERDUE' = 'UNPAID'
     if (isPaid) statusLabel = 'PAID'
     else if (paymentDeadline && paymentDeadline < now) statusLabel = 'OVERDUE'
@@ -423,7 +448,7 @@ function categorizeRegistrations(data?: ClubData) {
       eventDate,
       location: event?.location ?? reg.location,
       participants,
-      organizer: event?.organizer,
+      organizer: event?.organizer ?? reg.organizer,
       statusLabel,
       actionHref: `/clubs/registrations/${reg.id}`,
     }

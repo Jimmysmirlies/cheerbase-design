@@ -203,6 +203,7 @@ export type Registration = {
   id: string;
   eventId: string;        // links to Event.id
   eventName: string;
+  organizer: string;
   eventDate: string;
   location: string;
   division: string;       // competition division string

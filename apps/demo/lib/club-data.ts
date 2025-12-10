@@ -25,6 +25,7 @@ export type RegistrationDTO = {
   clubOwnerId: string;
   eventId: string;
   eventName: string;
+  organizer: string;
   eventDate: string;
   location: string;
   division: string;
@@ -84,11 +85,12 @@ export async function getClubData(clubOwnerId: string = DEFAULT_CLUB_OWNER_ID): 
     return {
       id: reg.id,
       clubOwnerId: DEFAULT_CLUB_OWNER_ID,
-      eventId: reg.eventId,
-      eventName: reg.eventName,
-      eventDate: new Date(reg.eventDate).toISOString(),
-      location: reg.location,
-      division: reg.division,
+    eventId: reg.eventId,
+    eventName: reg.eventName,
+    organizer: reg.organizer,
+    eventDate: new Date(reg.eventDate).toISOString(),
+    location: reg.location,
+    division: reg.division,
       teamId: reg.teamId,
       registeredTeamId,
       registeredTeam: registeredTeamMap.get(registeredTeamId) ?? null,

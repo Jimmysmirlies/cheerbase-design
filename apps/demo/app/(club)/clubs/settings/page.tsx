@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { ClubPageHeader } from "@/components/layout/ClubPageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { FadeInSection } from "@/components/ui";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -32,14 +32,17 @@ export default function ClubSettingsPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <ClubPageHeader
+      <PageHeader
         title="Club Settings"
         subtitle="Manage your club profile, preferences, and visibility."
         hideSubtitle
-        breadcrumbs={<span>Clubs / Settings</span>}
+        breadcrumbItems={[
+          { label: "Clubs", href: "/clubs" },
+          { label: "Settings", href: "/clubs/settings" },
+        ]}
       />
 
-      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
+      <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8">
         <FadeInSection className="w-full">
           <section className="space-y-6">
             <form className="grid max-w-xl gap-4">

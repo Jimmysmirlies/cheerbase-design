@@ -34,7 +34,7 @@ export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {gallery.map((src, index) => (
-              <div key={`${src}-${index}`} className="relative aspect-[16/9] w-full shrink-0">
+              <div key={`${src}-${index}`} className="relative aspect-[21/9] w-full shrink-0">
                 <Image
                   src={src}
                   alt={alt ? `${alt} photo ${index + 1}` : `Event image ${index + 1}`}

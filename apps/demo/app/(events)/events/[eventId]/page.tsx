@@ -3,11 +3,11 @@
  *
  * Purpose
  * - Dedicated route presenting full event details before a club registers.
- * - Mirrors the marketplace modal layout while allowing persistent navigation.
+ * - Mirrors the registration detail page layout with PageHeader.
  *
  * Structure
- * - Hero banner featuring event imagery + tags
- * - Main content: summary, metadata, overview
+ * - PageHeader with gradient banner
+ * - Main content: overview, gallery, organizer, details
  * - Aside card: pricing, availability, primary CTA
  */
 import type { Metadata } from "next";
@@ -16,8 +16,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@workspace/ui/shadcn/button";
-import { Card, CardContent } from "@workspace/ui/shadcn/card";
-import { Separator } from "@workspace/ui/shadcn/separator";
 
 import {
   CalendarDaysIcon,
@@ -26,12 +24,15 @@ import {
   DownloadIcon,
   ClockIcon,
   HotelIcon,
-  TrophyIcon,
 } from "lucide-react";
 
-import { EventHeroCarousel, FadeInSection } from "@/components/ui";
+import { FadeInSection } from "@/components/ui";
+import { EventGallery } from "@/components/ui/gallery/EventGallery";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
 import { findEventById, listEvents } from "@/data/events";
+import { findOrganizerByName, formatFollowers, formatHostingDuration } from "@/data/events/organizers";
 import { divisionPricingDefaults } from "@/data/divisions";
 import { buildEventGalleryImages } from "./image-gallery";
 
@@ -80,6 +81,9 @@ export default async function EventPage({ params }: EventPageProps) {
 
   const slotLabel = `${event.slots.filled}/${event.slots.capacity}`;
   const galleryImages = buildEventGalleryImages(event);
+
+  // Look up organizer data for gradient and stats
+  const organizer = findOrganizerByName(event.organizer);
 
   // "Milestone Rail": timeline posts for critical event dates shown in the vertical rail.
   const formatTimelineDate = (date: Date) =>
@@ -184,225 +188,282 @@ export default async function EventPage({ params }: EventPageProps) {
   ];
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      {/* Hero Rail: hero carousel keeps brand visuals consistent with marketplace listing */}
-      <EventHeroCarousel images={galleryImages} alt={event.name} />
+    <section className="flex flex-1 flex-col">
+      {/* PageHeader with organizer's brand gradient */}
+      <PageHeader
+        title={event.name}
+        hideSubtitle
+        gradientVariant={organizer?.gradient ?? 'primary'}
+        breadcrumbItems={[
+          { label: 'Events', href: '/events/search' },
+          { label: event.name },
+        ]}
+        eventStartDate={registrationDeadlineISO}
+      />
 
-      <section className="mx-auto grid w-full max-w-7xl gap-10 px-6 pb-16 pt-6 sm:px-10 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-        <article className="space-y-8">
-          <FadeInSection>
-            <header className="space-y-4">
-            {/* Event Header: primary identity block showing title, organizer, and quick tags */}
-            <div className="space-y-2">
-              <h1 className="heading-1 text-foreground sm:heading-2">{event.name}</h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-2">
-                  <TrophyIcon className="text-primary/70 size-4" />
-                  {event.organizer}
-                </span>
-                <Separator orientation="vertical" className="hidden h-4 sm:flex" />
-                <span className="flex items-center gap-2">
-                  <CalendarDaysIcon className="text-primary/70 size-4" />
-                  {event.date}
-                </span>
-                <Separator orientation="vertical" className="hidden h-4 sm:flex" />
-                <span className="flex items-center gap-2">
-                  <MapPinIcon className="text-primary/70 size-4" />
-                  {event.location}
-                </span>
-              </div>
-            </div>
-          </header>
-          </FadeInSection>
-
-          <FadeInSection delay={100}>
-            <section className="space-y-3 text-sm leading-relaxed text-muted-foreground">
-            {/* Overview Blurb: narrative intro highlighting experience upgrades */}
-            <h2 className="heading-3 text-foreground">Overview</h2>
-            <p className="text-muted-foreground body-text">
-              {event.description} Added amenities include expanded warm-up rotations, on-site athletic trainers,
-              backstage video replay, and hospitality lounges for club directors. Expect curated judges feedback, vendor
-              experiences, and a champion&apos;s parade following finals.
-            </p>
-          </section>
-          </FadeInSection>
-
-          <FadeInSection delay={200}>
-            <section className="space-y-4 text-sm text-muted-foreground">
-            {/* Venue Snapshot: quick address plus future map embed */}
-            <h2 className="heading-3 text-foreground">Location</h2>
-            <div className="grid gap-4 rounded-lg border border-dashed border-border/60 p-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
-              <div className="space-y-2">
-                <p className="flex items-center gap-2 text-foreground">
-                  <MapPinIcon className="text-primary/70 size-4" />
-                  {event.location}
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+          <article className="space-y-12 px-1">
+            {/* Overview Section */}
+            <FadeInSection>
+              <div className="flex flex-col gap-4">
+                <p className="heading-4">Overview</p>
+                <p className="text-muted-foreground body-small">
+                  {event.description} Added amenities include expanded warm-up rotations, on-site athletic trainers,
+                  backstage video replay, and hospitality lounges for club directors. Expect curated judges feedback, vendor
+                  experiences, and a champion&apos;s parade following finals.
                 </p>
-                <p className="body-text">
-                  Directly attached to public transit with adjacent parking options and athlete drop-off zones.
-                </p>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} target="_blank" rel="noopener noreferrer">
-                    Open in Google Maps
-                  </Link>
-                </Button>
               </div>
-              <div className="relative h-48 overflow-hidden rounded-lg bg-muted">
-                <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                  Map preview coming soon
-                </div>
-              </div>
-            </div>
-          </section>
-          </FadeInSection>
+            </FadeInSection>
 
-          <FadeInSection delay={300}>
-            <section className="space-y-4">
-            {/* Date Rail: key operational milestones for planners */}
-            <h2 className="heading-3 text-foreground">Event Timeline</h2>
-            <div className="grid gap-3 text-sm text-muted-foreground">
-              {timeline.map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-border/70 bg-card/80 p-5 transition hover:border-primary/40"
-                >
-                  <div className="flex flex-col gap-1">
-                    <p className="heading-4 text-foreground">{item.label}</p>
-                    <div className="body-text flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <ClockIcon className="text-primary/70 size-4" />
-                        {item.date}
-                      </span>
-                      {item.time ? (
-                        <span className="flex items-center gap-1">
-                          <ClockIcon className="text-primary/70 size-4" />
-                          {item.time}
-                        </span>
-                      ) : null}
+            {/* Gallery Section */}
+            <FadeInSection delay={100}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Gallery</p>
+                <EventGallery images={galleryImages} alt={event.name} maxImages={4} />
+              </div>
+            </FadeInSection>
+
+            {/* Organizer Section */}
+            <FadeInSection delay={200}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Organizer</p>
+                <OrganizerCard
+                  name={event.organizer}
+                  gradient={organizer?.gradient ?? 'primary'}
+                  followers={organizer ? formatFollowers(organizer.followers) : '—'}
+                  eventsCount={organizer?.eventsCount}
+                  hostingDuration={organizer ? formatHostingDuration(organizer.hostingYears) : undefined}
+                />
+              </div>
+            </FadeInSection>
+
+            {/* Date & Location Section */}
+            <FadeInSection delay={300}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Date & Location</p>
+                <div className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="flex flex-col gap-4">
+                      <p className="label text-muted-foreground">Event Details</p>
+                      <div className="body-small flex flex-col gap-2.5 text-muted-foreground">
+                        <p className="flex items-start gap-2">
+                          <MapPinIcon className="text-primary/70 size-4 shrink-0 translate-y-[2px]" />
+                          <span className="text-foreground">{event.location}</span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <CalendarDaysIcon className="text-primary/70 size-4 shrink-0" />
+                          <span className="text-foreground">{event.date}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-border/70 bg-muted/50">
+                      <iframe
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(event.location)}&output=embed`}
+                        className="absolute inset-0 h-full w-full"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title={`Map of ${event.location}`}
+                      />
+                      <Link
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 z-10"
+                        aria-label={`Open ${event.location} in Google Maps`}
+                      />
                     </div>
                   </div>
-                  <p className="body-text mt-2">{item.detail}</p>
                 </div>
-              ))}
-            </div>
-          </section>
-          </FadeInSection>
+              </div>
+            </FadeInSection>
 
-          <FadeInSection delay={400}>
-            <section className="space-y-4" id="pricing">
-            {/* Fee Matrix: division-based pricing with early/standard tiers */}
-            <h2 className="heading-3 text-foreground">Pricing</h2>
-            <div className="overflow-hidden rounded-lg border border-border/70">
-              <table className="w-full table-fixed text-sm">
-                <thead className="bg-muted/40 text-muted-foreground">
-                  <tr>
-                    <th className="p-4 text-left font-semibold">Division</th>
-                    <th className="p-4 text-left font-semibold">{`Before ${PRICING_DEADLINE_LABEL}`}</th>
-                    <th className="p-4 text-left font-semibold">{`After ${PRICING_DEADLINE_LABEL}`}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {pricingRowsArray.length ? (
-                    pricingRowsArray.map((row) => (
-                      <tr key={row.label}>
-                        <td className="p-4 font-medium text-foreground">{row.label}</td>
-                        <td className="p-4">{row.before}</td>
-                        <td className="p-4">{row.after}</td>
+            {/* Event Timeline Section */}
+            <FadeInSection delay={400}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Event Timeline</p>
+                <div className="flex flex-col gap-3">
+                  {timeline.map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <p className="font-semibold text-foreground">{item.label}</p>
+                        <div className="body-small flex flex-wrap items-center gap-4 text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <CalendarDaysIcon className="text-primary/70 size-4" />
+                            {item.date}
+                          </span>
+                          {item.time ? (
+                            <span className="flex items-center gap-1.5">
+                              <ClockIcon className="text-primary/70 size-4" />
+                              {item.time}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <p className="body-small text-muted-foreground mt-2">{item.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeInSection>
+
+            {/* Pricing Section */}
+            <FadeInSection delay={500}>
+              <div className="flex flex-col gap-4" id="pricing">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Pricing</p>
+                <div className="overflow-hidden rounded-md border border-border/70">
+                  <table className="w-full table-fixed text-sm">
+                    <thead className="bg-muted/40 text-muted-foreground">
+                      <tr>
+                        <th className="p-4 text-left font-semibold">Division</th>
+                        <th className="p-4 text-left font-semibold">{`Before ${PRICING_DEADLINE_LABEL}`}</th>
+                        <th className="p-4 text-left font-semibold">{`After ${PRICING_DEADLINE_LABEL}`}</th>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td className="p-6 text-center text-sm text-muted-foreground" colSpan={3}>
-                        Pricing information will be available soon.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-          </FadeInSection>
-
-          <FadeInSection delay={500}>
-            <section className="space-y-4">
-            {/* Download Deck: resource cards for compliance and preparation */}
-            <h2 className="heading-3 text-foreground">Documents & Resources</h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              {documents.map((doc) => (
-                <Card key={doc.name} className="border-border/70">
-                  <CardContent className="flex items-start gap-3 p-4 text-sm text-muted-foreground">
-                    <DownloadIcon className="text-primary/70 size-5 shrink-0" />
-                    <div className="space-y-1">
-                      <p className="text-foreground font-medium">{doc.name}</p>
-                      <p className="body-text">{doc.description}</p>
-                      <Button asChild variant="link" size="sm" className="px-0 text-primary">
-                        <Link href={doc.href}>Download</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-          </FadeInSection>
-
-          <FadeInSection delay={600}>
-            <section className="space-y-4">
-            {/* Stay Finder: nearby hotel options with quick booking links */}
-            <h2 className="heading-3 text-foreground">Hotel Accommodations</h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              {hotels.map((hotel) => (
-                <Card key={hotel.name} className="border-border/70">
-                  <CardContent className="flex items-start gap-3 p-4 text-sm text-muted-foreground">
-                    <HotelIcon className="text-primary/70 size-5 shrink-0" />
-                    <div className="space-y-1">
-                      <p className="text-foreground font-medium">{hotel.name}</p>
-                      <p className="body-text">{hotel.rate}</p>
-                      <p className="body-text">{hotel.distance}</p>
-                      <Button asChild variant="link" size="sm" className="px-0 text-primary">
-                        <Link href={hotel.href}>View hotel block</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-          </FadeInSection>
-
-          <FadeInSection delay={700}>
-            <section className="space-y-3 text-sm text-muted-foreground">
-            {/* Results Teaser: placeholder until scoring pipeline posts data */}
-            <h2 className="heading-3 text-foreground">Results & Leaderboard</h2>
-            <Card className="border-border/70">
-              <CardContent className="flex items-center justify-between gap-4 p-6">
-                <div>
-                  <p className="text-foreground font-medium">Coming soon</p>
-                  <p className="body-text">Scores and placements will publish once awards conclude.</p>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {pricingRowsArray.length ? (
+                        pricingRowsArray.map((row) => (
+                          <tr key={row.label}>
+                            <td className="p-4 font-medium text-foreground">{row.label}</td>
+                            <td className="p-4">{row.before}</td>
+                            <td className="p-4">{row.after}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td className="p-6 text-center text-sm text-muted-foreground" colSpan={3}>
+                            Pricing information will be available soon.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-                <Button variant="outline" size="sm" disabled>
-                  <Share2Icon className="mr-2 size-4" />
-                  Notify me
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
-          </FadeInSection>
-        </article>
+              </div>
+            </FadeInSection>
 
-        <FadeInSection delay={100}>
-          <aside className="space-y-6" id="register">
-          {/* Checkout Rail: sticky registration summary and CTA */}
-          <RegistrationSummaryCard
-            eventId={event.id}
-            registrationDeadline={registrationDeadlineISO}
-            slotLabel={slotLabel}
-          />
-          <p className="text-xs text-muted-foreground">
-            Need help with registration? Contact our events concierge to coordinate rosters, invoices, and travel.
-          </p>
-        </aside>
-        </FadeInSection>
-      </section>
-    </main>
+            {/* Documents & Resources Section */}
+            <FadeInSection delay={600}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Documents & Resources</p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {documents.map((doc) => (
+                    <div key={doc.name} className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <DownloadIcon className="text-primary/70 size-5 shrink-0 mt-0.5" />
+                          <div className="flex flex-col gap-0.5">
+                            <p className="body-text font-semibold text-foreground">{doc.name}</p>
+                            <p className="body-small text-muted-foreground">{doc.description}</p>
+                          </div>
+                        </div>
+                        <Button asChild variant="outline" size="sm" className="shrink-0">
+                          <Link href={doc.href}>Download</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeInSection>
+
+            {/* Hotel Accommodations Section */}
+            <FadeInSection delay={700}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Hotel Accommodations</p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {hotels.map((hotel) => (
+                    <div key={hotel.name} className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
+                      <div className="flex items-start gap-3">
+                        <HotelIcon className="text-primary/70 size-5 shrink-0" />
+                        <div className="flex flex-col gap-1">
+                          <p className="text-foreground font-medium">{hotel.name}</p>
+                          <p className="body-small text-muted-foreground">{hotel.rate}</p>
+                          <p className="body-small text-muted-foreground">{hotel.distance}</p>
+                          <Button asChild variant="link" size="sm" className="h-auto px-0 py-1 text-primary">
+                            <Link href={hotel.href}>View hotel block</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FadeInSection>
+
+            {/* Results Section */}
+            <FadeInSection delay={800}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Results & Leaderboard</p>
+                <div className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-foreground font-medium">Coming soon</p>
+                      <p className="body-small text-muted-foreground">Scores and placements will publish once awards conclude.</p>
+                    </div>
+                    <Button variant="outline" size="sm" disabled>
+                      <Share2Icon className="mr-2 size-4" />
+                      Notify me
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </FadeInSection>
+          </article>
+
+          {/* Sidebar with Registration CTA (desktop) */}
+          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
+            <FadeInSection delay={200}>
+              <div className="flex flex-col gap-4">
+                <RegistrationSummaryCard
+                  eventId={event.id}
+                  registrationDeadline={registrationDeadlineISO}
+                  slotLabel={slotLabel}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Need help with registration? Contact our events concierge to coordinate rosters, invoices, and travel.
+                </p>
+              </div>
+            </FadeInSection>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Footer CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
+        <div className="flex items-center justify-between gap-4 px-4 py-3">
+          <div className="flex flex-col gap-0.5">
+            <p className="text-sm font-semibold text-foreground">{slotLabel} teams confirmed</p>
+            <p className="text-xs text-muted-foreground">
+              {(() => {
+                const deadlineDate = new Date(registrationDeadlineISO);
+                const now = new Date();
+                const msPerDay = 1000 * 60 * 60 * 24;
+                const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / msPerDay));
+                return daysRemaining === 0
+                  ? 'Registration closes today'
+                  : `Closes in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}`;
+              })()}
+            </p>
+          </div>
+          <Button asChild size="sm">
+            <Link href={`/events/${encodeURIComponent(event.id)}/register`}>Register</Link>
+          </Button>
+        </div>
+      </div>
+      {/* Spacer to prevent content from being hidden behind sticky footer */}
+      <div className="h-20 lg:hidden" />
+    </section>
   );
 }

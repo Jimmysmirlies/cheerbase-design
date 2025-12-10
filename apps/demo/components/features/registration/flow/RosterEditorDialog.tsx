@@ -5,6 +5,16 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@workspace/ui/shadcn/alert-dialog'
 import { Input } from '@workspace/ui/shadcn/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@workspace/ui/shadcn/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@workspace/ui/shadcn/popover'
@@ -200,6 +210,8 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
   const normalizedMembers = useMemo(() => buildEditableRows(members), [members])
   const initialRowsRef = useRef<EditableRosterRow[]>(normalizedMembers)
   const [rows, setRows] = useState<EditableRosterRow[]>(normalizedMembers)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [rowToRemove, setRowToRemove] = useState<{ index: number; name: string } | null>(null)
   const columnMinWidths = useMemo(() => calculateColumnMinWidths(rows), [rows])
 
   useEffect(() => {
@@ -208,6 +220,12 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
       setRows(normalizedMembers)
     }
   }, [open, normalizedMembers])
+
+  const handleDeleteTeam = useCallback(() => {
+    setDeleteConfirmOpen(false)
+    onDeleteTeam?.()
+    onOpenChange(false)
+  }, [onDeleteTeam, onOpenChange])
 
   const handleCellChange = useCallback((rowIndex: number, columnId: keyof EditableRosterRow, value: string) => {
     setRows(prev => {
@@ -221,8 +239,21 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
     })
   }, [])
 
-  const handleRemoveRow = useCallback((rowIndex: number) => {
-    setRows(prev => prev.filter((_, index) => index !== rowIndex))
+  // Open confirmation dialog for row removal
+  const promptRemoveRow = useCallback((rowIndex: number, memberName: string) => {
+    setRowToRemove({ index: rowIndex, name: memberName || 'this member' })
+  }, [])
+
+  // Actually remove the row after confirmation
+  const confirmRemoveRow = useCallback(() => {
+    if (rowToRemove !== null) {
+      setRows(prev => prev.filter((_, index) => index !== rowToRemove.index))
+      setRowToRemove(null)
+    }
+  }, [rowToRemove])
+
+  const cancelRemoveRow = useCallback(() => {
+    setRowToRemove(null)
   }, [])
 
   const handleAddRow = useCallback(() => {
@@ -316,14 +347,21 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
         header: '',
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveRow(row.index)} aria-label="Remove row">
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => promptRemoveRow(row.index, row.original.name)} 
+              aria-label="Remove row"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            >
               <Trash2Icon className="size-4" aria-hidden="true" />
             </Button>
           </div>
         ),
       },
     ],
-    [handleCellChange, handleRemoveRow]
+    [handleCellChange, promptRemoveRow]
   )
 
   const table = useReactTable<EditableRosterRow>({
@@ -462,11 +500,8 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
                 <Button
                   type="button"
                   variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => {
-                    onDeleteTeam()
-                    onOpenChange(false)
-                  }}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setDeleteConfirmOpen(true)}
                 >
                   Remove team
                 </Button>
@@ -483,6 +518,49 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
           </DialogFooter>
         </div>
       </DialogContent>
+
+      {/* Delete team confirmation dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove team from registration?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove <span className="font-medium text-foreground">{teamName}</span> from this registration? 
+              This will update your invoice total.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTeam}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, remove team
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Remove row confirmation dialog */}
+      <AlertDialog open={rowToRemove !== null} onOpenChange={(open) => !open && cancelRemoveRow()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove member from roster?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove <span className="font-medium text-foreground">{rowToRemove?.name}</span> from the roster?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelRemoveRow}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemoveRow}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

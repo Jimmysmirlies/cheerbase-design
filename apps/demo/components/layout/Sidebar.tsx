@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ClipboardListIcon, LogOutIcon, Settings2Icon, UserIcon, UsersIcon } from 'lucide-react'
+import { LogOutIcon } from 'lucide-react'
 
 import { Button } from '@workspace/ui/shadcn/button'
 import { ScrollArea } from '@workspace/ui/shadcn/scroll-area'
@@ -11,50 +11,49 @@ import { cn } from '@workspace/ui/lib/utils'
 
 import { useAuth } from '@/components/providers/AuthProvider'
 
-type ClubSidebarProps = {
-  active: 'teams' | 'registrations' | 'settings'
-  navOffset?: number
-  children?: ReactNode
-  isOpen?: boolean
-  isMobile?: boolean
-  onClose?: () => void
-}
+type NavKey = string
 
+// Nav item blueprint; nickname is a stable handle for cross-feature references.
 type NavItem = {
-  key: ClubSidebarProps['active'] | 'athletes'
+  key: NavKey
   label: string
   icon: ReactNode
   href?: string
   disabled?: boolean
   badge?: string
+  nickname?: string
 }
 
+// Nav section blueprint; nickname identifies the section in docs or telemetry.
 type NavSection = {
   label?: string
   items: NavItem[]
+  nickname?: string
 }
 
-const navSections: NavSection[] = [
-  {
-    label: 'Club',
-    items: [
-      { key: 'teams', label: 'Teams', icon: <UsersIcon className="size-4" />, href: '/clubs' },
-      { key: 'athletes', label: 'Athletes', icon: <UserIcon className="size-4" />, disabled: true, badge: 'Coming soon' },
-      {
-        key: 'registrations',
-        label: 'Registrations',
-        icon: <ClipboardListIcon className="size-4" />,
-        href: '/clubs/registrations',
-      },
-    ],
-  },
-  {
-    label: 'Management',
-    items: [{ key: 'settings', label: 'Club Settings', icon: <Settings2Icon className="size-4" />, href: '/clubs/settings' }],
-  },
-]
+type SidebarProps = {
+  active: NavKey
+  navSections: NavSection[]
+  navOffset?: number
+  children?: ReactNode
+  isOpen?: boolean
+  isMobile?: boolean
+  onClose?: () => void
+  supportTitle?: string
+  supportText?: string
+}
 
-export function ClubSidebar({ active, navOffset = 72, children, isOpen = true, isMobile = false, onClose }: ClubSidebarProps) {
+export function Sidebar({
+  active,
+  navSections,
+  navOffset = 72,
+  children,
+  isOpen = true,
+  isMobile = false,
+  onClose,
+  supportTitle = 'Support',
+  supportText = 'Need help? Reach out to your CSM or email support@cheerbase.test',
+}: SidebarProps) {
   const { signOut } = useAuth()
   const router = useRouter()
   const offset = Number.isFinite(navOffset) ? Math.max(navOffset, 0) : 72
@@ -78,7 +77,7 @@ export function ClubSidebar({ active, navOffset = 72, children, isOpen = true, i
 
       <aside
         className={cn(
-          'fixed left-0 z-30 flex w-72 flex-col border-r border-border/70 bg-card shadow-lg transition-transform duration-300 lg:translate-x-0',
+          'fixed left-0 z-30 flex w-72 flex-col border-r border-sidebar-border bg-sidebar shadow-lg transition-transform duration-300 lg:translate-x-0 lg:shadow-none',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
         style={{ top: offsetPx, height: availableHeight }}
@@ -93,8 +92,8 @@ export function ClubSidebar({ active, navOffset = 72, children, isOpen = true, i
                   const buttonClasses = cn(
                     'group flex w-full items-center justify-between rounded-sm px-4 py-2 text-sm transition-colors',
                     isActive
-                      ? 'bg-primary/10 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground hover:bg-primary/10',
                     item.disabled ? 'cursor-not-allowed opacity-70' : null
                   )
 
@@ -141,8 +140,8 @@ export function ClubSidebar({ active, navOffset = 72, children, isOpen = true, i
 
         <div className="border-t border-border/70 px-3 py-4">
           <div className="rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            <p className="text-sm font-semibold text-foreground">Support</p>
-            <p>Need help? Reach out to your CSM or email support@cheerbase.test</p>
+            <p className="text-sm font-semibold text-foreground">{supportTitle}</p>
+            <p>{supportText}</p>
           </div>
           <Button
             variant="ghost"

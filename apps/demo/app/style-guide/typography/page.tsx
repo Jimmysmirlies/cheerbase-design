@@ -30,7 +30,7 @@ const typeTokens: TypeToken[] = [
     label: "Heading 4",
     className: "heading-4",
     description: "Subheadings within cards and lists.",
-    css: { fontSize: "1.125rem", lineHeight: "1.25", fontWeight: "600" },
+    css: { fontSize: "1.25rem", lineHeight: "1.25", fontWeight: "600" },
   },
   {
     label: "Body Large",
