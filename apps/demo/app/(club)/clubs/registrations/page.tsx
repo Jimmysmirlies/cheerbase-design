@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@works
 import { CalendarRangeIcon, ChevronDownIcon, ChevronUpIcon, ListIcon } from 'lucide-react'
 
 import { EventRegisteredCard, type EventRegisteredCardProps } from '@/components/ui/cards/EventRegisteredCard'
-import { FadeInSection } from '@/components/ui'
+import { FadeInSection, CardSkeleton } from '@/components/ui'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useClubData } from '@/hooks/useClubData'
@@ -197,8 +197,10 @@ function RegistrationsContent({
       {/* STATUS HANDOFF — "Loading Bay": surface fetch status before showing the grid */}
       {loading ? (
         <FadeInSection className="w-full">
-          <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
-            Loading registrations...
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <CardSkeleton key={i} rows={3} showMedia />
+            ))}
           </div>
         </FadeInSection>
       ) : error ? (

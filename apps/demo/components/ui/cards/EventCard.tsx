@@ -12,6 +12,7 @@
  */
 import { cn } from '@workspace/ui/lib/utils'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
+import { Skeleton } from '@workspace/ui/shadcn/skeleton'
 
 import { CalendarDaysIcon, MapPinIcon, UsersIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -28,6 +29,8 @@ type EventCardProps = {
   href?: string
   onRegister?: () => void
   size?: 'default' | 'compact'
+  /** Show loading skeleton instead of content */
+  isLoading?: boolean
 }
 
 export function EventCard({
@@ -40,6 +43,7 @@ export function EventCard({
   href,
   onRegister,
   size = 'default',
+  isLoading = false,
 }: EventCardProps) {
   const isCompact = size === 'compact'
   const mediaImage = image || FALLBACK_EVENT_IMAGE
@@ -48,6 +52,44 @@ export function EventCard({
   // CARD INTERACTION — "Lift": hover/focus treatment for clickable cards
   const cardHoverState = 'hover:-translate-y-[2px] hover:shadow-lg hover:border-primary/40'
   const linkLabel = `View event: ${title}`
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <Card
+        className={cn(
+          'flex h-full w-full gap-0 overflow-hidden !rounded-md border border-border/60 p-0'
+        )}
+      >
+        <Skeleton
+          className={cn(
+            'w-full rounded-none',
+            isCompact ? 'aspect-[2.5/1]' : 'aspect-[2/1]'
+          )}
+        />
+        <CardContent className={cn('flex flex-1 flex-col px-6 py-6', isCompact ? 'gap-3' : 'gap-4')}>
+          <div className={cn('space-y-2', isCompact && 'space-y-1.5')}>
+            <Skeleton className={cn('rounded', isCompact ? 'h-5 w-4/5' : 'h-6 w-3/4')} />
+            <Skeleton className={cn('rounded', isCompact ? 'h-3 w-1/2' : 'h-4 w-2/5')} />
+          </div>
+          <div className={cn('space-y-2.5', isCompact && 'space-y-2')}>
+            <div className="flex items-center gap-2">
+              <Skeleton className={cn('rounded-full', isCompact ? 'size-3.5' : 'size-4')} />
+              <Skeleton className="h-3.5 w-24 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className={cn('rounded-full', isCompact ? 'size-3.5' : 'size-4')} />
+              <Skeleton className="h-3.5 w-36 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className={cn('rounded-full', isCompact ? 'size-3.5' : 'size-4')} />
+              <Skeleton className="h-3.5 w-20 rounded" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const cardContent = (
     <Card

@@ -4,10 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@workspace/ui/lib/utils'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
-import { Separator } from '@workspace/ui/shadcn/separator'
 import { Button } from '@workspace/ui/shadcn/button'
-
-import { UsersIcon } from 'lucide-react'
 
 import { PricingScrollButton } from '@/components/features/events/PricingScrollButton'
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
@@ -19,8 +16,9 @@ import Link from 'next/link'
 
 type RegistrationSummaryCardProps = {
   eventId: string
+  eventDate: string
+  eventStartTime?: string
   registrationDeadline: string
-  slotLabel: string
   pricingTargetId?: string
   className?: string
   registerButtonLabel?: string
@@ -29,38 +27,11 @@ type RegistrationSummaryCardProps = {
   isRegistrationClosed?: boolean
 }
 
-// Countdown calculation
-const SECOND_IN_MS = 1000
-const MINUTE_IN_MS = 60 * SECOND_IN_MS
-const HOUR_IN_MS = 60 * MINUTE_IN_MS
-const DAY_IN_MS = 24 * HOUR_IN_MS
-
-type CountdownSegments = {
-  days: number
-  hours: number
-  seconds: number
-} | null
-
-function getCountdownSegments(deadline: Date | null): CountdownSegments {
-  if (!deadline || Number.isNaN(deadline.getTime())) return null
-  
-  const now = new Date()
-  const diffMs = deadline.getTime() - now.getTime()
-  if (diffMs <= 0) return null
-  
-  const days = Math.floor(diffMs / DAY_IN_MS)
-  const remainingAfterDays = diffMs % DAY_IN_MS
-  const hours = Math.floor(remainingAfterDays / HOUR_IN_MS)
-  const remainingAfterHours = remainingAfterDays % HOUR_IN_MS
-  const seconds = Math.floor((remainingAfterHours % MINUTE_IN_MS) / SECOND_IN_MS)
-  
-  return { days, hours, seconds }
-}
-
 export function RegistrationSummaryCard({
   eventId,
+  eventDate,
+  eventStartTime,
   registrationDeadline,
-  slotLabel,
   pricingTargetId = 'pricing',
   className,
   registerButtonLabel = 'Start registration',
@@ -72,94 +43,61 @@ export function RegistrationSummaryCard({
   const isAuthenticated = status === 'authenticated' && user !== null
   const [loginOpen, setLoginOpen] = useState(false)
   
-  // Initialize as null to avoid hydration mismatch
-  const [countdown, setCountdown] = useState<CountdownSegments>(null)
+  const [eventDateParts, setEventDateParts] = useState<{ month: string; day: string; weekday: string; fullDate: string } | null>(null)
   const [formattedDeadline, setFormattedDeadline] = useState<string>('TBA')
   
   useEffect(() => {
-    // Calculate countdown only on client
+    const eventDateObj = eventDate ? new Date(eventDate) : null
     const deadlineDate = registrationDeadline ? new Date(registrationDeadline) : null
+    
+    if (eventDateObj && !Number.isNaN(eventDateObj.getTime())) {
+      setEventDateParts({
+        month: eventDateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+        day: eventDateObj.getDate().toString(),
+        weekday: eventDateObj.toLocaleDateString('en-US', { weekday: 'long' }),
+        fullDate: eventDateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'long' }),
+      })
+    }
     
     if (deadlineDate && !Number.isNaN(deadlineDate.getTime())) {
       setFormattedDeadline(
         deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
       )
     }
-    
-    setCountdown(getCountdownSegments(deadlineDate))
-    
-    if (!deadlineDate) return
-    
-    const interval = window.setInterval(() => {
-      setCountdown(getCountdownSegments(deadlineDate))
-    }, 1000)
-    
-    return () => window.clearInterval(interval)
-  }, [registrationDeadline])
+  }, [eventDate, registrationDeadline])
 
   return (
     <AuthSignUp>
       {({ openStart }) => (
         <>
-          <Card className={cn('shadow-md', className)}>
+          <Card className={cn(className)}>
             <CardContent className="space-y-4 px-6 py-0">
-              {/* Countdown */}
-              {isRegistrationClosed ? (
-                <div className="flex flex-col items-center gap-1 pt-2">
-                  <p className="text-sm font-medium text-destructive">
-                    Registration has closed
-                  </p>
-                </div>
-              ) : countdown ? (
-                <div className="flex flex-col items-center gap-2 pt-2">
-                  <div className="grid grid-flow-col gap-4">
-                    <div className="flex flex-col items-center">
-                      <span className="text-3xl font-bold text-foreground">
-                        {countdown.days.toString().padStart(2, '0')}
-                      </span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Days
-                      </span>
+              {/* Event date */}
+              {eventDateParts && (
+                <div className="flex items-center gap-4">
+                  {/* Calendar icon */}
+                  <div className="flex flex-col items-center rounded-lg border bg-muted/30 overflow-hidden min-w-[56px]">
+                    <div className="w-full bg-muted px-3 py-0.5 text-center">
+                      <span className="text-xs font-medium text-muted-foreground">{eventDateParts.month}</span>
                     </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-3xl font-bold text-foreground">
-                        {countdown.hours.toString().padStart(2, '0')}
-                      </span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Hours
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-3xl font-bold text-foreground">
-                        {countdown.seconds.toString().padStart(2, '0')}
-                      </span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Secs
-                      </span>
+                    <div className="px-3 py-1">
+                      <span className="text-2xl font-semibold text-foreground">{eventDateParts.day}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Registration closes on {formattedDeadline}
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-1 pt-2">
-                  <p className="text-sm text-muted-foreground">
-                    {registrationDeadline ? `Registration closes on ${formattedDeadline}` : 'Registration window pending'}
-                  </p>
+                  {/* Date text */}
+                  <div className="flex flex-col">
+                    <span className="text-lg font-semibold text-foreground">
+                      {eventDateParts.weekday}, {eventDateParts.fullDate}
+                    </span>
+                    {eventStartTime && (
+                      <span className="text-sm text-muted-foreground">{eventStartTime}</span>
+                    )}
+                  </div>
                 </div>
               )}
               
-              <Separator />
-              
-              {/* Team count */}
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <UsersIcon className="text-primary/70 size-4" />
-                {slotLabel} teams confirmed
-              </div>
-              
               {/* Buttons */}
-              <div className="space-y-2 pb-2">
+              <div className="space-y-2">
                 <WalkthroughSpotlight step="start-registration" side="left" align="center" advanceOnClick>
                   {isRegistrationClosed ? (
                     <Button className="w-full" disabled>
@@ -178,6 +116,23 @@ export function RegistrationSummaryCard({
                 <PricingScrollButton targetId={pricingTargetId} className="w-full">
                   {pricingButtonLabel}
                 </PricingScrollButton>
+              </div>
+              
+              {/* Registration deadline */}
+              <div className="flex flex-col items-center">
+                {isRegistrationClosed ? (
+                  <p className="text-sm font-medium text-destructive">
+                    Registration has closed
+                  </p>
+                ) : registrationDeadline ? (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Registration closes on <span className="font-semibold text-foreground">{formattedDeadline}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Registration window pending
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -27,6 +27,7 @@ type PageHeaderProps = {
   metadataItems?: { label: string; value: ReactNode }[]
   metadataColumns?: number
   gradientVariant?: GradientVariant
+  showEventDateAsBreadcrumb?: boolean
 }
 
 const SECOND_IN_MS = 1000
@@ -98,9 +99,11 @@ export function PageHeader({
   metadataItems,
   metadataColumns = 3,
   gradientVariant = 'primary',
+  showEventDateAsBreadcrumb = false,
 }: PageHeaderProps) {
   // Initialize as null to avoid hydration mismatch (Date.now() differs between server and client)
   const [eventCountdown, setEventCountdown] = useState<CountdownDisplay | null>(null)
+  const [formattedEventDate, setFormattedEventDate] = useState<string>('')
 
   useEffect(() => {
     // Calculate countdown only on client to avoid hydration issues
@@ -116,6 +119,21 @@ export function PageHeader({
     }
   }, [eventStartDate])
 
+  useEffect(() => {
+    if (showEventDateAsBreadcrumb && eventStartDate) {
+      const eventDateObj = new Date(eventStartDate)
+      if (!Number.isNaN(eventDateObj.getTime())) {
+        const formatted = eventDateObj.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          month: 'long', 
+          day: 'numeric',
+          year: 'numeric'
+        })
+        setFormattedEventDate(formatted)
+      }
+    }
+  }, [showEventDateAsBreadcrumb, eventStartDate])
+
   const countdownSegments =
     eventCountdown && eventCountdown.state === 'future'
       ? [
@@ -125,6 +143,7 @@ export function PageHeader({
         ]
       : null
   const hasBreadcrumbItems = (breadcrumbItems?.length ?? 0) > 0
+  const showBreadcrumbArea = showEventDateAsBreadcrumb ? formattedEventDate : (hasBreadcrumbItems || breadcrumbs)
 
   return (
     <div
@@ -140,9 +159,11 @@ export function PageHeader({
         <div className="flex flex-col justify-end gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-2">
-              {hasBreadcrumbItems || breadcrumbs ? (
+              {showBreadcrumbArea ? (
                 <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/80">
-                  {hasBreadcrumbItems ? (
+                  {showEventDateAsBreadcrumb && formattedEventDate ? (
+                    <div>{formattedEventDate}</div>
+                  ) : hasBreadcrumbItems ? (
                     <nav className="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
                       {breadcrumbItems?.map((item, idx) => (
                         <div key={`${item.label}-${idx}`} className="flex items-center gap-2">

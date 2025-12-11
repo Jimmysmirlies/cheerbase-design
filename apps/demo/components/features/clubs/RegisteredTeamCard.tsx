@@ -4,6 +4,7 @@ import { useMemo, useState, type KeyboardEvent } from 'react'
 import { ChevronDownIcon, PencilIcon, UsersIcon } from 'lucide-react'
 
 import { cn } from '@workspace/ui/lib/utils'
+import { Skeleton } from '@workspace/ui/shadcn/skeleton'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Badge } from '@workspace/ui/shadcn/badge'
@@ -30,9 +31,11 @@ type RegisteredTeamCardProps = {
   }
   isEditMode?: boolean
   onEdit?: (teamId: string) => void
+  /** Show loading skeleton instead of content */
+  isLoading?: boolean
 }
 
-export function RegisteredTeamCard({ card, isEditMode = false, onEdit }: RegisteredTeamCardProps) {
+export function RegisteredTeamCard({ card, isEditMode = false, onEdit, isLoading = false }: RegisteredTeamCardProps) {
   const [expanded, setExpanded] = useState(false)
   const roster = useMemo(() => card.members ?? [], [card.members])
   const memberCount = roster.length
@@ -42,6 +45,25 @@ export function RegisteredTeamCard({ card, isEditMode = false, onEdit }: Registe
     const others = roster.filter(member => member.role?.toLowerCase() !== 'coach')
     return [...coaches, ...others]
   }, [roster])
+
+  // Loading skeleton - must be after all hooks
+  if (isLoading) {
+    return (
+      <div className="w-full overflow-hidden rounded-md border border-border/70 bg-card/60">
+        <div className="flex items-center gap-4 p-5">
+          <Skeleton className="size-10 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-32 rounded" />
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5 rounded-full" />
+              <Skeleton className="h-3.5 w-24 rounded" />
+            </div>
+          </div>
+          <Skeleton className="size-9 rounded-md" />
+        </div>
+      </div>
+    )
+  }
 
   const toggleExpanded = () => setExpanded(prev => !prev)
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

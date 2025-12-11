@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowUpRightIcon, CalendarDaysIcon, CheckCircle2Icon, LockIcon, MapPinIcon, PlusIcon, UploadIcon, XIcon } from 'lucide-react'
+import { ArrowUpRightIcon, CalendarDaysIcon, CheckCircle2Icon, DownloadIcon, LockIcon, MapPinIcon, PlusIcon, UploadIcon, XIcon } from 'lucide-react'
 
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
@@ -23,6 +23,7 @@ import { BulkUploadDialog } from '@/components/features/registration/bulk/BulkUp
 import { RegisterTeamModal } from '@/components/features/registration/flow/RegisterTeamModal'
 import { RosterEditorDialog } from '@/components/features/registration/flow/RosterEditorDialog'
 import type { RegistrationMember, RegistrationEntry } from '@/components/features/registration/flow/types'
+import { DEFAULT_ROLE } from '@/components/features/registration/flow/types'
 import { toast } from '@workspace/ui/shadcn/sonner'
 import { useRegistrationStorage, mapToRecord, recordToMap } from '@/hooks/useRegistrationStorage'
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
@@ -60,6 +61,12 @@ type TeamOption = {
   name: string
   division?: string
   size?: number
+}
+
+type DocumentResource = {
+  name: string
+  description: string
+  href: string
 }
 
 export type TeamRosterData = {
@@ -106,6 +113,8 @@ type RegistrationDetailContentProps = {
   divisionPricing?: DivisionPricingProp[]
   teamOptions?: TeamOption[]
   teamRosters?: TeamRosterData[]
+  // Event resources
+  documents?: DocumentResource[]
 }
 
 const TUTORIAL_STORAGE_KEY = 'layout-toggle-tutorial-seen'
@@ -307,6 +316,7 @@ export function RegistrationDetailContent({
   divisionPricing = [],
   teamOptions = [],
   teamRosters = [],
+  documents = [],
 }: RegistrationDetailContentProps) {
   const router = useRouter()
   const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>('A')
@@ -622,13 +632,19 @@ export function RegistrationDetailContent({
   // Convert team members to RegistrationMember format for editor
   const selectedTeamMembers: RegistrationMember[] = useMemo(() => {
     if (!selectedTeamForEdit?.members) return []
-    return selectedTeamForEdit.members.map(m => ({
-      name: m.name ?? [m.firstName, m.lastName].filter(Boolean).join(' ') ?? '',
-      type: m.role ?? 'athlete',
-      dob: m.dob ?? undefined,
-      email: m.email ?? undefined,
-      phone: m.phone ?? undefined,
-    }))
+    return selectedTeamForEdit.members.map(m => {
+      // Normalize role to capitalized format (e.g., "athlete" -> "Athlete")
+      const normalizedRole = m.role
+        ? m.role.charAt(0).toUpperCase() + m.role.slice(1).toLowerCase()
+        : DEFAULT_ROLE
+      return {
+        name: m.name ?? [m.firstName, m.lastName].filter(Boolean).join(' ') ?? '',
+        type: normalizedRole,
+        dob: m.dob ?? undefined,
+        email: m.email ?? undefined,
+        phone: m.phone ?? undefined,
+      }
+    })
   }, [selectedTeamForEdit])
 
   const handleSaveRoster = (members: RegistrationMember[]) => {
@@ -778,13 +794,13 @@ export function RegistrationDetailContent({
               {/* Left: Date & Location Details */}
               <div className="flex flex-col gap-4">
                 <p className="label text-muted-foreground">Date and Location</p>
-                <div className="body-small flex flex-col gap-2.5 text-muted-foreground">
+                <div className="body-text flex flex-col gap-2.5 text-muted-foreground">
                   <p className="flex items-start gap-2">
-                    <MapPinIcon className="text-primary/70 size-4 shrink-0 translate-y-[2px]" aria-hidden />
+                    <MapPinIcon className="text-primary/70 size-5 shrink-0 translate-y-[2px]" aria-hidden />
                     <span className="text-foreground">{locationLabel}</span>
                   </p>
                   <p className="flex items-center gap-2">
-                    <CalendarDaysIcon className="text-primary/70 size-4 shrink-0" aria-hidden />
+                    <CalendarDaysIcon className="text-primary/70 size-5 shrink-0" aria-hidden />
                     <span className="text-foreground">
                       {eventDateLabel}
                       {eventDateWeekday ? `, ${eventDateWeekday}` : ''}
@@ -820,10 +836,39 @@ export function RegistrationDetailContent({
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </FadeInSection>
   )
+
+  // Documents & Resources section
+  const DocumentsSection = documents.length > 0 ? (
+    <FadeInSection className="w-full" delay={200}>
+      <div className="flex flex-col gap-4 px-1">
+        <div className="h-px w-full bg-border" />
+        <p className="heading-4">Documents & Resources</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {documents.map((doc) => (
+            <div key={doc.name} className="rounded-md border border-border/70 bg-card/60 p-4 transition-all hover:border-primary/20">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <DownloadIcon className="text-primary/70 size-4 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-sm font-medium text-foreground">{doc.name}</p>
+                    <p className="text-xs text-muted-foreground">{doc.description}</p>
+                  </div>
+                </div>
+                <Button asChild variant="outline" size="sm" className="shrink-0">
+                  <Link href={doc.href}>Download</Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </FadeInSection>
+  ) : null
 
   // Convenience references for layouts
   const EventDetailsSection = renderEventDetailsSection(false)
@@ -1329,6 +1374,7 @@ export function RegistrationDetailContent({
             <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
               <div className="space-y-12">
                 {EventDetailsSection}
+                {DocumentsSection}
                 {RegisteredTeamsSection}
               </div>
               {CTASidebar}
@@ -1353,6 +1399,7 @@ export function RegistrationDetailContent({
 
             <div className="space-y-12">
               {EventDetailsSectionWithDivider}
+              {DocumentsSection}
               {RegisteredTeamsSection}
             </div>
           </div>
@@ -1395,6 +1442,7 @@ export function RegistrationDetailContent({
 
             <div className="space-y-12">
               {EventDetailsSectionWithDivider}
+              {DocumentsSection}
               {RegisteredTeamsSection}
             </div>
           </div>

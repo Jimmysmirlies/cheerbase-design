@@ -28,9 +28,9 @@ const statusStyles: Record<PaymentStatus, { container: string; title: string; de
     description: 'text-green-600 dark:text-green-400',
   },
   unpaid: {
-    container: 'border-primary/60 bg-primary/10',
-    title: 'text-primary',
-    description: 'text-primary/80',
+    container: 'border-border bg-muted',
+    title: 'text-foreground',
+    description: 'text-muted-foreground',
   },
   overdue: {
     container: 'border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/50',

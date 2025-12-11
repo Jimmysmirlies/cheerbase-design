@@ -23,7 +23,8 @@ import {
   Share2Icon,
   DownloadIcon,
   ClockIcon,
-  HotelIcon,
+  UsersIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 
 import { FadeInSection } from "@/components/ui";
@@ -92,6 +93,19 @@ export default async function EventPage({ params }: EventPageProps) {
   const competitionDate = new Date(event.date);
   const dayBefore = new Date(competitionDate);
   dayBefore.setDate(dayBefore.getDate() - 1);
+  
+  // Format date parts for the key info row
+  const eventDateParts = {
+    month: competitionDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+    day: competitionDate.getDate().toString(),
+    weekday: competitionDate.toLocaleDateString("en-US", { weekday: "long" }),
+    fullDate: competitionDate.toLocaleDateString("en-US", { day: "numeric", month: "long" }),
+  };
+  
+  // Extract city/state from location for display
+  const locationParts = event.location.split(", ");
+  const venueName = locationParts[0];
+  const cityState = locationParts.slice(1).join(", ");
   
   // Use event's registration deadline if available, otherwise day before event
   const registrationDeadlineISO = event.registrationDeadline 
@@ -171,28 +185,6 @@ export default async function EventPage({ params }: EventPageProps) {
     },
   ];
 
-  // "Stay Options": curated hotel blocks with quick CTA links.
-  const hotels = [
-    {
-      name: "Downtown Convention Marriott",
-      rate: "$189/night",
-      distance: "0.3 mi from venue",
-      href: "#",
-    },
-    {
-      name: "Cambridge Suites",
-      rate: "$164/night",
-      distance: "0.6 mi from venue",
-      href: "#",
-    },
-    {
-      name: "Garden Inn Waterfront",
-      rate: "$172/night",
-      distance: "1.1 mi from venue",
-      href: "#",
-    },
-  ];
-
   return (
     <section className="flex flex-1 flex-col">
       {/* PageHeader with organizer's brand gradient */}
@@ -200,11 +192,8 @@ export default async function EventPage({ params }: EventPageProps) {
         title={event.name}
         hideSubtitle
         gradientVariant={organizer?.gradient ?? 'primary'}
-        breadcrumbItems={[
-          { label: 'Events', href: '/events/search' },
-          { label: event.name },
-        ]}
-        eventStartDate={registrationDeadlineISO}
+        eventStartDate={event.date}
+        showEventDateAsBreadcrumb
         hideCountdown
       />
 
@@ -223,17 +212,8 @@ export default async function EventPage({ params }: EventPageProps) {
               </div>
             </FadeInSection>
 
-            {/* Gallery Section */}
-            <FadeInSection delay={100}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Gallery</p>
-                <EventGallery images={galleryImages} alt={event.name} maxImages={4} />
-              </div>
-            </FadeInSection>
-
             {/* Organizer Section */}
-            <FadeInSection delay={200}>
+            <FadeInSection delay={100}>
               <div className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Organizer</p>
@@ -248,43 +228,70 @@ export default async function EventPage({ params }: EventPageProps) {
             </FadeInSection>
 
             {/* Date & Location Section */}
-            <FadeInSection delay={300}>
+            <FadeInSection delay={200}>
               <div className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Date & Location</p>
-                <div className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div className="flex flex-col gap-4">
-                      <p className="label text-muted-foreground">Event Details</p>
-                      <div className="body-small flex flex-col gap-2.5 text-muted-foreground">
-                        <p className="flex items-start gap-2">
-                          <MapPinIcon className="text-primary/70 size-4 shrink-0 translate-y-[2px]" />
-                          <span className="text-foreground">{event.location}</span>
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <CalendarDaysIcon className="text-primary/70 size-4 shrink-0" />
-                          <span className="text-foreground">{event.date}</span>
-                        </p>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="flex flex-col gap-3">
+                    {/* Date */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-11 flex-col items-center justify-center rounded-md border bg-muted/30 overflow-hidden">
+                        <span className="text-[10px] font-medium text-muted-foreground leading-none">{eventDateParts.month}</span>
+                        <span className="text-lg font-semibold text-foreground leading-none">{eventDateParts.day}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-foreground">
+                          {eventDateParts.weekday}, {eventDateParts.fullDate}
+                        </span>
                       </div>
                     </div>
-                    <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-border/70 bg-muted/50">
-                      <iframe
-                        src={`https://www.google.com/maps?q=${encodeURIComponent(event.location)}&output=embed`}
-                        className="absolute inset-0 h-full w-full"
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        title={`Map of ${event.location}`}
-                      />
-                      <Link
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="absolute inset-0 z-10"
-                        aria-label={`Open ${event.location} in Google Maps`}
-                      />
+
+                    {/* Location */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-11 items-center justify-center rounded-md border bg-muted/30">
+                        <MapPinIcon className="size-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex flex-col">
+                        <Link
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-foreground hover:underline inline-flex items-center gap-1"
+                        >
+                          {venueName}
+                          <ExternalLinkIcon className="size-3" />
+                        </Link>
+                        <span className="text-xs text-muted-foreground">{cityState}</span>
+                      </div>
                     </div>
                   </div>
+                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-border/70 bg-muted/50">
+                    <iframe
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(event.location)}&output=embed`}
+                      className="absolute inset-0 h-full w-full"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title={`Map of ${event.location}`}
+                    />
+                    <Link
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute inset-0 z-10"
+                      aria-label={`Open ${event.location} in Google Maps`}
+                    />
+                  </div>
                 </div>
+              </div>
+            </FadeInSection>
+
+            {/* Gallery Section */}
+            <FadeInSection delay={300}>
+              <div className="flex flex-col gap-4">
+                <div className="h-px w-full bg-border" />
+                <p className="heading-4">Gallery</p>
+                <EventGallery images={galleryImages} alt={event.name} maxImages={4} />
               </div>
             </FadeInSection>
 
@@ -327,26 +334,26 @@ export default async function EventPage({ params }: EventPageProps) {
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Pricing</p>
                 <div className="overflow-hidden rounded-md border border-border/70">
-                  <table className="w-full table-fixed text-sm">
+                  <table className="w-full table-auto text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="p-4 text-left font-semibold">Division</th>
-                        <th className="p-4 text-left font-semibold">{`Before ${PRICING_DEADLINE_LABEL}`}</th>
-                        <th className="p-4 text-left font-semibold">{`After ${PRICING_DEADLINE_LABEL}`}</th>
+                        <th className="px-3 py-3 font-medium sm:px-4">Division</th>
+                        <th className="px-3 py-3 font-medium sm:px-4">{`Before ${PRICING_DEADLINE_LABEL}`}</th>
+                        <th className="px-3 py-3 font-medium sm:px-4">{`After ${PRICING_DEADLINE_LABEL}`}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/60">
+                    <tbody>
                       {pricingRowsArray.length ? (
                         pricingRowsArray.map((row) => (
-                          <tr key={row.label}>
-                            <td className="p-4 font-medium text-foreground">{row.label}</td>
-                            <td className="p-4">{row.before}</td>
-                            <td className="p-4">{row.after}</td>
+                          <tr key={row.label} className="border-t">
+                            <td className="text-foreground px-3 py-3 sm:px-4">{row.label}</td>
+                            <td className="px-3 py-3 sm:px-4">{row.before}</td>
+                            <td className="px-3 py-3 sm:px-4">{row.after}</td>
                           </tr>
                         ))
                       ) : (
-                        <tr>
-                          <td className="p-6 text-center text-sm text-muted-foreground" colSpan={3}>
+                        <tr className="border-t">
+                          <td className="px-3 py-6 text-center text-sm text-muted-foreground sm:px-4" colSpan={3}>
                             Pricing information will be available soon.
                           </td>
                         </tr>
@@ -383,31 +390,6 @@ export default async function EventPage({ params }: EventPageProps) {
               </div>
             </FadeInSection>
 
-            {/* Hotel Accommodations Section */}
-            <FadeInSection delay={700}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Hotel Accommodations</p>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {hotels.map((hotel) => (
-                    <div key={hotel.name} className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
-                      <div className="flex items-start gap-3">
-                        <HotelIcon className="text-primary/70 size-5 shrink-0" />
-                        <div className="flex flex-col gap-1">
-                          <p className="text-foreground font-medium">{hotel.name}</p>
-                          <p className="body-small text-muted-foreground">{hotel.rate}</p>
-                          <p className="body-small text-muted-foreground">{hotel.distance}</p>
-                          <Button asChild variant="link" size="sm" className="h-auto px-0 py-1 text-primary">
-                            <Link href={hotel.href}>View hotel block</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeInSection>
-
             {/* Results Section */}
             <FadeInSection delay={800}>
               <div className="flex flex-col gap-4">
@@ -432,17 +414,13 @@ export default async function EventPage({ params }: EventPageProps) {
           {/* Sidebar with Registration CTA (desktop) */}
           <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
             <FadeInSection delay={200}>
-              <div className="flex flex-col gap-4">
-                <RegistrationSummaryCard
-                  eventId={event.id}
-                  registrationDeadline={registrationDeadlineISO}
-                  slotLabel={slotLabel}
-                  isRegistrationClosed={registrationClosed}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Need help with registration? Contact our events concierge to coordinate rosters, invoices, and travel.
-                </p>
-              </div>
+              <RegistrationSummaryCard
+                eventId={event.id}
+                eventDate={event.date}
+                eventStartTime="9:00 AM"
+                registrationDeadline={registrationDeadlineISO}
+                isRegistrationClosed={registrationClosed}
+              />
             </FadeInSection>
           </div>
         </div>

@@ -12,6 +12,7 @@ import { useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { RegistrationDetailContent, type TeamRosterData } from '@/components/features/clubs/RegistrationDetailContent'
+import { RegistrationDetailSkeleton } from '@/components/ui'
 import { useUnifiedClubData, getRegistrationById, getLocalStorageRegistration } from '@/hooks/useUnifiedClubData'
 import { findEventById, listEvents, organizers } from '@/data/events'
 import { demoRosters } from '@/data/clubs/members'
@@ -79,11 +80,7 @@ export function UnifiedRegistrationPage({ registrationId }: UnifiedRegistrationP
   }, [isLoading, registration, router])
 
   if (isLoading) {
-    return (
-      <section className="flex flex-1 flex-col items-center justify-center py-20">
-        <div className="text-muted-foreground">Loading registration...</div>
-      </section>
-    )
+    return <RegistrationDetailSkeleton />
   }
 
   if (error || !data || !registration) {
@@ -332,6 +329,25 @@ export function UnifiedRegistrationPage({ registrationId }: UnifiedRegistrationP
   // Convert Map to serializable format
   const teamsByDivisionArray = Array.from(teamsByDivision.entries())
 
+  // Documents & Resources from event
+  const documents = [
+    {
+      name: "Event information packet",
+      description: "Schedule overview, scoring rubric, venue policies",
+      href: "#",
+    },
+    {
+      name: "Routine music licensing form",
+      description: "Submit proof of music licensing for each team",
+      href: "#",
+    },
+    {
+      name: "Insurance waiver",
+      description: "Collect signed waivers for athletes and staff",
+      href: "#",
+    },
+  ]
+
   return (
     <RegistrationDetailContent
       registration={{
@@ -371,6 +387,7 @@ export function UnifiedRegistrationPage({ registrationId }: UnifiedRegistrationP
       paidAtLabel={paidAtLabel}
       dueDateMonth={dueDateMonth}
       dueDateDay={dueDateDay}
+      documents={documents}
     />
   )
 }
