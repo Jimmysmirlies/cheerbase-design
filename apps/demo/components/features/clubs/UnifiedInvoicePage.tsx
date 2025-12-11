@@ -11,6 +11,7 @@ import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { InvoicePageClient } from '@/app/(club)/clubs/registrations/[registrationId]/invoice/InvoicePageClient'
+import { InvoicePageSkeleton } from '@/components/ui/skeletons'
 import { useUnifiedClubData, getRegistrationById, getLocalStorageRegistration } from '@/hooks/useUnifiedClubData'
 import { findEventById } from '@/data/events'
 import {
@@ -123,11 +124,7 @@ export function UnifiedInvoicePage({ registrationId }: UnifiedInvoicePageProps) 
   }, [isLoading, registration, router])
 
   if (isLoading) {
-    return (
-      <section className="flex flex-1 flex-col items-center justify-center py-20">
-        <div className="text-muted-foreground">Loading invoice...</div>
-      </section>
-    )
+    return <InvoicePageSkeleton />
   }
 
   if (error || !data || !registration) {

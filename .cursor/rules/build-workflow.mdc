@@ -1,0 +1,49 @@
+---
+description: Build workflow for this monorepo - use when running builds, lint, or typecheck
+globs:
+alwaysApply: false
+---
+
+# Build Workflow
+
+When building this project, follow this workflow to avoid issues:
+
+## Pre-Build Checks (Optional but Recommended)
+
+Run lint and typecheck separately first to catch issues quickly:
+
+```bash
+pnpm lint
+pnpm typecheck
+```
+
+These can run in the default sandbox.
+
+## Running the Build
+
+**Important:** The build command must run outside the sandbox with `all` permissions.
+
+```bash
+pnpm build
+```
+
+When using the Shell tool, always request `required_permissions: ["all"]` for build commands. The Next.js build process requires full system access and will abort if run in a sandboxed environment.
+
+## Clearing Cache (If Build Issues Persist)
+
+If you encounter caching issues with Turbo or Next.js:
+
+```bash
+rm -rf .turbo node_modules/.cache apps/demo/.next
+```
+
+Then re-run lint, typecheck, and build in sequence.
+
+## Summary
+
+| Command | Sandbox OK? | Notes |
+|---------|-------------|-------|
+| `pnpm lint` | ✅ Yes | Runs with network permission |
+| `pnpm typecheck` | ✅ Yes | Runs with network permission |
+| `pnpm build` | ❌ No | **Requires `all` permissions** |
+| `pnpm dev` | ❌ No | Requires network + file watching |

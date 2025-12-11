@@ -1,10 +1,14 @@
 'use client'
 
-import { useMemo } from 'react'
-import { BarChart3Icon, LayersIcon, UsersIcon, type LucideIcon } from 'lucide-react'
+import { useMemo, useState, type KeyboardEvent } from 'react'
+import { ChevronDownIcon, ExternalLinkIcon, UsersIcon } from 'lucide-react'
 
+import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
-import { Card, CardContent, CardFooter } from '@workspace/ui/shadcn/card'
+import { Badge } from '@workspace/ui/shadcn/badge'
+import { Skeleton } from '@workspace/ui/shadcn/skeleton'
+import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
+import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
 import type { RegistrationMember } from '@/components/features/registration/flow/types'
 
 export type TeamData = {
@@ -17,56 +21,195 @@ export type TeamData = {
 type TeamCardProps = {
   team: TeamData
   onViewTeam: (teamId: string) => void
+  /** Show loading skeleton instead of content */
+  isLoading?: boolean
 }
 
-export function TeamCard({ team, onViewTeam }: TeamCardProps) {
-  const { divisionLabel, levelLabel } = useMemo(() => parseDivision(team.division), [team.division])
-  const memberCount = useMemo(() => team.members?.length ?? 0, [team.members])
-  const memberLabel = memberCount === 1 ? 'member' : 'members'
+export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps) {
+  const [expanded, setExpanded] = useState(false)
+  const roster = useMemo(() => team.members ?? [], [team.members])
+  const memberCount = roster.length
 
-  return (
-    <Card className="flex h-full flex-col overflow-hidden rounded-md border border-border/60 bg-background/80 p-0 shadow-sm">
-      <CardContent className="flex flex-1 flex-col gap-4 px-5 py-4">
-        <h3 className="text-base font-semibold text-foreground">{team.name}</h3>
-        <div className="space-y-2.5 text-sm text-muted-foreground">
-          <DetailRow icon={LayersIcon} label="Division" value={divisionLabel !== '—' ? divisionLabel : 'Pending'} />
-          <DetailRow icon={BarChart3Icon} label="Level" value={levelLabel !== '—' ? levelLabel : 'Pending'} />
-          <DetailRow icon={UsersIcon} label="Member count" value={`${memberCount} ${memberLabel}`} />
+  // Sort roster: coaches first, then others
+  const prioritizedRoster = useMemo(() => {
+    if (!roster.length) return []
+    const coaches = roster.filter(member => member.type?.toLowerCase() === 'coach')
+    const others = roster.filter(member => member.type?.toLowerCase() !== 'coach')
+    return [...coaches, ...others]
+  }, [roster])
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="w-full overflow-hidden rounded-md border border-border/70 bg-card/60">
+        <div className="flex items-center gap-4 p-5">
+          <Skeleton className="size-10 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-32 rounded" />
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5 rounded-full" />
+              <Skeleton className="h-3.5 w-24 rounded" />
+            </div>
+          </div>
+          <Skeleton className="size-9 rounded-md" />
         </div>
-      </CardContent>
-      <CardFooter className="border-border/80 mt-auto border-t !px-5 !py-4">
-        <Button variant="secondary" size="lg" className="w-full rounded-md" onClick={() => onViewTeam(team.id)}>
-          View
-        </Button>
-      </CardFooter>
-    </Card>
-  )
-}
+      </div>
+    )
+  }
 
-function DetailRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  const toggleExpanded = () => setExpanded(prev => !prev)
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      toggleExpanded()
+    }
+  }
+
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <Icon className="text-primary/70 size-4 shrink-0" aria-hidden="true" />
-      <span className="leading-tight text-muted-foreground">
-        <span className="font-medium text-foreground">{label}: </span>
-        {value}
-      </span>
+    <div className="w-full overflow-hidden rounded-md border border-border/70 bg-card/60 transition-all hover:border-primary/20">
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        onClick={toggleExpanded}
+        onKeyDown={handleKeyDown}
+        className="flex cursor-pointer items-center gap-4 p-5 focus:outline-none"
+      >
+        <GradientAvatar name={team.name} size="sm" />
+        <div className="min-w-0 flex-1">
+          <h3 className="heading-4 truncate text-foreground">{team.name}</h3>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <UsersIcon className="size-3.5 text-muted-foreground" aria-hidden="true" />
+            <span className="body-small text-muted-foreground">
+              {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={event => {
+              event.stopPropagation()
+              onViewTeam(team.id)
+            }}
+          >
+            View
+            <ExternalLinkIcon className="ml-1.5 size-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={event => {
+              event.stopPropagation()
+              toggleExpanded()
+            }}
+          >
+            <ChevronDownIcon className={cn('size-5 transition-transform', expanded && 'rotate-180')} aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          'grid transition-[grid-template-rows] duration-300 ease-out',
+          expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        )}
+      >
+        <div
+          aria-hidden={!expanded}
+          className={cn(
+            'overflow-hidden border-t bg-muted/20 transition-[opacity,transform,border-color] duration-300 ease-out',
+            expanded
+              ? 'border-border/70 opacity-100 translate-y-0'
+              : 'pointer-events-none border-transparent opacity-0 -translate-y-2'
+          )}
+        >
+          {prioritizedRoster.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto text-left text-sm">
+                <thead className="bg-muted/40 text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-3 font-medium sm:px-4">Name</th>
+                    <th className="px-3 py-3 font-medium sm:px-4">DOB</th>
+                    <th className="hidden px-3 py-3 font-medium md:table-cell md:px-5">Email</th>
+                    <th className="hidden px-3 py-3 font-medium sm:table-cell sm:px-5">Phone</th>
+                    <th className="px-3 py-3 text-right font-medium sm:px-4">Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prioritizedRoster.map((member, index) => (
+                    <tr
+                      key={`${team.id}-member-${index}`}
+                      className={cn('border-t', expanded && 'dropdown-fade-in')}
+                      style={expanded ? { animationDelay: `${index * 60}ms` } : undefined}
+                    >
+                      <td className="px-3 py-3 text-foreground sm:px-4">{member.name || 'Team member'}</td>
+                      <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob)}</td>
+                      <td className="hidden px-3 py-3 md:table-cell md:px-5">{member.email ?? '—'}</td>
+                      <td className="hidden px-3 py-3 sm:table-cell sm:px-5">{formatPhoneNumber(member.phone)}</td>
+                      <td className="px-3 py-3 text-right sm:px-4">
+                        <RoleBadge role={member.type} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="px-5 py-6 text-center">
+              <p className="text-sm text-muted-foreground">No members added yet. View team to add members.</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
 
-function parseDivision(division: string) {
-  const parts = division
-    .split('-')
-    .map(part => part.trim())
-    .filter(Boolean)
-  if (!parts.length) {
-    return { divisionLabel: '—', levelLabel: '—' }
+function formatRole(role?: string | null) {
+  if (!role) return '—'
+  const normalized = role.trim()
+  if (!normalized) return '—'
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
+function RoleBadge({ role }: { role?: string | null }) {
+  const normalizedRole = role?.trim().toLowerCase()
+
+  if (!normalizedRole) {
+    return <span className="text-muted-foreground">—</span>
   }
-  if (parts.length === 1) {
-    return { divisionLabel: parts[0] ?? '—', levelLabel: '—' }
+
+  const roleConfig: Record<string, { label: string; className: string }> = {
+    coach: {
+      label: 'Coach',
+      className: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
+    },
+    athlete: {
+      label: 'Athlete',
+      className: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800',
+    },
+    reservist: {
+      label: 'Reservist',
+      className: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
+    },
+    chaperone: {
+      label: 'Chaperone',
+      className: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
+    },
   }
-  const level = parts.pop() ?? '—'
-  const divisionLabel = parts.length ? parts.join(' - ') : '—'
-  return { divisionLabel, levelLabel: level }
+
+  const config = roleConfig[normalizedRole] ?? {
+    label: formatRole(role),
+    className: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800/30 dark:text-gray-300 dark:border-gray-700',
+  }
+
+  return (
+    <Badge variant="outline" className={cn('font-medium', config.className)}>
+      {config.label}
+    </Badge>
+  )
 }

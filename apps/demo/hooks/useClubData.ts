@@ -10,9 +10,18 @@ type HookState =
   | { status: "error"; data: null; error: Error }
   | { status: "success"; data: ClubData; error: null };
 
-// Only cache demo data - real accounts use localStorage
+// Shared cache for demo data - used by both useClubData and useUnifiedClubData
 const demoDataCache = new Map<string, ClubData>();
 const inflightRequests = new Map<string, Promise<ClubData>>();
+
+// Export cache accessors for sharing with useUnifiedClubData
+export function getSharedClubDataCache(): ClubData | null {
+  return demoDataCache.get(DEMO_CLUB_OWNER_ID) ?? null;
+}
+
+export function setSharedClubDataCache(data: ClubData): void {
+  demoDataCache.set(DEMO_CLUB_OWNER_ID, data);
+}
 
 async function fetchClubData(clubOwnerId: string): Promise<ClubData> {
   // Only use cache for demo account

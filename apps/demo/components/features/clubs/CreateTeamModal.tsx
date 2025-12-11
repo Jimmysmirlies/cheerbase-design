@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { CheckIcon } from 'lucide-react'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Input } from '@workspace/ui/shadcn/input'
 import { Label } from '@workspace/ui/shadcn/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@workspace/ui/shadcn/select'
+import { GlassSelect } from '@workspace/ui/components/glass-select'
 import {
   Dialog,
   DialogContent,
@@ -13,12 +14,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@workspace/ui/shadcn/dialog'
+import { cn } from '@workspace/ui/lib/utils'
 import { divisionCatalog } from '@/data/divisions'
+import { brandGradients, type BrandGradient } from '@/lib/gradients'
 
 export type CreateTeamData = {
   id: string
   name: string
   division: string
+  gradient?: BrandGradient
 }
 
 type CreateTeamModalProps = {
@@ -27,11 +31,17 @@ type CreateTeamModalProps = {
   onSubmit: (team: CreateTeamData) => void
 }
 
+const gradientOptions = Object.entries(brandGradients).map(([key, value]) => ({
+  key: key as BrandGradient,
+  ...value,
+}))
+
 export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModalProps) {
   const [teamName, setTeamName] = useState('')
   const [category, setCategory] = useState('')
   const [tier, setTier] = useState('')
   const [level, setLevel] = useState('')
+  const [selectedGradient, setSelectedGradient] = useState<BrandGradient>('primary')
 
   useEffect(() => {
     if (open) {
@@ -39,6 +49,7 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
       setCategory(divisionCatalog[0]?.name ?? '')
       setTier('')
       setLevel('')
+      setSelectedGradient('primary')
     }
   }, [open])
 
@@ -80,22 +91,39 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
       id,
       name: teamName.trim(),
       division,
+      gradient: selectedGradient,
     })
 
     onOpenChange(false)
   }
 
+  // Prepare options for GlassSelect
+  const categoryOptions = divisionCatalog.map(cat => ({
+    value: cat.name,
+    label: cat.name,
+  }))
+
+  const tierOptions = selectedCategory?.tiers.map(t => ({
+    value: t.name,
+    label: t.name,
+  })) ?? []
+
+  const levelOptions = selectedTier?.levels.map(lvl => ({
+    value: lvl,
+    label: lvl,
+  })) ?? []
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl rounded-2xl">
+      <DialogContent className="max-w-2xl rounded-md gap-6">
         <DialogHeader>
-          <DialogTitle>Create a team</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="heading-4">Create Team</DialogTitle>
+          <DialogDescription className="body-small">
             Add a new team to your club. You&apos;ll be able to add members after creation.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="team-name">Team Name</Label>
             <Input
@@ -112,54 +140,64 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
             />
           </div>
 
+          {/* Gradient Color Picker */}
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger id="category" className="w-full">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {divisionCatalog.map(cat => (
-                  <SelectItem key={cat.name} value={cat.name}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Team Color</Label>
+            <div className="flex gap-3 overflow-x-auto p-1 -m-1">
+              {gradientOptions.map(({ key, name, tailwind }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSelectedGradient(key)}
+                  className={cn(
+                    'relative flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br transition-all',
+                    tailwind,
+                    selectedGradient === key
+                      ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
+                      : 'hover:scale-105'
+                  )}
+                  title={name}
+                  aria-label={`Select ${name} color`}
+                  aria-pressed={selectedGradient === key}
+                >
+                  {selectedGradient === key && (
+                    <CheckIcon className="size-5 text-white drop-shadow-sm" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <GlassSelect
+              value={category}
+              onValueChange={setCategory}
+              options={categoryOptions}
+              triggerClassName="w-full min-w-0"
+            />
           </div>
 
           {selectedCategory && selectedTier && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="tier">Tier</Label>
-                <Select value={tier} onValueChange={setTier}>
-                  <SelectTrigger id="tier" className="w-full">
-                    <SelectValue placeholder="Select tier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectedCategory.tiers.map(t => (
-                      <SelectItem key={t.name} value={t.name}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Tier</Label>
+                <GlassSelect
+                  value={tier}
+                  onValueChange={setTier}
+                  options={tierOptions}
+                  triggerClassName="w-full min-w-0"
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="level">Level</Label>
-                <Select value={level} onValueChange={setLevel}>
-                  <SelectTrigger id="level" className="w-full">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectedTier.levels.map(lvl => (
-                      <SelectItem key={lvl} value={lvl}>
-                        {lvl}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Level</Label>
+                <GlassSelect
+                  value={level}
+                  onValueChange={setLevel}
+                  options={levelOptions}
+                  triggerClassName="w-full min-w-0"
+                />
               </div>
             </div>
           )}

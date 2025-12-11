@@ -4,7 +4,7 @@
  *
  * Purpose
  * - Accessible, shadcn-based authentication dialog for logging in.
- * - Provides a quick way to demo roles via one-click buttons.
+ * - Provides a quick way to demo roles via Google sign-in flow.
  * - "Join Cheerbase" opens the Get Started modal (AuthSignUp).
  */
 import { useState } from "react";
@@ -16,6 +16,8 @@ import { Label } from "@workspace/ui/shadcn/label";
 import { toast } from "@workspace/ui/shadcn/sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { GoogleSignInButton } from "@/components/ui/GoogleSignInButton";
+import { ShieldCheckIcon, UsersIcon } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@workspace/ui/shadcn/card";
 
 export type AuthDialogProps = {
   open: boolean;
@@ -31,6 +33,7 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const closeDialog = () => {
     onOpenChange(false);
@@ -38,6 +41,7 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
     setEmail("");
     setPassword("");
     setErrors({});
+    setShowRoleSelection(false);
   };
 
   const clearErrors = () => setErrors({});
@@ -106,70 +110,77 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
 
   return (
     <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(v) : closeDialog())}>
-      <DialogContent className="rounded-3xl p-8">
+      <DialogContent className="rounded-md p-8">
         <div className="space-y-8">
           <DialogHeader className="space-y-3 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              R
+            <span
+              className="mx-auto heading-2 bg-clip-text text-transparent"
+              style={{
+                backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
+              }}
+            >
+              cheerbase
             </span>
-            <div className="space-y-1">
-              <DialogTitle className="text-2xl font-semibold tracking-tight text-center">Log in to your account</DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground text-center">
-                Enter your details to access your club, teams, and registrations.
-              </DialogDescription>
-            </div>
+            <DialogTitle className="heading-2 text-center">Welcome back 👋</DialogTitle>
           </DialogHeader>
 
-          <form className="grid gap-4" onSubmit={handleLogin}>
-            <div className="grid gap-1 text-left">
-              <Label className={`text-xs uppercase tracking-wide ${errors.email ? "text-destructive" : "text-muted-foreground"}`}>
-                Email Address
-              </Label>
-              <Input 
-                placeholder="you@example.com" 
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                disabled={isLoading}
-                className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
-                aria-invalid={!!errors.email}
-              />
-              {errors.email && (
-                <p className="text-xs text-destructive">{errors.email}</p>
-              )}
+          <form className="grid gap-6" onSubmit={handleLogin}>
+            {/* Section 1: Input fields */}
+            <div className="grid gap-4">
+              <div className="grid gap-1 text-left">
+                <Label className={`${errors.email ? "text-destructive" : "text-muted-foreground"}`}>
+                  Email Address
+                </Label>
+                <Input 
+                  placeholder="you@example.com" 
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  disabled={isLoading}
+                  className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                  aria-invalid={!!errors.email}
+                />
+                {errors.email && (
+                  <p className="text-xs text-destructive">{errors.email}</p>
+                )}
+              </div>
+              <div className="grid gap-1 text-left">
+                <Label className={`${errors.password ? "text-destructive" : "text-muted-foreground"}`}>
+                  Password
+                </Label>
+                <Input 
+                  placeholder="Enter your password" 
+                  type="password"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  disabled={isLoading}
+                  className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
+                  aria-invalid={!!errors.password}
+                />
+                {errors.password && (
+                  <p className="text-xs text-destructive">{errors.password}</p>
+                )}
+              </div>
             </div>
-            <div className="grid gap-1 text-left">
-              <Label className={`text-xs uppercase tracking-wide ${errors.password ? "text-destructive" : "text-muted-foreground"}`}>
-                Password
-              </Label>
-              <Input 
-                placeholder="Enter your password" 
-                type="password"
-                value={password}
-                onChange={handlePasswordChange}
-                disabled={isLoading}
-                className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
-                aria-invalid={!!errors.password}
-              />
-              {errors.password ? (
-                <p className="text-xs text-destructive">{errors.password}</p>
-              ) : (
-                <Button variant="link" className="px-0 text-xs justify-start" type="button">
-                  Forgot password?
-                </Button>
-              )}
-            </div>
+
+            {/* Section 2: Log in button */}
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Log in"}
             </Button>
-          </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            No account yet?{" "}
-            <button className="font-semibold text-primary underline-offset-4 hover:underline" onClick={handleJoinClick} type="button">
-              Join Cheerbase
-            </button>
-          </p>
+            {/* Section 3: Links */}
+            <div className="flex flex-col items-center gap-4">
+              <Button variant="link" className="justify-center" type="button">
+                Forgot password?
+              </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                No account yet?{" "}
+                <button className="font-semibold text-primary underline-offset-4 hover:underline" onClick={handleJoinClick} type="button">
+                  Join Cheerbase
+                </button>
+              </p>
+            </div>
+          </form>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
@@ -177,17 +188,60 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
             <span className="h-px flex-1 bg-border" />
           </div>
 
-          <div className="grid gap-2">
-            <GoogleSignInButton />
-            <Button variant="outline" className="w-full justify-center" type="button" onClick={() => onDemoLogin("club_owner")}>
-              Log In as Club Owner
-            </Button>
-            <Button variant="outline" className="w-full justify-center" type="button" onClick={() => onDemoLogin("organizer")}>
-              Log In as Event Organizer
-            </Button>
-          </div>
+          <GoogleSignInButton onClick={() => setShowRoleSelection(true)} />
         </div>
       </DialogContent>
+
+      {/* Role Selection Modal */}
+      <Dialog open={showRoleSelection} onOpenChange={setShowRoleSelection}>
+        <DialogContent className="!max-w-[800px] p-8 sm:p-8">
+          <DialogHeader className="text-left">
+            <DialogTitle>Choose your account</DialogTitle>
+            <DialogDescription>
+              Select which account type you want to sign in as.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                setShowRoleSelection(false);
+                onDemoLogin("club_owner");
+              }}
+              className="group block h-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Card className="h-full border-border/60 transition duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:border-primary/40 cursor-pointer">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <UsersIcon className="text-primary size-5" />
+                    Club Owner
+                  </CardTitle>
+                  <CardDescription>Manage teams, rosters, and register for competitions.</CardDescription>
+                </CardHeader>
+              </Card>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowRoleSelection(false);
+                onDemoLogin("organizer");
+              }}
+              className="group block h-full rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Card className="h-full border-border/60 transition duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg hover:border-primary/40 cursor-pointer">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <ShieldCheckIcon className="text-primary size-5" />
+                    Organizer
+                  </CardTitle>
+                  <CardDescription>Manage events, registrations, and payouts from a dedicated portal.</CardDescription>
+                </CardHeader>
+              </Card>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

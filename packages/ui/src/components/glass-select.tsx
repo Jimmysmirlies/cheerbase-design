@@ -44,7 +44,7 @@ export function GlassSelect({
           <SelectItem
             key={opt.value}
             value={opt.value}
-            className={cn("dropdown-fade-in body-text font-semibold", itemClassName)}
+            className={cn("dropdown-fade-in body-text", itemClassName)}
             style={{ animationDelay: `${idx * 60}ms` }}
           >
             {opt.label}

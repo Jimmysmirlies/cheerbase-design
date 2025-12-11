@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ClubData, RegistrationDTO, RegisteredTeamDTO, RegisteredMemberDTO, MemberRole } from '@/lib/club-data'
 import type { StoredRegistration, StoredRegistrationTeam } from './useNewRegistrationStorage'
+import { getSharedClubDataCache, setSharedClubDataCache } from './useClubData'
 
 const STORAGE_KEY = 'cheerbase-new-registrations'
 const DEFAULT_CLUB_OWNER_ID = 'club-owner-1'
@@ -162,13 +163,34 @@ export function getRegistrationsByParentId(
 
 // Hook to get unified club data
 export function useUnifiedClubData() {
-  const [data, setData] = useState<ClubData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Initialize with shared cached data if available (instant navigation)
+  const [data, setData] = useState<ClubData | null>(() => {
+    const cached = getSharedClubDataCache()
+    if (cached) {
+      // Re-merge with localStorage in case it changed
+      return mergeClubData(cached)
+    }
+    return null
+  })
+  // Only show loading if we don't have cached data
+  const [isLoading, setIsLoading] = useState(!data)
   const [error, setError] = useState<Error | null>(null)
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (forceRefresh = false) => {
     try {
-      setIsLoading(true)
+      // Use shared cache if available and not forcing refresh
+      const cached = getSharedClubDataCache()
+      if (!forceRefresh && cached) {
+        const mergedData = mergeClubData(cached)
+        setData(mergedData)
+        setIsLoading(false)
+        return
+      }
+
+      // Only show loading if we don't have any data yet
+      if (!data) {
+        setIsLoading(true)
+      }
       
       // Fetch demo data from API - explicitly request demo account data
       const response = await fetch(`/api/demo/club-data?clubOwnerId=${DEFAULT_CLUB_OWNER_ID}`)
@@ -176,6 +198,9 @@ export function useUnifiedClubData() {
         throw new Error('Failed to fetch club data')
       }
       const demoData: ClubData = await response.json()
+      
+      // Update shared cache
+      setSharedClubDataCache(demoData)
       
       // Merge with localStorage
       const mergedData = mergeClubData(demoData)
@@ -187,7 +212,7 @@ export function useUnifiedClubData() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [data])
 
   // Load on mount
   useEffect(() => {
@@ -196,7 +221,7 @@ export function useUnifiedClubData() {
 
   // Refresh function to reload data (useful after creating a registration)
   const refresh = useCallback(() => {
-    loadData()
+    loadData(true) // Force refresh
   }, [loadData])
 
   return {

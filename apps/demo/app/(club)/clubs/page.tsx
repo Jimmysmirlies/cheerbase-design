@@ -194,6 +194,25 @@ function TeamsContent({ userId }: { userId?: string }) {
     [sanitizedSearch, teams]
   );
 
+  // Group teams by division
+  const { teamsByDivision, allDivisions } = useMemo(() => {
+    const grouped = new Map<string, TeamData[]>();
+    for (const team of filteredTeams) {
+      const division = team.division || "Uncategorized";
+      const existing = grouped.get(division) ?? [];
+      grouped.set(division, [...existing, team]);
+    }
+    // Sort divisions alphabetically
+    const sortedDivisions = Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b));
+    return { teamsByDivision: grouped, allDivisions: sortedDivisions };
+  }, [filteredTeams]);
+
+  const handleViewTeam = (teamId: string) => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set("teamId", teamId);
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   return (
     <section className="space-y-6">
       <FadeInSection className="w-full">
@@ -208,7 +227,8 @@ function TeamsContent({ userId }: { userId?: string }) {
               className="w-full pl-9"
             />
           </div>
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex items-center justify-end gap-2">
+            <UploadRosterDialog />
             <Button
               size="sm"
               variant="default"
@@ -219,7 +239,6 @@ function TeamsContent({ userId }: { userId?: string }) {
               <UserPlusIcon className="mr-2 size-4" />
               Create Team
             </Button>
-            <UploadRosterDialog />
           </div>
         </div>
       </FadeInSection>
@@ -239,22 +258,29 @@ function TeamsContent({ userId }: { userId?: string }) {
       ) : null}
 
       <FadeInSection className="w-full" delay={loading || error ? 160 : 120}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredTeams.length > 0 ? (
-            filteredTeams.map((team, index) => (
-              <FadeInSection key={team.id} delay={index * 80} className="h-full">
-                <TeamCard
-                  team={team}
-                  onViewTeam={teamId => {
-                    const params = new URLSearchParams(Array.from(searchParams.entries()));
-                    params.set("teamId", teamId);
-                    router.replace(`${pathname}?${params.toString()}`);
-                  }}
-                />
-              </FadeInSection>
-            ))
+        <div className="flex flex-col gap-4 px-1">
+          {allDivisions.length > 0 ? (
+            <div className="flex flex-col gap-6">
+              {allDivisions.map(division => {
+                const teamsInDivision = teamsByDivision.get(division) ?? [];
+                return (
+                  <div key={division} className="flex flex-col gap-3">
+                    <p className="label text-muted-foreground">{division.toUpperCase()}</p>
+                    <div className="flex flex-col gap-3">
+                      {teamsInDivision.map(team => (
+                        <TeamCard
+                          key={team.id}
+                          team={team}
+                          onViewTeam={handleViewTeam}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-border/60 p-8 text-center sm:col-span-2 lg:col-span-3">
+            <div className="rounded-xl border border-dashed border-border/60 p-8 text-center">
               <p className="text-muted-foreground body-small">
                 {searchTerm
                   ? "No teams found matching your search"

@@ -23,7 +23,6 @@ import {
   Share2Icon,
   DownloadIcon,
   ClockIcon,
-  UsersIcon,
   ExternalLinkIcon,
 } from "lucide-react";
 
