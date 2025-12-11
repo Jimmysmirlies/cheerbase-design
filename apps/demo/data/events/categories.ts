@@ -499,9 +499,24 @@ export const eventCategories: EventCategory[] = [
             regular: { price: 44 },
           },
           {
+            name: eventDivisionNames.stuntIndyDuo,
+            earlyBird: { price: 48, deadline: "2025-09-30" },
+            regular: { price: 58 },
+          },
+          {
             name: eventDivisionNames.prepNovice,
             earlyBird: { price: 52, deadline: "2025-09-30" },
             regular: { price: 70 },
+          },
+          {
+            name: eventDivisionNames.allStarScholastic,
+            earlyBird: { price: 63, deadline: "2025-09-30" },
+            regular: { price: 83 },
+          },
+          {
+            name: eventDivisionNames.adaptive,
+            earlyBird: { price: 0, deadline: "2025-09-30" },
+            regular: { price: 0 },
           },
         ],
       },
@@ -527,14 +542,29 @@ export const eventCategories: EventCategory[] = [
         gallery: getLocalGalleryImages("frostfest-montreal"),
         availableDivisions: [
           {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 115, deadline: "2025-11-30" },
+            regular: { price: 135 },
+          },
+          {
+            name: eventDivisionNames.chaperone,
+            earlyBird: { price: 40, deadline: "2025-11-30" },
+            regular: { price: 42 },
+          },
+          {
             name: eventDivisionNames.stuntIndyDuo,
             earlyBird: { price: 48, deadline: "2025-11-30" },
             regular: { price: 58 },
           },
           {
-            name: eventDivisionNames.worlds,
-            earlyBird: { price: 115, deadline: "2025-11-30" },
-            regular: { price: 135 },
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 50, deadline: "2025-11-30" },
+            regular: { price: 68 },
+          },
+          {
+            name: eventDivisionNames.allStarScholastic,
+            earlyBird: { price: 60, deadline: "2025-11-30" },
+            regular: { price: 80 },
           },
           {
             name: eventDivisionNames.adaptive,

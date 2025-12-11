@@ -29,6 +29,8 @@ import { RosterEditorDialog } from '@/components/features/registration/flow/Rost
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 import { formatCurrency } from '@/utils/format'
 import { saveNewRegistration } from '@/hooks/useNewRegistrationStorage'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { useClubData } from '@/hooks/useClubData'
 
 import type { RegistrationEntry, RegistrationMember, TeamOption } from './types'
 import type { DivisionPricing } from '@/types/events'
@@ -75,12 +77,31 @@ export function NewRegistrationContent({
   eventDate,
   location,
   divisionPricing,
-  teams,
-  rosters = [],
+  teams: serverTeams,
+  rosters: serverRosters = [],
   registrationDeadline,
   confirmationPath,
 }: NewRegistrationContentProps) {
   const router = useRouter()
+  
+  // Get client-side user data (for logged-in users)
+  const { user } = useAuth()
+  const { data: clubData } = useClubData(user?.id)
+  
+  // Use client-side data if available, otherwise fall back to server props
+  const teams = useMemo(() => {
+    if (clubData?.teams && clubData.teams.length > 0) {
+      return clubData.teams.map(({ id, name, division, size }) => ({ id, name, division, size }))
+    }
+    return serverTeams
+  }, [clubData?.teams, serverTeams])
+  
+  const rosters = useMemo(() => {
+    if (clubData?.rosters && clubData.rosters.length > 0) {
+      return clubData.rosters
+    }
+    return serverRosters
+  }, [clubData?.rosters, serverRosters])
 
   // State for registered teams
   const [registeredTeams, setRegisteredTeams] = useState<RegisteredTeamCardData[]>([])

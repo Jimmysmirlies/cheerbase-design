@@ -8,7 +8,7 @@
  * alongside demo data without any special handling.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ClubData, RegistrationDTO, RegisteredTeamDTO, RegisteredMemberDTO, MemberRole } from '@/lib/club-data'
 import type { StoredRegistration, StoredRegistrationTeam } from './useNewRegistrationStorage'
 import { getSharedClubDataCache, setSharedClubDataCache } from './useClubData'
@@ -176,6 +176,12 @@ export function useUnifiedClubData() {
   const [isLoading, setIsLoading] = useState(!data)
   const [error, setError] = useState<Error | null>(null)
 
+  // Keep a ref so loadData can read without being recreated
+  const dataRef = useRef<ClubData | null>(data)
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
+
   const loadData = useCallback(async (forceRefresh = false) => {
     try {
       // Use shared cache if available and not forcing refresh
@@ -188,7 +194,7 @@ export function useUnifiedClubData() {
       }
 
       // Only show loading if we don't have any data yet
-      if (!data) {
+      if (!dataRef.current) {
         setIsLoading(true)
       }
       
@@ -212,7 +218,7 @@ export function useUnifiedClubData() {
     } finally {
       setIsLoading(false)
     }
-  }, [data])
+  }, [])
 
   // Load on mount
   useEffect(() => {

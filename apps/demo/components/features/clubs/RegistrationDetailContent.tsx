@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -9,7 +9,6 @@ import { ArrowUpRightIcon, CalendarDaysIcon, CheckCircle2Icon, DownloadIcon, Loc
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
-import { Popover, PopoverContent, PopoverTrigger } from '@workspace/ui/shadcn/popover'
 
 import { PageHeader, type GradientVariant } from '@/components/layout/PageHeader'
 import { RegisteredTeamCard } from '@/components/features/clubs/RegisteredTeamCard'
@@ -127,19 +126,8 @@ function LayoutToggleWithTutorial({
   onChange: (variant: LayoutVariant) => void
 }) {
   const [showTutorial, setShowTutorial] = useState(false)
-  const [togglePosition, setTogglePosition] = useState<{ top: number; right: number } | null>(null)
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
   const toggleRef = useRef<HTMLDivElement>(null)
-
-  // Track the toggle's position for when we portal it
-  useEffect(() => {
-    if (toggleRef.current) {
-      const rect = toggleRef.current.getBoundingClientRect()
-      setTogglePosition({
-        top: rect.top,
-        right: window.innerWidth - rect.right,
-      })
-    }
-  }, [])
 
   useEffect(() => {
     // Check if user has seen the tutorial
@@ -151,134 +139,126 @@ function LayoutToggleWithTutorial({
     }
   }, [])
 
-  const dismissTutorial = () => {
+  const dismissTutorial = useCallback(() => {
     setShowTutorial(false)
     localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true')
-  }
+  }, [])
 
   const variants: LayoutVariant[] = ['A', 'B', 'C']
   const selectedIndex = variants.indexOf(variant)
 
-  const toggleButton = (
-    <div
-      className={cn(
-        'relative inline-flex items-center rounded-md border p-1 transition-all duration-300',
-        showTutorial
-          ? 'border-white bg-white/20 ring-2 ring-white/50 ring-offset-2 ring-offset-transparent'
-          : 'border-white/30 bg-white/10'
-      )}
-    >
-      {/* Sliding background indicator */}
-      <div
-        className="absolute top-1 left-1 h-7 w-7 rounded-md bg-white/20 shadow-sm transition-transform duration-200 ease-out"
-        style={{ transform: `translateX(${selectedIndex * 28}px)` }}
-        aria-hidden
-      />
-      {variants.map(v => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => {
-            onChange(v)
-            if (showTutorial) dismissTutorial()
-          }}
-          className={cn(
-            'relative z-10 flex size-7 items-center justify-center rounded-md text-xs font-semibold transition-colors',
-            variant === v ? 'text-white' : 'text-white/50 hover:text-white/70'
-          )}
-          aria-label={`Layout ${v}`}
-          aria-pressed={variant === v}
-        >
-          {v}
-        </button>
-      ))}
-    </div>
-  )
+  // Measure toggle position when tutorial is showing
+  useEffect(() => {
+    if (!showTutorial || !toggleRef.current) {
+      return
+    }
 
-  const popoverContent = (
-    <Popover open={showTutorial} onOpenChange={open => !open && dismissTutorial()}>
-      <PopoverTrigger asChild>{toggleButton}</PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="end"
-        sideOffset={12}
-        className="z-50 w-72 rounded-lg border-border/70 bg-card p-0 shadow-lg"
-      >
-        <div className="flex flex-col gap-3 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <p className="body font-semibold text-foreground">Layout Testing</p>
-            <button
-              onClick={dismissTutorial}
-              className="rounded-md p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              aria-label="Dismiss tutorial"
-            >
-              <XIcon className="size-4" />
-            </button>
-          </div>
-          <p className="body-small text-muted-foreground">
-            Switch between layout variants to compare different designs. We&apos;re testing which layout works best for this page.
-          </p>
-          <div className="flex flex-col gap-1.5 body-small text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">A</span>
-              <span>Two-column with sidebar</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">B</span>
-              <span>Single column with action banner</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">C</span>
-              <span>Single column with quick actions</span>
-            </div>
-          </div>
-          <Button size="sm" onClick={dismissTutorial} className="mt-1">
-            Got it
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
+    const updatePosition = () => {
+      const rect = toggleRef.current?.getBoundingClientRect()
+      if (rect) {
+        const width = 288 // approximate card width
+        setPopoverPos({
+          top: rect.bottom + 12,
+          left: rect.right - width,
+        })
+      }
+    }
 
-  // When tutorial is showing, portal both overlay and toggle to body for proper z-index layering
-  if (showTutorial && typeof document !== 'undefined' && togglePosition) {
-    return (
-      <>
-        {/* Placeholder to maintain layout space */}
-        <div 
-          ref={toggleRef}
-          className="inline-flex items-center rounded-md border border-transparent p-1 opacity-0 pointer-events-none"
-        >
-          <div className="size-7" />
-          <div className="size-7" />
-          <div className="size-7" />
-        </div>
-        {createPortal(
-          <>
-            {/* Dark overlay */}
-            <div 
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px] animate-in fade-in-0 duration-300"
-              onClick={dismissTutorial}
-              aria-hidden="true"
-            />
-            {/* Toggle fixed at exact position, above overlay */}
-            <div 
-              className="fixed z-50"
-              style={{ top: togglePosition.top, right: togglePosition.right }}
-            >
-              {popoverContent}
-            </div>
-          </>,
-          document.body
-        )}
-      </>
-    )
-  }
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [showTutorial])
 
   return (
-    <div ref={toggleRef}>
-      {popoverContent}
-    </div>
+    <>
+      <div ref={toggleRef} className={cn('relative inline-block', showTutorial && 'z-50')}>
+        <div
+          className={cn(
+            'relative inline-flex items-center rounded-md border p-1 transition-all duration-300',
+            showTutorial
+              ? 'border-white bg-white/20 ring-2 ring-white/50 ring-offset-2 ring-offset-transparent'
+              : 'border-white/30 bg-white/10'
+          )}
+        >
+          {/* Sliding background indicator */}
+          <div
+            className="absolute top-1 left-1 h-7 w-7 rounded-md bg-white/20 shadow-sm transition-transform duration-200 ease-out"
+            style={{ transform: `translateX(${selectedIndex * 28}px)` }}
+            aria-hidden
+          />
+          {variants.map(v => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => {
+                onChange(v)
+                if (showTutorial) dismissTutorial()
+              }}
+              className={cn(
+                'relative z-10 flex size-7 items-center justify-center rounded-md text-xs font-semibold transition-colors',
+                variant === v ? 'text-white' : 'text-white/50 hover:text-white/70'
+              )}
+              aria-label={`Layout ${v}`}
+              aria-pressed={variant === v}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {showTutorial && popoverPos && createPortal(
+        <>
+          <div 
+            className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-[2px] animate-in fade-in-0 duration-300"
+            onClick={dismissTutorial}
+            aria-hidden="true"
+          />
+          <div
+            className="fixed z-[90] w-72 rounded-lg border-border/70 bg-card p-0 shadow-lg"
+            style={{ top: popoverPos.top, left: popoverPos.left }}
+          >
+            <div className="flex flex-col gap-3 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <p className="body font-semibold text-foreground">Layout Testing</p>
+                <button
+                  onClick={dismissTutorial}
+                  className="rounded-md p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  aria-label="Dismiss tutorial"
+                >
+                  <XIcon className="size-4" />
+                </button>
+              </div>
+              <p className="body-small text-muted-foreground">
+                Switch between layout variants to compare different designs. We&apos;re testing which layout works best for this page.
+              </p>
+              <div className="flex flex-col gap-1.5 body-small text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">A</span>
+                  <span>Two-column with sidebar</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">B</span>
+                  <span>Single column with action banner</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">C</span>
+                  <span>Single column with quick actions</span>
+                </div>
+              </div>
+              <Button size="sm" onClick={dismissTutorial} className="mt-1">
+                Got it
+              </Button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+    </>
   )
 }
 

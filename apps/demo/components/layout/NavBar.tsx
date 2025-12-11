@@ -35,7 +35,6 @@ import { useRouter } from 'next/navigation'
 import { AuthSignUp } from '@/components/features/auth/AuthSignUp'
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
-import { WalkthroughSpotlight, useRegistrationWalkthroughSafe } from '@/components/ui/RegistrationWalkthrough'
 import { eventCategories } from '@/data/events/categories'
 import { 
   SearchIcon, 
@@ -71,7 +70,6 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
   void showNavLinks
   const router = useRouter()
   const { user, signOut, signInAsRole } = useAuth()
-  const walkthrough = useRegistrationWalkthroughSafe()
   const role = user?.role ?? null
   const [isDark, setIsDark] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
@@ -330,16 +328,9 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                     <Button variant="ghost" size="sm" className="px-4" onClick={() => openStart('choose')}>
                       Get Started
                     </Button>
-                    <WalkthroughSpotlight 
-                      step="login" 
-                      side="bottom" 
-                      align="end"
-                      onAction={() => setLoginOpen(true)}
-                    >
-                      <Button variant="default" size="sm" className="px-4" onClick={() => setLoginOpen(true)}>
-                        Log in
-                      </Button>
-                    </WalkthroughSpotlight>
+                    <Button variant="default" size="sm" className="px-4" onClick={() => setLoginOpen(true)}>
+                      Log in
+                    </Button>
                   </div>
                 )}
               </div>
@@ -356,10 +347,6 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                 isDemo: true,
               })
               setLoginOpen(false)
-              // Advance walkthrough when logging in as club owner
-              if (nextRole === 'club_owner' && walkthrough?.isStepActive('login')) {
-                walkthrough.nextStep()
-              }
               if (nextRole === 'organizer') router.push('/organizer')
               else router.push('/clubs')
             }}

@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import { FadeInSection, Hero } from "@/components/ui";
 import { EventCard } from "@/components/ui/cards/EventCard";
-import { WalkthroughSpotlight } from "@/components/ui/RegistrationWalkthrough";
 import { heroSlides, organizers, listEvents } from "@/data/events";
 import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
 import { TextSelect } from "@workspace/ui/components/text-select";
@@ -84,29 +83,15 @@ export default function HomePage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {provinceEvents.map((event, index) => (
               <FadeInSection key={`${event.id}-${event.location}`} delay={index * 80} className="h-full">
-                {index === 0 ? (
-                  <WalkthroughSpotlight step="select-event" side="bottom" align="start" advanceOnClick>
-                    <EventCard
-                      image={event.image}
-                      title={event.name}
-                      organizer={event.organizer}
-                      date={event.date}
-                      location={event.location}
-                      teams={event.teams}
-                      href={`/events/${encodeURIComponent(event.id)}`}
-                    />
-                  </WalkthroughSpotlight>
-                ) : (
-                  <EventCard
-                    image={event.image}
-                    title={event.name}
-                    organizer={event.organizer}
-                    date={event.date}
-                    location={event.location}
-                    teams={event.teams}
-                    href={`/events/${encodeURIComponent(event.id)}`}
-                  />
-                )}
+                <EventCard
+                  image={event.image}
+                  title={event.name}
+                  organizer={event.organizer}
+                  date={event.date}
+                  location={event.location}
+                  teams={event.teams}
+                  href={`/events/${encodeURIComponent(event.id)}`}
+                />
               </FadeInSection>
             ))}
           </div>
@@ -126,9 +111,6 @@ export default function HomePage() {
                 size="large"
               />
             </header>
-            <Link className="text-primary text-sm font-semibold hover:underline sm:self-end" href="/events/search">
-              Search all events
-            </Link>
           </div>
         </FadeInSection>
 
@@ -152,10 +134,17 @@ export default function HomePage() {
       </section>
 
       {/* Footer: Global links and product tagline */}
-      <footer className="border-t border-border bg-card/60">
+      <footer className="border-t border-sidebar-border bg-sidebar">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-lg font-semibold">Ralli</p>
+            <span
+              className="text-lg font-semibold bg-clip-text text-transparent"
+              style={{
+                backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
+              }}
+            >
+              cheerbase
+            </span>
             <p className="text-sm text-muted-foreground">
               The discovery-first platform connecting clubs, organizers, and communities.
             </p>

@@ -6,7 +6,6 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { StyleGuideButton } from '@/components/layout/StyleGuideButton'
 import { AuthProvider } from '@/components/providers/AuthProvider'
-import { WalkthroughProvider, WalkthroughFloatingTrigger } from '@/components/ui/RegistrationWalkthrough'
 import { Toaster } from '@workspace/ui/shadcn/sonner'
 
 export const metadata: Metadata = {
@@ -19,11 +18,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="bg-background text-foreground">
         <AuthProvider>
-          <WalkthroughProvider>
-            {children}
-            <WalkthroughFloatingTrigger />
-            <StyleGuideButton />
-            <Toaster
+          {children}
+          <StyleGuideButton />
+          <Toaster
               position="bottom-center"
               toastOptions={{
                 classNames: {
@@ -36,8 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   info: 'bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-100 [&_[data-description]]:text-blue-800 dark:[&_[data-description]]:text-blue-200',
                 },
               }}
-            />
-          </WalkthroughProvider>
+          />
         </AuthProvider>
       </body>
     </html>
