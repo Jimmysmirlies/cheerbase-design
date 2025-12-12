@@ -25,6 +25,8 @@ type RegistrationSummaryCardProps = {
   pricingButtonLabel?: string
   /** If true, registration is closed and button will be disabled */
   isRegistrationClosed?: boolean
+  /** If true, hides the pricing button */
+  hidePricingButton?: boolean
 }
 
 export function RegistrationSummaryCard({
@@ -37,6 +39,7 @@ export function RegistrationSummaryCard({
   registerButtonLabel = 'Start registration',
   pricingButtonLabel = 'View pricing info',
   isRegistrationClosed = false,
+  hidePricingButton = false,
 }: RegistrationSummaryCardProps) {
   const router = useRouter()
   const { user, status, signInAsRole } = useAuth()
@@ -113,9 +116,11 @@ export function RegistrationSummaryCard({
                     </Button>
                   )}
                 </WalkthroughSpotlight>
-                <PricingScrollButton targetId={pricingTargetId} className="w-full">
-                  {pricingButtonLabel}
-                </PricingScrollButton>
+                {!hidePricingButton && (
+                  <PricingScrollButton targetId={pricingTargetId} className="w-full">
+                    {pricingButtonLabel}
+                  </PricingScrollButton>
+                )}
               </div>
               
               {/* Registration deadline */}

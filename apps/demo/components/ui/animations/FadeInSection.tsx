@@ -18,26 +18,22 @@ export function FadeInSection({ children, className, delay = 0 }: FadeInSectionP
     const element = ref.current
     if (!element) return
 
-    // Small delay to ensure layout is settled before observing
-    const timeoutId = setTimeout(() => {
-      observerRef.current = new IntersectionObserver(
-        ([entry]) => {
-          if (entry?.isIntersecting) {
-            setIsVisible(true)
-            observerRef.current?.disconnect()
-          }
-        },
-        {
-          threshold: 0.05,
-          rootMargin: '50px 0px 0px 0px', // Trigger slightly before element enters viewport from top
+    observerRef.current = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setIsVisible(true)
+          observerRef.current?.disconnect()
         }
-      )
+      },
+      {
+        threshold: 0.05,
+        rootMargin: '50px 0px 0px 0px', // Trigger slightly before element enters viewport from top
+      }
+    )
 
-      observerRef.current.observe(element)
-    }, 50)
+    observerRef.current.observe(element)
 
     return () => {
-      clearTimeout(timeoutId)
       observerRef.current?.disconnect()
     }
   }, [])
@@ -46,7 +42,7 @@ export function FadeInSection({ children, className, delay = 0 }: FadeInSectionP
     <div
       ref={ref}
       className={cn(
-        'transition-all duration-700 ease-out',
+        'transition-all duration-600 ease-out',
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',
         className
       )}

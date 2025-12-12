@@ -34,6 +34,8 @@ export type Event = {
   availableDivisions?: DivisionPricing[]
   /** ISO date string for registration deadline. If not provided, defaults to day before event. */
   registrationDeadline?: string
+  /** ISO date string for early bird pricing deadline. */
+  earlyBirdDeadline?: string
 }
 
 export type EventCategory = {

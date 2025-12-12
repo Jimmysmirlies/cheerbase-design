@@ -1,10 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowUpRightIcon, CalendarDaysIcon, CheckCircle2Icon, DownloadIcon, LockIcon, MapPinIcon, PlusIcon, UploadIcon, XIcon } from 'lucide-react'
+import { ArrowUpRightIcon, CalendarDaysIcon, CheckCircle2Icon, DownloadIcon, LockIcon, MapPinIcon, PlusIcon, UploadIcon } from 'lucide-react'
 
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
@@ -26,8 +25,16 @@ import { DEFAULT_ROLE } from '@/components/features/registration/flow/types'
 import { toast } from '@workspace/ui/shadcn/sonner'
 import { useRegistrationStorage, mapToRecord, recordToMap } from '@/hooks/useRegistrationStorage'
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
+import { LayoutToggle } from '@/components/ui/controls/LayoutToggle'
 
 type LayoutVariant = 'A' | 'B' | 'C'
+
+const LAYOUT_TUTORIAL_STORAGE_KEY = 'layout-toggle-tutorial-seen'
+const LAYOUT_TUTORIAL_ITEMS = [
+  { label: 'A', description: 'Two-column with sidebar' },
+  { label: 'B', description: 'Single column with action banner' },
+  { label: 'C', description: 'Single column with quick actions' },
+]
 
 type RegisteredTeamCardData = {
   id: string
@@ -114,152 +121,6 @@ type RegistrationDetailContentProps = {
   teamRosters?: TeamRosterData[]
   // Event resources
   documents?: DocumentResource[]
-}
-
-const TUTORIAL_STORAGE_KEY = 'layout-toggle-tutorial-seen'
-
-function LayoutToggleWithTutorial({
-  variant,
-  onChange,
-}: {
-  variant: LayoutVariant
-  onChange: (variant: LayoutVariant) => void
-}) {
-  const [showTutorial, setShowTutorial] = useState(false)
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
-  const toggleRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    // Check if user has seen the tutorial
-    const hasSeen = localStorage.getItem(TUTORIAL_STORAGE_KEY)
-    if (!hasSeen) {
-      // Small delay to let the page render first
-      const timer = setTimeout(() => setShowTutorial(true), 800)
-      return () => clearTimeout(timer)
-    }
-  }, [])
-
-  const dismissTutorial = useCallback(() => {
-    setShowTutorial(false)
-    localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true')
-  }, [])
-
-  const variants: LayoutVariant[] = ['A', 'B', 'C']
-  const selectedIndex = variants.indexOf(variant)
-
-  // Measure toggle position when tutorial is showing
-  useEffect(() => {
-    if (!showTutorial || !toggleRef.current) {
-      return
-    }
-
-    const updatePosition = () => {
-      const rect = toggleRef.current?.getBoundingClientRect()
-      if (rect) {
-        const width = 288 // approximate card width
-        setPopoverPos({
-          top: rect.bottom + 12,
-          left: rect.right - width,
-        })
-      }
-    }
-
-    updatePosition()
-    window.addEventListener('resize', updatePosition)
-    window.addEventListener('scroll', updatePosition, true)
-    return () => {
-      window.removeEventListener('resize', updatePosition)
-      window.removeEventListener('scroll', updatePosition, true)
-    }
-  }, [showTutorial])
-
-  return (
-    <>
-      <div ref={toggleRef} className={cn('relative inline-block', showTutorial && 'z-50')}>
-        <div
-          className={cn(
-            'relative inline-flex items-center rounded-md border p-1 transition-all duration-300',
-            showTutorial
-              ? 'border-white bg-white/20 ring-2 ring-white/50 ring-offset-2 ring-offset-transparent'
-              : 'border-white/30 bg-white/10'
-          )}
-        >
-          {/* Sliding background indicator */}
-          <div
-            className="absolute top-1 left-1 h-7 w-7 rounded-md bg-white/20 shadow-sm transition-transform duration-200 ease-out"
-            style={{ transform: `translateX(${selectedIndex * 28}px)` }}
-            aria-hidden
-          />
-          {variants.map(v => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => {
-                onChange(v)
-                if (showTutorial) dismissTutorial()
-              }}
-              className={cn(
-                'relative z-10 flex size-7 items-center justify-center rounded-md text-xs font-semibold transition-colors',
-                variant === v ? 'text-white' : 'text-white/50 hover:text-white/70'
-              )}
-              aria-label={`Layout ${v}`}
-              aria-pressed={variant === v}
-            >
-              {v}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {showTutorial && popoverPos && createPortal(
-        <>
-          <div 
-            className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-[2px] animate-in fade-in-0 duration-300"
-            onClick={dismissTutorial}
-            aria-hidden="true"
-          />
-          <div
-            className="fixed z-[90] w-72 rounded-lg border-border/70 bg-card p-0 shadow-lg"
-            style={{ top: popoverPos.top, left: popoverPos.left }}
-          >
-            <div className="flex flex-col gap-3 p-4">
-              <div className="flex items-start justify-between gap-2">
-                <p className="body font-semibold text-foreground">Layout Testing</p>
-                <button
-                  onClick={dismissTutorial}
-                  className="rounded-md p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  aria-label="Dismiss tutorial"
-                >
-                  <XIcon className="size-4" />
-                </button>
-              </div>
-              <p className="body-small text-muted-foreground">
-                Switch between layout variants to compare different designs. We&apos;re testing which layout works best for this page.
-              </p>
-              <div className="flex flex-col gap-1.5 body-small text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">A</span>
-                  <span>Two-column with sidebar</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">B</span>
-                  <span>Single column with action banner</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground">C</span>
-                  <span>Single column with quick actions</span>
-                </div>
-              </div>
-              <Button size="sm" onClick={dismissTutorial} className="mt-1">
-                Got it
-              </Button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
-    </>
-  )
 }
 
 export function RegistrationDetailContent({
@@ -1344,7 +1205,15 @@ export function RegistrationDetailContent({
           { label: 'Registrations', href: '/clubs/registrations' },
           { label: registration.eventName },
         ]}
-        action={<LayoutToggleWithTutorial variant={layoutVariant} onChange={setLayoutVariant} />}
+        action={
+          <LayoutToggle
+            variants={['A', 'B', 'C'] as const}
+            value={layoutVariant}
+            onChange={setLayoutVariant}
+            storageKey={LAYOUT_TUTORIAL_STORAGE_KEY}
+            tutorialItems={LAYOUT_TUTORIAL_ITEMS}
+          />
+        }
       />
 
       {layoutVariant === 'A' ? (

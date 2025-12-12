@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
-import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon, BoxIcon, CalendarIcon, UsersIcon, FilterIcon, LayoutGridIcon, ListIcon } from "lucide-react"
+import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon, BoxIcon, CalendarIcon, UsersIcon, FilterIcon, LayoutGridIcon, ListIcon, BellIcon } from "lucide-react"
 
 import { Sidebar } from "@/components/layout/Sidebar"
 import { NavBar } from "@/components/layout/NavBar"
@@ -27,12 +27,13 @@ const guideNavSections = [
     nickname: "components-shell",
     items: [
       { key: "components", label: "Overview", icon: <PuzzleIcon className="size-4" />, href: "/style-guide/components", nickname: "guide-components" },
-      { key: "hero", label: "Hero", icon: <BoxIcon className="size-4" />, href: "/style-guide/components/hero", nickname: "guide-hero" },
       { key: "event-card", label: "Event Card", icon: <CalendarIcon className="size-4" />, href: "/style-guide/components/event-card", nickname: "guide-event-card" },
-      { key: "organizer-card", label: "Organizer Card", icon: <UsersIcon className="size-4" />, href: "/style-guide/components/organizer-card", nickname: "guide-organizer-card" },
-      { key: "quick-filter-rail", label: "Quick Filter Rail", icon: <FilterIcon className="size-4" />, href: "/style-guide/components/quick-filter-rail", nickname: "guide-quick-filter-rail" },
-      { key: "organizers-section", label: "Organizers Section", icon: <LayoutGridIcon className="size-4" />, href: "/style-guide/components/organizers-section", nickname: "guide-organizers-section" },
       { key: "event-categories-section", label: "Event Categories", icon: <ListIcon className="size-4" />, href: "/style-guide/components/event-categories-section", nickname: "guide-event-categories-section" },
+      { key: "hero", label: "Hero", icon: <BoxIcon className="size-4" />, href: "/style-guide/components/hero", nickname: "guide-hero" },
+      { key: "organizer-card", label: "Organizer Card", icon: <UsersIcon className="size-4" />, href: "/style-guide/components/organizer-card", nickname: "guide-organizer-card" },
+      { key: "organizers-section", label: "Organizers Section", icon: <LayoutGridIcon className="size-4" />, href: "/style-guide/components/organizers-section", nickname: "guide-organizers-section" },
+      { key: "quick-filter-rail", label: "Quick Filter Rail", icon: <FilterIcon className="size-4" />, href: "/style-guide/components/quick-filter-rail", nickname: "guide-quick-filter-rail" },
+      { key: "registration-notice-bar", label: "Registration Notice Bar", icon: <BellIcon className="size-4" />, href: "/style-guide/components/registration-notice-bar", nickname: "guide-registration-notice-bar" },
     ],
   },
 ]
@@ -56,6 +57,7 @@ export default function StyleGuideLayout({ children }: { children: ReactNode }) 
     if (pathname === "/style-guide/components/event-card") return "event-card"
     if (pathname === "/style-guide/components/organizer-card") return "organizer-card"
     if (pathname === "/style-guide/components/quick-filter-rail") return "quick-filter-rail"
+    if (pathname === "/style-guide/components/registration-notice-bar") return "registration-notice-bar"
     if (pathname === "/style-guide/components/organizers-section") return "organizers-section"
     if (pathname === "/style-guide/components/event-categories-section") return "event-categories-section"
     if (pathname === "/style-guide/components") return "components"

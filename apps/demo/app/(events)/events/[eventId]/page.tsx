@@ -13,28 +13,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import Link from "next/link";
-
-import { Button } from "@workspace/ui/shadcn/button";
-
-import {
-  CalendarDaysIcon,
-  MapPinIcon,
-  Share2Icon,
-  DownloadIcon,
-  ClockIcon,
-  ExternalLinkIcon,
-} from "lucide-react";
-
-import { FadeInSection } from "@/components/ui";
-import { EventGallery } from "@/components/ui/gallery/EventGallery";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
-import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
+import { EventDetailContent } from "@/components/features/events/EventDetailContent";
 import { findEventById, listEvents, isRegistrationClosed } from "@/data/events";
 import { findOrganizerByName, formatFollowers, formatHostingDuration } from "@/data/events/organizers";
 import { divisionPricingDefaults } from "@/data/divisions";
 import { buildEventGalleryImages } from "./image-gallery";
+import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 type EventPageParams = {
   eventId: string;
@@ -103,7 +87,7 @@ export default async function EventPage({ params }: EventPageProps) {
   
   // Extract city/state from location for display
   const locationParts = event.location.split(", ");
-  const venueName = locationParts[0];
+  const venueName = locationParts[0] ?? event.location;
   const cityState = locationParts.slice(1).join(", ");
   
   // Use event's registration deadline if available, otherwise day before event
@@ -114,26 +98,180 @@ export default async function EventPage({ params }: EventPageProps) {
   // Check if registration is closed
   const registrationClosed = isRegistrationClosed(event);
 
-  const timeline = [
+  // Registration status - determine current phase
+  const now = new Date();
+  const earlyBirdDeadline = event.earlyBirdDeadline ? new Date(event.earlyBirdDeadline) : null;
+  const registrationDeadline = event.registrationDeadline ? new Date(event.registrationDeadline) : dayBefore;
+  
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const sevenDays = 7 * msPerDay;
+  
+  type RegistrationPhase = 
+    | 'early-bird' 
+    | 'early-bird-ending' 
+    | 'regular' 
+    | 'closing-soon' 
+    | 'closed';
+  
+  // Build all timeline phases
+  type TimelinePhase = {
+    id: RegistrationPhase;
+    title: string;
+    subtitle: string | null;
+    description: string;
+    show: boolean;
+  };
+  
+  const formatCountdown = (target: Date) => {
+    const diffMs = Math.max(0, target.getTime() - now.getTime());
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes - days * 24 * 60) / 60);
+    const mins = totalMinutes - days * 24 * 60 - hours * 60;
+    return `${days} days ${hours} hrs ${mins} mins`;
+  };
+  
+  const msUntilEarlyBird = earlyBirdDeadline ? earlyBirdDeadline.getTime() - now.getTime() : null;
+  const earlyBirdEnded = !!earlyBirdDeadline && now > earlyBirdDeadline;
+  const earlyBirdActive = !!earlyBirdDeadline && !!msUntilEarlyBird && msUntilEarlyBird > 0;
+  const earlyBirdWithinSeven = !!msUntilEarlyBird && msUntilEarlyBird > 0 && msUntilEarlyBird < sevenDays;
+  
+  const msUntilClose = registrationDeadline.getTime() - now.getTime();
+  const registrationOpen = msUntilClose > 0;
+  const registrationWithinSeven = registrationOpen && msUntilClose < sevenDays;
+  
+  // Dynamic card content based on current state
+  const getEarlyBirdCard = () => {
+    if (earlyBirdEnded) {
+      return {
+        title: 'Early Bird Pricing',
+        subtitle: `Ended ${formatTimelineDate(earlyBirdDeadline!)}`,
+      };
+    }
+    if (earlyBirdWithinSeven) {
+      return {
+        title: 'Early Bird Pricing Ends Soon',
+        subtitle: `Closes ${formatTimelineDate(earlyBirdDeadline!)}`,
+      };
+    }
+    return {
+      title: 'Early Bird Pricing',
+      subtitle: `Ends ${formatTimelineDate(earlyBirdDeadline!)}`,
+    };
+  };
+  
+  const getRegistrationCard = () => {
+    if (registrationWithinSeven) {
+      return {
+        title: 'Registration Closes Soon',
+        subtitle: `Closes in ${formatCountdown(registrationDeadline)}`,
+      };
+    }
+    return {
+      title: 'Registration Open',
+      subtitle: `Closes in ${formatCountdown(registrationDeadline)}`,
+    };
+  };
+  
+  const getClosedCard = () => {
+    if (!registrationOpen) {
+      return {
+        title: 'Registration Closed',
+        subtitle: formatTimelineDate(registrationDeadline),
+      };
+    }
+    if (registrationWithinSeven) {
+      return {
+        title: 'Registration Closes Soon',
+        subtitle: formatTimelineDate(registrationDeadline),
+      };
+    }
+    return {
+      title: 'Registration Closes',
+      subtitle: formatTimelineDate(registrationDeadline),
+    };
+  };
+  
+  const earlyBirdCardContent = getEarlyBirdCard();
+  const registrationCardContent = getRegistrationCard();
+  const closedCardContent = getClosedCard();
+  
+  const allPhases: TimelinePhase[] = [
+    // Card 1: Early Bird Pricing (only if event has early bird)
     {
-      label: "Coach Check-In",
-      date: formatTimelineDate(dayBefore),
-      time: "4:00 – 7:00 PM",
-      detail: "Credential pickup, schedule walkthroughs, and packet distribution.",
+      id: 'early-bird' as const,
+      title: earlyBirdCardContent.title,
+      subtitle: earlyBirdCardContent.subtitle,
+      description: '',
+      show: !!earlyBirdDeadline,
     },
+    // Card 2: Registration Open / Closes Soon (only while registration is open)
     {
-      label: "Warm-Up Access",
-      date: formatTimelineDate(competitionDate),
-      time: "7:00 – 10:00 AM",
-      detail: "Warm-up rotations begin 90 minutes before each report time.",
+      id: 'regular' as const,
+      title: registrationCardContent.title,
+      subtitle: registrationCardContent.subtitle,
+      description: '',
+      show: registrationOpen,
     },
+    // Card 3: Registration Closes / Closed
     {
-      label: "Finals & Awards",
-      date: formatTimelineDate(competitionDate),
-      time: "5:00 – 8:00 PM",
-      detail: "Division finals, award ceremony, and judges feedback lounge.",
+      id: 'closed' as const,
+      title: closedCardContent.title,
+      subtitle: closedCardContent.subtitle,
+      description: '',
+      show: true,
     },
-  ];
+  ].filter(phase => phase.show);
+  
+  // Determine which card is currently active
+  const isCardActive = (phaseId: RegistrationPhase): boolean => {
+    if (phaseId === 'early-bird') {
+      // Early bird card is active if early bird is still open
+      return earlyBirdActive;
+    }
+    if (phaseId === 'regular') {
+      // Registration card is active if registration is open AND early bird has ended (or doesn't exist)
+      return registrationOpen && !earlyBirdActive;
+    }
+    if (phaseId === 'closed') {
+      // Closed card is active only when registration has closed
+      return !registrationOpen;
+    }
+    return false;
+  };
+  
+  // Get organizer gradient styling for the current phase
+  const gradientKey: BrandGradient = organizer?.gradient ?? 'primary';
+  const gradient = brandGradients[gradientKey];
+  
+  // Extract the first color from the gradient for border
+  // gradient.css format: 'linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)'
+  const firstGradientColor = gradient.css.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? '#8E69D0';
+  
+  const getPhaseStyles = (phaseId: RegistrationPhase) => {
+    const isCurrent = isCardActive(phaseId);
+    
+    if (!isCurrent) {
+      // Inactive phases - subtle styling
+      return {
+        border: 'border-border/30',
+        background: 'bg-muted/10',
+        dot: 'bg-muted-foreground/20',
+        usesGradient: false,
+      };
+    }
+    
+    // Current phase uses organizer gradient
+    return {
+      border: '', // Will use inline style
+      background: '', // Will use overlay
+      dot: '', // Will use inline style
+      gradientBg: gradient.css, // Pass the full gradient for inline styling
+      borderColor: firstGradientColor,
+      dotColor: firstGradientColor,
+      usesGradient: true,
+    };
+  };
 
   // "Pricing Grid": divisions and tiered fees rendered in the table body.
   const formatAmount = (price?: number | null) => {
@@ -146,7 +284,10 @@ export default async function EventPage({ params }: EventPageProps) {
     return `$${price}`;
   };
 
-  const PRICING_DEADLINE_LABEL = "Oct 12";
+  // Format early bird deadline for pricing table header
+  const PRICING_DEADLINE_LABEL = earlyBirdDeadline 
+    ? earlyBirdDeadline.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "Early Bird";
   const divisionsForPricing = event.availableDivisions ?? [];
   const pricingRowsMap = divisionsForPricing.reduce((map, division) => {
     const defaults = divisionPricingDefaults[division.name as keyof typeof divisionPricingDefaults];
@@ -184,280 +325,50 @@ export default async function EventPage({ params }: EventPageProps) {
     },
   ];
 
+  // Build timeline phases data for client component
+  const timelinePhases = allPhases.map((phase) => {
+    const phaseStyles = getPhaseStyles(phase.id);
+    const isCurrent = isCardActive(phase.id);
+    return {
+      id: phase.id,
+      title: phase.title,
+      subtitle: phase.subtitle,
+      border: phaseStyles.border,
+      background: phaseStyles.background,
+      dot: phaseStyles.dot,
+      usesGradient: phaseStyles.usesGradient,
+      gradientBg: phaseStyles.gradientBg,
+      borderColor: phaseStyles.borderColor,
+      dotColor: phaseStyles.dotColor,
+      isCurrent,
+    };
+  });
+
   return (
-    <section className="flex flex-1 flex-col">
-      {/* PageHeader with organizer's brand gradient */}
-      <PageHeader
-        title={event.name}
-        hideSubtitle
-        gradientVariant={organizer?.gradient ?? 'primary'}
-        eventStartDate={event.date}
-        showEventDateAsBreadcrumb
-        hideCountdown
-      />
-
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          <article className="space-y-12 px-1">
-            {/* Overview Section */}
-            <FadeInSection>
-              <div className="flex flex-col gap-4">
-                <p className="heading-4">Overview</p>
-                <p className="text-muted-foreground body-small">
-                  {event.description} Added amenities include expanded warm-up rotations, on-site athletic trainers,
-                  backstage video replay, and hospitality lounges for club directors. Expect curated judges feedback, vendor
-                  experiences, and a champion&apos;s parade following finals.
-                </p>
-              </div>
-            </FadeInSection>
-
-            {/* Organizer Section */}
-            <FadeInSection delay={100}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Organizer</p>
-                <OrganizerCard
-                  name={event.organizer}
-                  gradient={organizer?.gradient ?? 'primary'}
-                  followers={organizer ? formatFollowers(organizer.followers) : '—'}
-                  eventsCount={organizer?.eventsCount}
-                  hostingDuration={organizer ? formatHostingDuration(organizer.hostingYears) : undefined}
-                />
-              </div>
-            </FadeInSection>
-
-            {/* Date & Location Section */}
-            <FadeInSection delay={200}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Date & Location</p>
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div className="flex flex-col gap-3">
-                    {/* Date */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-11 flex-col items-center justify-center rounded-md border bg-muted/30 overflow-hidden">
-                        <span className="text-[10px] font-medium text-muted-foreground leading-none">{eventDateParts.month}</span>
-                        <span className="text-lg font-semibold text-foreground leading-none">{eventDateParts.day}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-foreground">
-                          {eventDateParts.weekday}, {eventDateParts.fullDate}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Location */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-11 items-center justify-center rounded-md border bg-muted/30">
-                        <MapPinIcon className="size-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex flex-col">
-                        <Link
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-foreground hover:underline inline-flex items-center gap-1"
-                        >
-                          {venueName}
-                          <ExternalLinkIcon className="size-3" />
-                        </Link>
-                        <span className="text-xs text-muted-foreground">{cityState}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg border border-border/70 bg-muted/50">
-                    <iframe
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(event.location)}&output=embed`}
-                      className="absolute inset-0 h-full w-full"
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title={`Map of ${event.location}`}
-                    />
-                    <Link
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute inset-0 z-10"
-                      aria-label={`Open ${event.location} in Google Maps`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </FadeInSection>
-
-            {/* Gallery Section */}
-            <FadeInSection delay={300}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Gallery</p>
-                <EventGallery images={galleryImages} alt={event.name} maxImages={4} />
-              </div>
-            </FadeInSection>
-
-            {/* Event Timeline Section */}
-            <FadeInSection delay={400}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Event Timeline</p>
-                <div className="flex flex-col gap-3">
-                  {timeline.map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <p className="font-semibold text-foreground">{item.label}</p>
-                        <div className="body-small flex flex-wrap items-center gap-4 text-muted-foreground">
-                          <span className="flex items-center gap-1.5">
-                            <CalendarDaysIcon className="text-primary/70 size-4" />
-                            {item.date}
-                          </span>
-                          {item.time ? (
-                            <span className="flex items-center gap-1.5">
-                              <ClockIcon className="text-primary/70 size-4" />
-                              {item.time}
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                      <p className="body-small text-muted-foreground mt-2">{item.detail}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeInSection>
-
-            {/* Pricing Section */}
-            <FadeInSection delay={500}>
-              <div className="flex flex-col gap-4" id="pricing">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Pricing</p>
-                <div className="overflow-hidden rounded-md border border-border/70">
-                  <table className="w-full table-auto text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3 font-medium sm:px-4">Division</th>
-                        <th className="px-3 py-3 font-medium sm:px-4">{`Before ${PRICING_DEADLINE_LABEL}`}</th>
-                        <th className="px-3 py-3 font-medium sm:px-4">{`After ${PRICING_DEADLINE_LABEL}`}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pricingRowsArray.length ? (
-                        pricingRowsArray.map((row) => (
-                          <tr key={row.label} className="border-t">
-                            <td className="text-foreground px-3 py-3 sm:px-4">{row.label}</td>
-                            <td className="px-3 py-3 sm:px-4">{row.before}</td>
-                            <td className="px-3 py-3 sm:px-4">{row.after}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr className="border-t">
-                          <td className="px-3 py-6 text-center text-sm text-muted-foreground sm:px-4" colSpan={3}>
-                            Pricing information will be available soon.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </FadeInSection>
-
-            {/* Documents & Resources Section */}
-            <FadeInSection delay={600}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Documents & Resources</p>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {documents.map((doc) => (
-                    <div key={doc.name} className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-start gap-3">
-                          <DownloadIcon className="text-primary/70 size-5 shrink-0 mt-0.5" />
-                          <div className="flex flex-col gap-0.5">
-                            <p className="body-text font-semibold text-foreground">{doc.name}</p>
-                            <p className="body-small text-muted-foreground">{doc.description}</p>
-                          </div>
-                        </div>
-                        <Button asChild variant="outline" size="sm" className="shrink-0">
-                          <Link href={doc.href}>Download</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeInSection>
-
-            {/* Results Section */}
-            <FadeInSection delay={800}>
-              <div className="flex flex-col gap-4">
-                <div className="h-px w-full bg-border" />
-                <p className="heading-4">Results & Leaderboard</p>
-                <div className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-foreground font-medium">Coming soon</p>
-                      <p className="body-small text-muted-foreground">Scores and placements will publish once awards conclude.</p>
-                    </div>
-                    <Button variant="outline" size="sm" disabled>
-                      <Share2Icon className="mr-2 size-4" />
-                      Notify me
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </FadeInSection>
-          </article>
-
-          {/* Sidebar with Registration CTA (desktop) */}
-          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
-            <FadeInSection delay={200}>
-              <RegistrationSummaryCard
-                eventId={event.id}
-                eventDate={event.date}
-                eventStartTime="9:00 AM"
-                registrationDeadline={registrationDeadlineISO}
-                isRegistrationClosed={registrationClosed}
-              />
-            </FadeInSection>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Sticky Footer CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
-          <div className="flex flex-col gap-0.5">
-            <p className="text-sm font-semibold text-foreground">{slotLabel} teams confirmed</p>
-            <p className="text-xs text-muted-foreground">
-              {registrationClosed 
-                ? 'Registration has closed'
-                : (() => {
-                    const deadlineDate = new Date(registrationDeadlineISO);
-                    const now = new Date();
-                    const msPerDay = 1000 * 60 * 60 * 24;
-                    const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / msPerDay));
-                    return daysRemaining === 0
-                      ? 'Registration closes today'
-                      : `Closes in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}`;
-                  })()
-              }
-            </p>
-          </div>
-          {registrationClosed ? (
-            <Button size="sm" disabled>
-              Closed
-            </Button>
-          ) : (
-            <Button asChild size="sm">
-              <Link href={`/events/${encodeURIComponent(event.id)}/register`}>Register</Link>
-            </Button>
-          )}
-        </div>
-      </div>
-      {/* Spacer to prevent content from being hidden behind sticky footer */}
-      <div className="h-20 lg:hidden" />
-    </section>
+    <EventDetailContent
+      event={{
+        id: event.id,
+        name: event.name,
+        date: event.date,
+        description: event.description,
+        organizer: event.organizer,
+        location: event.location,
+      }}
+      organizerGradient={organizer?.gradient ?? 'primary'}
+      organizerFollowers={organizer ? formatFollowers(organizer.followers) : '—'}
+      organizerEventsCount={organizer?.eventsCount}
+      organizerHostingDuration={organizer ? formatHostingDuration(organizer.hostingYears) : undefined}
+      galleryImages={galleryImages}
+      eventDateParts={eventDateParts}
+      venueName={venueName}
+      cityState={cityState}
+      registrationDeadlineISO={registrationDeadlineISO}
+      registrationClosed={registrationClosed}
+      slotLabel={slotLabel}
+      timelinePhases={timelinePhases}
+      pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
+      pricingRows={pricingRowsArray}
+      documents={documents}
+    />
   );
 }
