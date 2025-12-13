@@ -7,7 +7,6 @@ export { EventRegisteredCard } from './cards/EventRegisteredCard'
 export { QuickFilterRail } from './controls/QuickFilterRail'
 export type { QuickFilter } from './controls/QuickFilterRail'
 export { GlassCard } from './glass/GlassCard'
-export { FadeInSection } from './animations/FadeInSection'
 export { EventGallery } from './gallery/EventGallery'
 export { GalleryLightbox } from './gallery/GalleryLightbox'
 

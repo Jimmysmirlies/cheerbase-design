@@ -9,6 +9,12 @@ const nextConfig = {
       },
     ],
   },
+  // Reduce console noise in development
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
   webpack: (config, { isServer }) => {
     // Suppress url.parse deprecation warnings
     if (!isServer) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
+import type { TeamMember, TeamData } from '@/components/features/clubs/TeamCard'
 
 /**
  * useNewRegistrationStorage
@@ -10,20 +10,15 @@ import type { RegisteredTeamMember } from '@/components/features/clubs/Registere
  * This allows the demo app to feel real and persistent without a backend database.
  */
 
-type RegisteredTeamCardData = {
-  id: string
-  name: string
-  division: string
-  members?: RegisteredTeamMember[]
-  detailId: string
-}
+// Registration-specific team data (TeamData with required detailId)
+type RegisteredTeamData = TeamData & { detailId: string }
 
 export type StoredRegistrationTeam = {
   id: string
   teamId: string
   name: string
   division: string
-  members: RegisteredTeamMember[]
+  members: TeamMember[]
 }
 
 export type StoredRegistration = {
@@ -105,7 +100,7 @@ export function saveNewRegistration(
     location: string
     registrationDeadline?: string
   },
-  teams: RegisteredTeamCardData[],
+  teams: RegisteredTeamData[],
   invoiceData: {
     subtotal: number
     tax: number

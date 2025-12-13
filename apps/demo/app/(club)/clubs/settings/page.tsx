@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { FadeInSection } from "@/components/ui";
+import { fadeInUp } from "@/lib/animations";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
@@ -43,7 +44,13 @@ export default function ClubSettingsPage() {
       />
 
       <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8">
-        <FadeInSection className="w-full">
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <section className="space-y-6">
             <form className="grid max-w-xl gap-4">
               <div className="grid gap-1">
@@ -62,7 +69,7 @@ export default function ClubSettingsPage() {
               </div>
             </form>
           </section>
-        </FadeInSection>
+        </motion.div>
       </div>
     </section>
   );

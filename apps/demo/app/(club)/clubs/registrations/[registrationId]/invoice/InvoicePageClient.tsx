@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { PrinterIcon, ArrowLeftIcon } from 'lucide-react'
 
 import { Button } from '@workspace/ui/shadcn/button'
@@ -9,7 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from '@workspace/ui/shadcn/toggle-group'
 import { InvoiceView, type InvoiceData, type InvoiceChangeInfo, type InvoiceSelectOption, type InvoiceHistoryItem } from '@/components/features/registration/invoice/InvoiceView'
 import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
-import { FadeInSection } from '@/components/ui'
+import { fadeInUp } from '@/lib/animations'
 import { formatFriendlyDate } from '@/utils/format'
 import { useRegistrationStorage } from '@/hooks/useRegistrationStorage'
 import type { RegistrationEntry } from '@/components/features/registration/flow/types'
@@ -343,7 +344,13 @@ export function InvoicePageClient({
 
   // Sidebar component for Layout A
   const Sidebar = (
-    <FadeInSection className="hidden lg:block border-l border-border" delay={120}>
+    <motion.div 
+      className="hidden lg:block border-l border-border"
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
       <aside className="sticky top-8 w-full pl-4">
         <div className="space-y-3 text-sm">
           <div className="text-muted-foreground text-xs uppercase tracking-wide">Current Invoice</div>
@@ -406,7 +413,7 @@ export function InvoicePageClient({
           )}
         </div>
       </aside>
-    </FadeInSection>
+    </motion.div>
   )
 
 
@@ -417,7 +424,13 @@ export function InvoicePageClient({
       <section className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
           {/* Header with back button and layout toggle */}
-          <FadeInSection className="no-print mb-6">
+          <motion.div 
+            className="no-print mb-6"
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             <div className="flex items-center justify-between">
               <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
                 <Link href={registrationHref} aria-label="Back to registration">
@@ -426,12 +439,18 @@ export function InvoicePageClient({
               </Button>
               <LayoutToggle variant={layoutVariant} onChange={setLayoutVariant} />
             </div>
-          </FadeInSection>
+          </motion.div>
 
           {layoutVariant === 'A' ? (
             // LAYOUT A: Two-column with sidebar, plain text title
             <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-                <FadeInSection className="flex flex-col gap-6">
+                <motion.div 
+                  className="flex flex-col gap-6"
+                  variants={fadeInUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                >
                   {selectedInvoice ? (
                     <InvoiceView 
                       invoice={selectedInvoice} 
@@ -444,12 +463,18 @@ export function InvoicePageClient({
                       No invoices available for this registration yet.
                     </div>
                   )}
-                </FadeInSection>
+                </motion.div>
                 {Sidebar}
               </div>
           ) : (
             // LAYOUT B: Single column, TextSelect dropdown for invoice selection
-            <FadeInSection className="flex flex-col gap-6">
+            <motion.div 
+              className="flex flex-col gap-6"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               {selectedInvoice ? (
                 <InvoiceView 
                   invoice={selectedInvoice} 
@@ -464,7 +489,7 @@ export function InvoicePageClient({
                   No invoices available for this registration yet.
                 </div>
               )}
-            </FadeInSection>
+            </motion.div>
           )}
         </div>
       </section>

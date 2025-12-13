@@ -61,7 +61,7 @@ export default function RegistrationNoticeBarPage() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Open</p>
                 <RegistrationNoticeBar
                   title="Registration Open"
-                  subtitle="Closes in 48 days 22 hrs 52 mins"
+                  subtitle="Open for 48 days 22 hrs 52 mins"
                   gradient="teal"
                 />
               </div>
@@ -69,7 +69,7 @@ export default function RegistrationNoticeBarPage() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Closes Soon</p>
                 <RegistrationNoticeBar
                   title="Registration Closes Soon"
-                  subtitle="Closes in 6 days 14 hrs 23 mins"
+                  subtitle="Open for 6 days 14 hrs 23 mins"
                   gradient="orange"
                 />
               </div>
@@ -105,7 +105,7 @@ export default function RegistrationNoticeBarPage() {
                   <p className="text-xs uppercase tracking-wide text-muted-foreground capitalize">{gradient}</p>
                   <RegistrationNoticeBar
                     title="Registration Open"
-                    subtitle="Closes in 48 days 22 hrs 52 mins"
+                    subtitle="Open for 48 days 22 hrs 52 mins"
                     gradient={gradient}
                   />
                 </div>

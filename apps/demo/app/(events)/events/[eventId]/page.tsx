@@ -63,7 +63,6 @@ export default async function EventPage({ params }: EventPageProps) {
     notFound();
   }
 
-  const slotLabel = `${event.slots.filled}/${event.slots.capacity}`;
   const galleryImages = buildEventGalleryImages(event);
 
   // Look up organizer data for gradient and stats
@@ -122,6 +121,7 @@ export default async function EventPage({ params }: EventPageProps) {
     show: boolean;
   };
   
+  
   const formatCountdown = (target: Date) => {
     const diffMs = Math.max(0, target.getTime() - now.getTime());
     const totalMinutes = Math.floor(diffMs / (1000 * 60));
@@ -164,12 +164,12 @@ export default async function EventPage({ params }: EventPageProps) {
     if (registrationWithinSeven) {
       return {
         title: 'Registration Closes Soon',
-        subtitle: `Closes in ${formatCountdown(registrationDeadline)}`,
+        subtitle: `Open for ${formatCountdown(registrationDeadline)}`,
       };
     }
     return {
       title: 'Registration Open',
-      subtitle: `Closes in ${formatCountdown(registrationDeadline)}`,
+      subtitle: `Open for ${formatCountdown(registrationDeadline)}`,
     };
   };
   
@@ -364,7 +364,6 @@ export default async function EventPage({ params }: EventPageProps) {
       cityState={cityState}
       registrationDeadlineISO={registrationDeadlineISO}
       registrationClosed={registrationClosed}
-      slotLabel={slotLabel}
       timelinePhases={timelinePhases}
       pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
       pricingRows={pricingRowsArray}

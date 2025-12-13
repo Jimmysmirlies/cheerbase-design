@@ -6,7 +6,7 @@ type TeamCardSkeletonProps = {
 }
 
 /**
- * Skeleton for RegisteredTeamCard component.
+ * Skeleton for TeamCard component.
  * Shows a collapsed team card loading state.
  */
 export function TeamCardSkeleton({ className }: TeamCardSkeletonProps) {

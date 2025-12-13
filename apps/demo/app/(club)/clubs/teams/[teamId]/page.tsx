@@ -12,11 +12,12 @@
  */
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { Button } from "@workspace/ui/shadcn/button";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { useClubData } from "@/hooks/useClubData";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { FadeInSection } from "@/components/ui";
+import { fadeInUp } from "@/lib/animations";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
@@ -162,17 +163,29 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
 
   if (loading) {
     return (
-      <FadeInSection className="w-full">
+      <motion.div 
+        className="w-full"
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">Loading team...</div>
-      </FadeInSection>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <FadeInSection className="w-full">
+      <motion.div 
+        className="w-full"
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">Failed to load team.</div>
-      </FadeInSection>
+      </motion.div>
     );
   }
 
@@ -182,7 +195,13 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
 
       <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
         <div className="space-y-6">
-          <FadeInSection className="w-full">
+          <motion.div 
+            className="w-full"
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             <div className="flex flex-wrap items-center gap-3">
               {onNavigateToTeams ? (
                 <Button variant="ghost" size="sm" type="button" onClick={onNavigateToTeams}>
@@ -196,13 +215,19 @@ function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigate
                 Edit Team
               </Button>
             </div>
-          </FadeInSection>
+          </motion.div>
 
-          <FadeInSection className="w-full" delay={120}>
+          <motion.div 
+            className="w-full"
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             <div className="flex flex-col gap-4">
               <RosterTable people={combinedMembers} />
             </div>
-          </FadeInSection>
+          </motion.div>
         </div>
       </div>
 

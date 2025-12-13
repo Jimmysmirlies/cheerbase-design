@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
-import { FadeInSection, Hero } from "@/components/ui";
+import { Hero } from "@/components/ui";
 import { EventCard } from "@/components/ui/cards/EventCard";
+import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { heroSlides, organizers, listEvents } from "@/data/events";
 import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
 import { TextSelect } from "@workspace/ui/components/text-select";
@@ -67,8 +69,13 @@ export default function HomePage() {
 
             {/* Location-first browsing */}
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-8">
-        <FadeInSection>
-          <header className="flex flex-wrap items-center gap-3">
+        <motion.header 
+          className="flex flex-wrap items-center gap-3"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
             <p className="heading-3">Find events in your area:</p>
             <TextSelect
               value={selectedProvince}
@@ -76,13 +83,18 @@ export default function HomePage() {
               options={provinceSelectOptions}
               size="large"
             />
-          </header>
-        </FadeInSection>
+        </motion.header>
 
-        <FadeInSection key={`province-${selectedProvince || "all"}`} delay={120}>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {provinceEvents.map((event, index) => (
-              <FadeInSection key={`${event.id}-${event.location}`} delay={index * 80} className="h-full">
+        <motion.div 
+          key={`province-${selectedProvince || "all"}`}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {provinceEvents.map((event) => (
+            <motion.div key={`${event.id}-${event.location}`} variants={fadeInUp} className="h-full">
                 <EventCard
                   image={event.image}
                   title={event.name}
@@ -92,16 +104,20 @@ export default function HomePage() {
                   teams={event.teams}
                   href={`/events/${encodeURIComponent(event.id)}`}
                 />
-              </FadeInSection>
+            </motion.div>
             ))}
-          </div>
-        </FadeInSection>
+        </motion.div>
       </section>
 
       {/* Organizer-first browsing: select an organizer, see their events */}
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-8">
-        <FadeInSection>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <motion.div 
+          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
             <header className="flex flex-wrap items-center gap-3">
               <p className="heading-3">Browse events by organizer:</p>
               <TextSelect
@@ -111,13 +127,17 @@ export default function HomePage() {
                 size="large"
               />
             </header>
-          </div>
-        </FadeInSection>
+        </motion.div>
 
-        <FadeInSection delay={160}>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {organizerEvents.map((event, index) => (
-              <FadeInSection key={`${event.id}-organizer`} delay={index * 80} className="h-full">
+        <motion.div 
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {organizerEvents.map((event) => (
+            <motion.div key={`${event.id}-organizer`} variants={fadeInUp} className="h-full">
                 <EventCard
                   image={event.image}
                   title={event.name}
@@ -127,10 +147,9 @@ export default function HomePage() {
                   teams={event.teams}
                   href={`/events/${encodeURIComponent(event.id)}`}
                 />
-              </FadeInSection>
+            </motion.div>
             ))}
-          </div>
-        </FadeInSection>
+        </motion.div>
       </section>
 
       {/* Footer: Global links and product tagline */}

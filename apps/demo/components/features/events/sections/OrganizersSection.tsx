@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * OrganizersSection
  *
@@ -15,9 +17,11 @@
  * - Provide any Organizer[] data (mock or real) via props.
  */
 import Link from "next/link";
-import { OrganizerCard, FadeInSection } from "@/components/ui";
+import { motion } from "framer-motion";
+import { OrganizerCard } from "@/components/ui";
 import type { Organizer } from "@/types/events";
 import { brandGradients } from "@/lib/gradients";
+import { fadeInUp } from "@/lib/animations";
 
 type OrganizersSectionProps = {
   organizers: Organizer[];
@@ -37,7 +41,12 @@ export default function OrganizersSection({
   ctaLabel = "Become an organizer",
 }: OrganizersSectionProps) {
   return (
-    <FadeInSection>
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
       <section className="border-y border-border bg-card/60 py-14" id={id}>
         {/* Header: Title, supporting copy, and CTA */}
         <div className="mx-auto max-w-7xl space-y-6 px-6">
@@ -67,6 +76,6 @@ export default function OrganizersSection({
           </div>
         </div>
       </section>
-    </FadeInSection>
+    </motion.div>
   );
 }

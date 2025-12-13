@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 import { Button } from '@workspace/ui/shadcn/button'
 import {
@@ -11,7 +12,7 @@ import {
   ExternalLinkIcon,
 } from 'lucide-react'
 
-import { FadeInSection } from '@/components/ui'
+import { fadeInUp, staggerSections } from '@/lib/animations'
 import { EventGallery } from '@/components/ui/gallery/EventGallery'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { OrganizerCard } from '@/components/features/clubs/OrganizerCard'
@@ -73,7 +74,6 @@ type EventDetailContentProps = {
   cityState: string
   registrationDeadlineISO: string
   registrationClosed: boolean
-  slotLabel: string
   timelinePhases: TimelinePhase[]
   pricingDeadlineLabel: string
   pricingRows: PricingRow[]
@@ -92,7 +92,6 @@ export function EventDetailContent({
   cityState,
   registrationDeadlineISO,
   registrationClosed,
-  slotLabel,
   timelinePhases,
   pricingDeadlineLabel,
   pricingRows,
@@ -122,12 +121,18 @@ export function EventDetailContent({
 
       <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          <article className="space-y-8 min-w-0 overflow-hidden">
+          <motion.article 
+            className="space-y-8 min-w-0 overflow-hidden"
+            variants={staggerSections}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {/* Section Navigation Badges - Layout B only */}
             {layout === 'B' && <EventSectionBadges />}
 
             {/* Overview Section */}
-            <FadeInSection>
+            <motion.div variants={fadeInUp}>
               <div id="overview" className="flex flex-col gap-4">
                 {/* Divider - Layout B only */}
                 {layout === 'B' && <div className="h-px w-full bg-border" />}
@@ -138,10 +143,10 @@ export function EventDetailContent({
                   experiences, and a champion&apos;s parade following finals.
                 </p>
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Registration Status Section */}
-            <FadeInSection delay={100}>
+            <motion.div variants={fadeInUp}>
               <div id="registration-timeline" className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Registration Timeline</p>
@@ -194,10 +199,10 @@ export function EventDetailContent({
                   ))}
                 </div>
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Date & Location Section */}
-            <FadeInSection delay={200}>
+            <motion.div variants={fadeInUp}>
               <div id="date-location" className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Date & Location</p>
@@ -253,19 +258,19 @@ export function EventDetailContent({
                   </div>
                 </div>
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Gallery Section */}
-            <FadeInSection delay={300}>
+            <motion.div variants={fadeInUp}>
               <div id="gallery" className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Gallery</p>
                 <EventGallery images={galleryImages} alt={event.name} maxImages={4} />
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Organizer Section */}
-            <FadeInSection delay={400}>
+            <motion.div variants={fadeInUp}>
               <div id="organizer" className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Organizer</p>
@@ -277,10 +282,10 @@ export function EventDetailContent({
                   hostingDuration={organizerHostingDuration}
                 />
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Pricing Section */}
-            <FadeInSection delay={500}>
+            <motion.div variants={fadeInUp}>
               <div className="flex flex-col gap-4" id="pricing">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Pricing</p>
@@ -313,10 +318,10 @@ export function EventDetailContent({
                   </table>
                 </div>
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Documents & Resources Section */}
-            <FadeInSection delay={600}>
+            <motion.div variants={fadeInUp}>
               <div id="documents" className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Documents & Resources</p>
@@ -339,10 +344,10 @@ export function EventDetailContent({
                   ))}
                 </div>
               </div>
-            </FadeInSection>
+            </motion.div>
 
             {/* Results Section */}
-            <FadeInSection delay={800}>
+            <motion.div variants={fadeInUp}>
               <div id="results" className="flex flex-col gap-4">
                 <div className="h-px w-full bg-border" />
                 <p className="heading-4">Results & Leaderboard</p>
@@ -359,12 +364,17 @@ export function EventDetailContent({
                   </div>
                 </div>
               </div>
-            </FadeInSection>
-          </article>
+            </motion.div>
+          </motion.article>
 
           {/* Sidebar with Registration CTA (desktop) */}
-          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
-            <FadeInSection delay={200}>
+          <motion.div 
+            className="hidden lg:block lg:sticky lg:top-24 lg:self-start"
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
               <div className="flex flex-col gap-6">
                 <RegistrationSummaryCard
                   eventId={event.id}
@@ -377,31 +387,19 @@ export function EventDetailContent({
                 {/* Table of Contents - Layout A only */}
                 {layout === 'A' && <EventTableOfContents showLabel={false} />}
               </div>
-            </FadeInSection>
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Mobile Sticky Footer CTA */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
         <div className="flex items-center justify-between gap-4 px-4 py-3">
-          <div className="flex flex-col gap-0.5">
-            <p className="text-sm font-semibold text-foreground">{slotLabel} teams confirmed</p>
-            <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-foreground">
               {registrationClosed 
                 ? 'Registration has closed'
-                : (() => {
-                    const deadlineDate = new Date(registrationDeadlineISO)
-                    const now = new Date()
-                    const msPerDay = 1000 * 60 * 60 * 24
-                    const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / msPerDay))
-                    return daysRemaining === 0
-                      ? 'Registration closes today'
-                      : `Closes in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}`
-                  })()
+              : `Registration closes on ${new Date(registrationDeadlineISO).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
               }
             </p>
-          </div>
           {registrationClosed ? (
             <Button size="sm" disabled>
               Closed

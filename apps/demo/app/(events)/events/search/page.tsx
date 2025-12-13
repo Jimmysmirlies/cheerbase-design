@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 
 import { GlassSelect } from "@workspace/ui/components/glass-select";
 import { cn } from "@workspace/ui/lib/utils";
@@ -8,7 +9,7 @@ import { Input } from "@workspace/ui/shadcn/input";
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/shadcn/toggle-group";
 
 import { EventCard } from "@/components/ui/cards/EventCard";
-import { FadeInSection } from "@/components/ui";
+import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { listOpenEvents, organizers } from "@/data/events";
 import { getProvinceFromLocation, getProvinceOptions } from "@/data/events/locations";
 import { useSearchParams } from "next/navigation";
@@ -95,17 +96,26 @@ function SearchEventsPageContent() {
         {/* Layout A: Streamlined results view */}
         {layoutVariant === "A" ? (
           <>
-            <FadeInSection>
-              <header className="flex items-start justify-between gap-4">
+            <motion.header 
+              className="flex items-start justify-between gap-4"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
                 <h1 className="heading-1 sm:text-4xl">
                   {query ? `Search Results for: ${query}` : "Search Events"}
                 </h1>
                 <LayoutToggle variant={layoutVariant} onChange={setLayoutVariant} />
-              </header>
-            </FadeInSection>
+            </motion.header>
 
-            <FadeInSection delay={100}>
-              <div className="flex flex-wrap items-center gap-3">
+            <motion.div 
+              className="flex flex-wrap items-center gap-3"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
                 <GlassSelect
                   value={selectedProvince}
                   onValueChange={setSelectedProvince}
@@ -118,14 +128,18 @@ function SearchEventsPageContent() {
                   options={organizerOptionsWithAll}
                   className="w-full sm:w-auto sm:min-w-[180px]"
                 />
-              </div>
-            </FadeInSection>
+            </motion.div>
           </>
         ) : (
           /* Layout B: Full search interface */
           <>
-            <FadeInSection>
-              <header className="flex items-start justify-between gap-4">
+            <motion.header 
+              className="flex items-start justify-between gap-4"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
                 <div className="space-y-2">
                   <h1 className="heading-1 sm:text-4xl">Search Events</h1>
                   <p className="text-muted-foreground text-sm sm:text-base">
@@ -133,11 +147,15 @@ function SearchEventsPageContent() {
                   </p>
                 </div>
                 <LayoutToggle variant={layoutVariant} onChange={setLayoutVariant} />
-              </header>
-            </FadeInSection>
+            </motion.header>
 
-            <FadeInSection delay={100}>
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <motion.div 
+              className="flex flex-col gap-3 lg:flex-row lg:items-center"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
                 <div className="relative min-w-0 flex-[1.6]">
                   <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
                   <Input
@@ -161,13 +179,17 @@ function SearchEventsPageContent() {
                     className="w-full lg:flex-1"
                   />
                 </div>
-              </div>
-            </FadeInSection>
+            </motion.div>
           </>
         )}
 
-        <FadeInSection delay={160}>
-          <section className="space-y-4">
+        <motion.section 
+          className="space-y-4"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
             <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-sm">
                 Showing {filteredEvents.length} result{filteredEvents.length === 1 ? "" : "s"}
@@ -175,9 +197,15 @@ function SearchEventsPageContent() {
               </p>
             </div>
 
-            <div className={cn("grid gap-6 items-stretch", "sm:grid-cols-2", "lg:grid-cols-4")}>
+          <motion.div 
+            className={cn("grid gap-6 items-stretch", "sm:grid-cols-2", "lg:grid-cols-4")}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
               {filteredEvents.map((event, index) => (
-                <FadeInSection key={`${event.id}-${index}`} delay={index * 40} className="h-full">
+              <motion.div key={`${event.id}-${index}`} variants={fadeInUp} className="h-full">
                   <EventCard
                     image={event.image}
                     title={event.name}
@@ -187,16 +215,15 @@ function SearchEventsPageContent() {
                     teams={event.teams}
                     href={`/events/${encodeURIComponent(event.id)}`}
                   />
-                </FadeInSection>
+              </motion.div>
               ))}
               {filteredEvents.length === 0 ? (
                 <div className="col-span-full rounded-2xl border border-dashed border-border/60 p-10 text-center text-muted-foreground">
                   No events found. Try adjusting your search or filters.
                 </div>
               ) : null}
-            </div>
-          </section>
-        </FadeInSection>
+          </motion.div>
+        </motion.section>
       </section>
     </main>
   );

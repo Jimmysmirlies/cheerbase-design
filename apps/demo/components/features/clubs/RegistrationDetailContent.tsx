@@ -9,13 +9,13 @@ import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
 
+import { motion } from 'framer-motion'
 import { PageHeader, type GradientVariant } from '@/components/layout/PageHeader'
-import { RegisteredTeamCard } from '@/components/features/clubs/RegisteredTeamCard'
+import { TeamCard, type TeamData, type TeamMember } from '@/components/features/clubs/TeamCard'
 import { OrganizerCard } from '@/components/features/clubs/OrganizerCard'
 import { RegistrationPaymentCTA } from '@/components/features/clubs/RegistrationPaymentCTA'
 import { EditRegistrationDialog } from '@/components/features/clubs/EditRegistrationDialog'
-import { FadeInSection } from '@/components/ui'
-import type { RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
+import { fadeInUp, staggerSections } from '@/lib/animations'
 import { formatCurrency } from '@/utils/format'
 import { BulkUploadDialog } from '@/components/features/registration/bulk/BulkUploadDialog'
 import { RegisterTeamModal } from '@/components/features/registration/flow/RegisterTeamModal'
@@ -36,13 +36,8 @@ const LAYOUT_TUTORIAL_ITEMS = [
   { label: 'C', description: 'Single column with quick actions' },
 ]
 
-type RegisteredTeamCardData = {
-  id: string
-  name: string
-  division: string
-  members?: RegisteredTeamMember[]
-  detailId: string
-}
+// Registration-specific team data (TeamData with required detailId)
+type RegisteredTeamData = TeamData & { detailId: string }
 
 type InvoiceLineItem = {
   category: string
@@ -77,7 +72,7 @@ type DocumentResource = {
 
 export type TeamRosterData = {
   teamId: string
-  members: RegisteredTeamMember[]
+  members: TeamMember[]
 }
 
 type RegistrationDetailContentProps = {
@@ -98,7 +93,7 @@ type RegistrationDetailContentProps = {
   registrationDeadlineLabel: string | null
   isLocked: boolean
   allDivisions: string[]
-  teamsByDivisionArray: [string, RegisteredTeamCardData[]][]
+  teamsByDivisionArray: [string, RegisteredTeamData[]][]
   invoiceLineItems: InvoiceLineItem[]
   subtotal: number
   totalTax: number
@@ -167,13 +162,13 @@ export function RegistrationDetailContent({
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
   const [registerTeamOpen, setRegisterTeamOpen] = useState(false)
   const [rosterEditorOpen, setRosterEditorOpen] = useState(false)
-  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<RegisteredTeamCardData | null>(null)
+  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<RegisteredTeamData | null>(null)
   
   // Track teams added/removed in edit mode
-  const [addedTeams, setAddedTeams] = useState<RegisteredTeamCardData[]>([])
+  const [addedTeams, setAddedTeams] = useState<RegisteredTeamData[]>([])
   const [removedTeamIds, setRemovedTeamIds] = useState<Set<string>>(new Set())
   // Track roster modifications for original teams (teamId -> modified members)
-  const [modifiedRosters, setModifiedRosters] = useState<Map<string, RegisteredTeamMember[]>>(new Map())
+  const [modifiedRosters, setModifiedRosters] = useState<Map<string, TeamMember[]>>(new Map())
 
   // Persistent storage for registration changes
   const { isLoaded, savedChanges, saveChanges, clearChanges } = useRegistrationStorage(registration.id)
@@ -189,13 +184,13 @@ export function RegistrationDetailContent({
 
   // Convert array back to Map for easier lookups (original teams)
   const originalTeamsByDivision = useMemo(
-    () => new Map<string, RegisteredTeamCardData[]>(teamsByDivisionArray),
+    () => new Map<string, RegisteredTeamData[]>(teamsByDivisionArray),
     [teamsByDivisionArray]
   )
 
   // Merge original teams (minus removed) with added teams, applying roster modifications
   const teamsByDivision = useMemo(() => {
-    const merged = new Map<string, RegisteredTeamCardData[]>()
+    const merged = new Map<string, RegisteredTeamData[]>()
     
     // Add original teams (excluding removed ones), with roster modifications applied
     originalTeamsByDivision.forEach((teams, division) => {
@@ -343,7 +338,7 @@ export function RegistrationDetailContent({
       return
     }
     
-    const newTeams: RegisteredTeamCardData[] = uniqueEntries.map(entry => {
+    const newTeams: RegisteredTeamData[] = uniqueEntries.map(entry => {
       // Find the team in teamOptions to get size info
       const existingTeam = entry.teamId ? teamOptions.find(t => t.id === entry.teamId) : null
       // Find roster data for the team
@@ -389,7 +384,7 @@ export function RegistrationDetailContent({
     // Find roster data for the team
     const rosterData = entry.teamId ? teamRosters.find(r => r.teamId === entry.teamId) : null
     
-    const newTeam: RegisteredTeamCardData = {
+    const newTeam: RegisteredTeamData = {
       id: entry.teamId ?? entry.id,
       name: entry.teamName ?? existingTeam?.name ?? 'New Team',
       division: entry.division,
@@ -457,17 +452,10 @@ export function RegistrationDetailContent({
   }
 
   // Handle team edit
-  const handleEditTeam = (teamId: string) => {
-    // Find the team in all divisions (including added teams)
-    let foundTeam: RegisteredTeamCardData | null = null
-    teamsByDivision.forEach(teams => {
-      const team = teams.find(t => t.detailId === teamId || t.id === teamId)
-      if (team) foundTeam = team
-    })
-    if (foundTeam) {
-      setSelectedTeamForEdit(foundTeam)
+  const handleEditTeam = (team: TeamData) => {
+    // Cast to RegisteredTeamData since we know detailId exists in this context
+    setSelectedTeamForEdit(team as RegisteredTeamData)
       setRosterEditorOpen(true)
-    }
   }
 
   // Convert team members to RegistrationMember format for editor
@@ -494,8 +482,8 @@ export function RegistrationDetailContent({
       return
     }
 
-    // Convert RegistrationMember[] to RegisteredTeamMember[]
-    const updatedMembers: RegisteredTeamMember[] = members.map((m, idx) => ({
+    // Convert RegistrationMember[] to TeamMember[]
+    const updatedMembers: TeamMember[] = members.map((m, idx) => ({
       id: `${selectedTeamForEdit.id}-member-${idx}`,
       name: m.name,
       firstName: m.name?.split(' ')[0] ?? null,
@@ -603,7 +591,7 @@ export function RegistrationDetailContent({
 
   // Common sections
   const renderEventDetailsSection = (showDivider: boolean) => (
-    <FadeInSection className="w-full" delay={160}>
+    <motion.div className="w-full" variants={fadeInUp}>
       <div className="flex flex-col gap-4 px-1">
         <div className="flex flex-col gap-4">
           {showDivider && <div className="h-px w-full bg-border" />}
@@ -680,12 +668,12 @@ export function RegistrationDetailContent({
 
         </div>
       </div>
-    </FadeInSection>
+    </motion.div>
   )
 
   // Documents & Resources section
   const DocumentsSection = documents.length > 0 ? (
-    <FadeInSection className="w-full" delay={200}>
+    <motion.div className="w-full" variants={fadeInUp}>
       <div className="flex flex-col gap-4 px-1">
         <div className="h-px w-full bg-border" />
         <p className="heading-4">Documents & Resources</p>
@@ -708,7 +696,7 @@ export function RegistrationDetailContent({
           ))}
         </div>
       </div>
-    </FadeInSection>
+    </motion.div>
   ) : null
 
   // Convenience references for layouts
@@ -717,11 +705,11 @@ export function RegistrationDetailContent({
 
   // Registered Teams section for view mode
   const RegisteredTeamsSection = (
-    <FadeInSection className="w-full" delay={isEditMode ? 160 : 320}>
+    <motion.div className="w-full" variants={fadeInUp}>
       <div className="flex flex-col gap-4 px-1">
         <div className="flex flex-col gap-4">
           {!isEditMode && <div className="h-px w-full bg-border" />}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="heading-4">Registered Teams</p>
             {isEditMode ? (
               // Edit mode: show Bulk Upload and Register Team buttons
@@ -798,9 +786,9 @@ export function RegistrationDetailContent({
                 {teamsInDivision.length > 0 ? (
                   <div className="flex flex-col gap-3">
                     {teamsInDivision.map(card => (
-                      <RegisteredTeamCard
+                      <TeamCard
                         key={card.id}
-                        card={card}
+                        team={card}
                         isEditMode={isEditMode}
                         onEdit={handleEditTeam}
                       />
@@ -816,7 +804,7 @@ export function RegistrationDetailContent({
           })}
         </div>
       </div>
-    </FadeInSection>
+    </motion.div>
   )
 
   // Check if we have stored changes that should be shown as an updated invoice
@@ -830,7 +818,12 @@ export function RegistrationDetailContent({
 
   const CTASidebar = (
     <div className="hidden lg:block lg:sticky lg:top-8 lg:self-start">
-      <FadeInSection delay={200}>
+      <motion.div 
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="flex flex-col gap-4">
           {/* Main Invoice Card */}
           <Card className="border-border/70 bg-card py-6">
@@ -962,14 +955,19 @@ export function RegistrationDetailContent({
             </CardContent>
           </Card>
         </div>
-      </FadeInSection>
+      </motion.div>
     </div>
   )
 
   // Edit mode CTA sidebar - shows dynamic invoice based on added/removed teams
   const EditModeCTASidebar = (
     <div className="hidden lg:block lg:sticky lg:top-8 lg:self-start">
-      <FadeInSection delay={200}>
+      <motion.div 
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <Card className="border-border/70 bg-card py-6">
           <CardContent className="flex flex-col gap-4 px-6 py-0">
             <p className="label text-muted-foreground">
@@ -1077,7 +1075,7 @@ export function RegistrationDetailContent({
             </p>
           </CardContent>
         </Card>
-      </FadeInSection>
+      </motion.div>
     </div>
   )
 
@@ -1137,9 +1135,15 @@ export function RegistrationDetailContent({
 
         <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-            <div className="space-y-8">
+            <motion.div 
+              className="space-y-8"
+              variants={staggerSections}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               {RegisteredTeamsSection}
-            </div>
+            </motion.div>
             {EditModeCTASidebar}
           </div>
         </div>
@@ -1221,11 +1225,17 @@ export function RegistrationDetailContent({
         <>
           <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
             <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-              <div className="space-y-12">
+              <motion.div 
+                className="space-y-12"
+                variants={staggerSections}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
                 {EventDetailsSection}
                 {DocumentsSection}
                 {RegisteredTeamsSection}
-              </div>
+              </motion.div>
               {CTASidebar}
             </div>
           </div>
@@ -1236,7 +1246,13 @@ export function RegistrationDetailContent({
         <>
           <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
             {/* Top payment notice banner */}
-            <div className="mb-8">
+            <motion.div 
+              className="mb-8"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               <RegistrationPaymentCTA
                 status={paymentStatus.toLowerCase() as 'paid' | 'unpaid' | 'overdue'}
                 amountLabel={invoiceTotalLabel}
@@ -1244,13 +1260,19 @@ export function RegistrationDetailContent({
                 paidAtLabel={paidAtLabel ?? undefined}
                 invoiceHref={invoiceHref}
               />
-            </div>
+            </motion.div>
 
-            <div className="space-y-12">
+            <motion.div 
+              className="space-y-12"
+              variants={staggerSections}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               {EventDetailsSectionWithDivider}
               {DocumentsSection}
               {RegisteredTeamsSection}
-            </div>
+            </motion.div>
           </div>
           {MobileStickyBar}
         </>
@@ -1259,7 +1281,13 @@ export function RegistrationDetailContent({
         <>
           <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
             {/* Quick action buttons row */}
-            <div className="mb-4 flex flex-wrap items-center gap-2">
+            <motion.div 
+              className="mb-4 flex flex-wrap items-center gap-2"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               <Button asChild variant="outline" size="sm">
                 <Link href={invoiceHref}>View Invoice</Link>
               </Button>
@@ -1275,10 +1303,16 @@ export function RegistrationDetailContent({
                   Edit Registration
                 </Button>
               )}
-            </div>
+            </motion.div>
 
             {/* Simple payment notice (no buttons) */}
-            <div className="mb-8">
+            <motion.div 
+              className="mb-8"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               <RegistrationPaymentCTA
                 status={paymentStatus.toLowerCase() as 'paid' | 'unpaid' | 'overdue'}
                 amountLabel={invoiceTotalLabel}
@@ -1287,13 +1321,19 @@ export function RegistrationDetailContent({
                 invoiceHref={invoiceHref}
                 hideButtons
               />
-            </div>
+            </motion.div>
 
-            <div className="space-y-12">
+            <motion.div 
+              className="space-y-12"
+              variants={staggerSections}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
               {EventDetailsSectionWithDivider}
               {DocumentsSection}
               {RegisteredTeamsSection}
-            </div>
+            </motion.div>
           </div>
           {/* No mobile sticky bar for Layout C - actions are in quick buttons */}
         </>

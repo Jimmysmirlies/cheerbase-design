@@ -8,9 +8,11 @@ import { TextSelect } from '@workspace/ui/components/text-select'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@workspace/ui/shadcn/tooltip'
 import { CalendarRangeIcon, ChevronDownIcon, ChevronUpIcon, ListIcon } from 'lucide-react'
 
+import { motion } from 'framer-motion'
 import { EventRegisteredCard, type EventRegisteredCardProps } from '@/components/ui/cards/EventRegisteredCard'
-import { FadeInSection, CardSkeleton } from '@/components/ui'
+import { CardSkeleton } from '@/components/ui'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useClubData } from '@/hooks/useClubData'
 import { findEventById } from '@/data/events'
@@ -56,7 +58,13 @@ export default function ClubRegistrationsPage() {
       />
 
       <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
-        <FadeInSection className="w-full">
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <RegistrationsContent
             userId={user.id}
             season={selectedSeason}
@@ -64,7 +72,7 @@ export default function ClubRegistrationsPage() {
             selectedSeasonId={selectedSeasonId}
             onSelectSeason={setSelectedSeasonId}
           />
-        </FadeInSection>
+        </motion.div>
       </div>
     </section>
   )
@@ -196,22 +204,40 @@ function RegistrationsContent({
     <section className="space-y-6">
       {/* STATUS HANDOFF — "Loading Bay": surface fetch status before showing the grid */}
       {loading ? (
-        <FadeInSection className="w-full">
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <CardSkeleton key={i} rows={3} showMedia />
             ))}
           </div>
-        </FadeInSection>
+        </motion.div>
       ) : error ? (
-        <FadeInSection className="w-full">
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="text-destructive rounded-2xl border border-dashed p-6 text-center text-sm">
             Failed to load registrations.
           </div>
-        </FadeInSection>
+        </motion.div>
       ) : null}
 
-      <FadeInSection className="w-full" delay={80}>
+      <motion.div 
+        className="w-full"
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="border-b border-border pb-4">
           <div className="flex flex-wrap items-end gap-3">
             <TextSelect
@@ -268,9 +294,15 @@ function RegistrationsContent({
             </TooltipProvider>
           </div>
         </div>
-      </FadeInSection>
+      </motion.div>
       {viewMode === 'all' ? (
-        <FadeInSection className="w-full" delay={100}>
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="flex items-center gap-2">
             <Badge
               role="button"
@@ -305,22 +337,40 @@ function RegistrationsContent({
               Past
             </Badge>
           </div>
-        </FadeInSection>
+        </motion.div>
       ) : null}
       {readOnly ? (
-        <FadeInSection className="w-full">
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
             You are viewing historical registrations for {season.label}. Records are read-only and cannot be modified.
           </div>
-        </FadeInSection>
+        </motion.div>
       ) : null}
 
       {viewMode === 'month' ? (
-        <FadeInSection className="w-full" delay={120}>
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {/* MONTHLY STACK — "Calendar Rack": month buckets with collapsible grids */}
-          <div className="space-y-6">
-            {sections.map((section, sectionIndex) => (
-              <FadeInSection key={section.key} className="w-full" delay={sectionIndex * 80}>
+          <motion.div 
+            className="space-y-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {sections.map((section) => (
+              <motion.div key={section.key} className="w-full" variants={fadeInUp}>
                 <div className="space-y-3 border-b border-border pb-6">
                   <div className="flex items-center justify-between gap-3">
                     <div className="heading-3 text-foreground">{section.label}</div>
@@ -346,15 +396,21 @@ function RegistrationsContent({
                   </div>
                   {!collapsed[section.key] ? (
                     section.items.length ? (
-                      <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {section.items.map((row, rowIndex) => (
-                          <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full w-full">
+                      <motion.div 
+                        className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                      >
+                        {section.items.map((row) => (
+                          <motion.div key={row.id} variants={fadeInUp} className="h-full w-full">
                             <div className={`h-full w-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
                               <EventRegisteredCard {...row} />
                             </div>
-                          </FadeInSection>
+                          </motion.div>
                         ))}
-                      </div>
+                      </motion.div>
                     ) : (
                       <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
                         No events this month.
@@ -362,30 +418,42 @@ function RegistrationsContent({
                     )
                   ) : null}
                 </div>
-              </FadeInSection>
+              </motion.div>
             ))}
-          </div>
-        </FadeInSection>
+          </motion.div>
+        </motion.div>
       ) : (
-        <FadeInSection className="w-full" delay={120}>
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="space-y-4">
             {listRows.length ? (
-              <div className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {listRows.map((row, rowIndex) => (
-                  <FadeInSection key={row.id} delay={rowIndex * 60} className="h-full w-full">
+              <motion.div 
+                className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                {listRows.map((row) => (
+                  <motion.div key={row.id} variants={fadeInUp} className="h-full w-full">
                     <div className={`h-full w-full ${readOnly ? 'pointer-events-none opacity-75' : ''}`}>
                       <EventRegisteredCard {...row} />
                     </div>
-                  </FadeInSection>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
               <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
                 {allEventsBucket === 'past' ? 'No past events in this season.' : 'No upcoming events in this season.'}
               </div>
             )}
           </div>
-        </FadeInSection>
+        </motion.div>
       )}
     </section>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, type KeyboardEvent } from 'react'
-import { ChevronDownIcon, ExternalLinkIcon, UsersIcon } from 'lucide-react'
+import { ChevronDownIcon, PencilIcon, UsersIcon } from 'lucide-react'
 
 import { cn } from '@workspace/ui/lib/utils'
 import { Button } from '@workspace/ui/shadcn/button'
@@ -9,23 +9,37 @@ import { Badge } from '@workspace/ui/shadcn/badge'
 import { Skeleton } from '@workspace/ui/shadcn/skeleton'
 import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
-import type { RegistrationMember } from '@/components/features/registration/flow/types'
+
+// Unified member type that handles both formats
+export type TeamMember = {
+  id?: string | null
+  name?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  email?: string | null
+  phone?: string | null
+  dob?: string | null
+  role?: string | null  // Normalized field name
+  type?: string | null  // Legacy support
+}
 
 export type TeamData = {
   id: string
   name: string
   division: string
-  members?: RegistrationMember[]
+  members?: TeamMember[]
+  detailId?: string  // Optional, used for registration context
 }
 
 type TeamCardProps = {
   team: TeamData
-  onViewTeam: (teamId: string) => void
+  isEditMode?: boolean
+  onEdit?: (team: TeamData) => void
   /** Show loading skeleton instead of content */
   isLoading?: boolean
 }
 
-export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps) {
+export function TeamCard({ team, isEditMode = false, onEdit, isLoading = false }: TeamCardProps) {
   const [expanded, setExpanded] = useState(false)
   const roster = useMemo(() => team.members ?? [], [team.members])
   const memberCount = roster.length
@@ -33,8 +47,8 @@ export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps)
   // Sort roster: coaches first, then others
   const prioritizedRoster = useMemo(() => {
     if (!roster.length) return []
-    const coaches = roster.filter(member => member.type?.toLowerCase() === 'coach')
-    const others = roster.filter(member => member.type?.toLowerCase() !== 'coach')
+    const coaches = roster.filter(member => getMemberRole(member)?.toLowerCase() === 'coach')
+    const others = roster.filter(member => getMemberRole(member)?.toLowerCase() !== 'coach')
     return [...coaches, ...others]
   }, [roster])
 
@@ -42,7 +56,7 @@ export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps)
   if (isLoading) {
     return (
       <div className="w-full overflow-hidden rounded-md border border-border/70 bg-card/60">
-        <div className="flex items-center gap-4 p-5">
+        <div className="flex items-center gap-3 p-4 sm:gap-4 sm:p-5">
           <Skeleton className="size-10 rounded-full" />
           <div className="min-w-0 flex-1 space-y-2">
             <Skeleton className="h-5 w-32 rounded" />
@@ -73,31 +87,47 @@ export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps)
         aria-expanded={expanded}
         onClick={toggleExpanded}
         onKeyDown={handleKeyDown}
-        className="flex cursor-pointer items-center gap-4 p-5 focus:outline-none"
+        className="flex cursor-pointer items-center gap-2 p-3 focus:outline-none sm:gap-4 sm:p-5"
       >
         <GradientAvatar name={team.name} size="sm" />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <h3 className="heading-4 truncate text-foreground">{team.name}</h3>
-          <div className="mt-0.5 flex items-center gap-1.5">
-            <UsersIcon className="size-3.5 text-muted-foreground" aria-hidden="true" />
-            <span className="body-small text-muted-foreground">
+          <div className="mt-0.5 flex items-center gap-1.5 overflow-hidden">
+            <UsersIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="body-small truncate text-muted-foreground">
               {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={event => {
-              event.stopPropagation()
-              onViewTeam(team.id)
-            }}
-          >
-            View
-            <ExternalLinkIcon className="ml-1.5 size-3.5" />
-          </Button>
+        <div className="flex items-center gap-0.5 sm:gap-2">
+          {isEditMode && onEdit && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 sm:hidden"
+              onClick={event => {
+                event.stopPropagation()
+                onEdit(team)
+              }}
+              aria-label="Edit team"
+            >
+              <PencilIcon className="size-4" />
+            </Button>
+          )}
+          {isEditMode && onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden shrink-0 sm:inline-flex"
+              onClick={event => {
+                event.stopPropagation()
+                onEdit(team)
+              }}
+            >
+              Edit
+              <PencilIcon className="ml-1.5 size-3.5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -142,16 +172,16 @@ export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps)
                 <tbody>
                   {prioritizedRoster.map((member, index) => (
                     <tr
-                      key={`${team.id}-member-${index}`}
+                      key={member.id ?? `${team.id}-member-${index}`}
                       className={cn('border-t', expanded && 'dropdown-fade-in')}
                       style={expanded ? { animationDelay: `${index * 60}ms` } : undefined}
                     >
-                      <td className="px-3 py-3 text-foreground sm:px-4">{member.name || 'Team member'}</td>
-                      <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob)}</td>
+                      <td className="px-3 py-3 text-foreground sm:px-4">{formatMemberName(member)}</td>
+                      <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob ?? undefined)}</td>
                       <td className="hidden px-3 py-3 md:table-cell md:px-5">{member.email ?? '—'}</td>
-                      <td className="hidden px-3 py-3 sm:table-cell sm:px-5">{formatPhoneNumber(member.phone)}</td>
+                      <td className="hidden px-3 py-3 sm:table-cell sm:px-5">{formatPhoneNumber(member.phone ?? undefined)}</td>
                       <td className="px-3 py-3 text-right sm:px-4">
-                        <RoleBadge role={member.type} />
+                        <RoleBadge role={getMemberRole(member)} />
                       </td>
                     </tr>
                   ))}
@@ -160,13 +190,24 @@ export function TeamCard({ team, onViewTeam, isLoading = false }: TeamCardProps)
             </div>
           ) : (
             <div className="px-5 py-6 text-center">
-              <p className="text-sm text-muted-foreground">No members added yet. View team to add members.</p>
+              <p className="text-sm text-muted-foreground">No members added yet. Edit roster to add members.</p>
             </div>
           )}
         </div>
       </div>
     </div>
   )
+}
+
+// Helper to get role from either 'role' or 'type' field
+function getMemberRole(member: TeamMember): string | null | undefined {
+  return member.role ?? member.type
+}
+
+function formatMemberName(member: TeamMember) {
+  if (member.name?.trim()) return member.name.trim()
+  const name = [member.firstName, member.lastName].filter(Boolean).join(' ').trim()
+  return name || 'Team member'
 }
 
 function formatRole(role?: string | null) {

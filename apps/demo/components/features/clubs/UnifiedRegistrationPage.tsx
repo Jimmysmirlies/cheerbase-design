@@ -26,21 +26,16 @@ import {
 } from '@/lib/invoices'
 import type { RegisteredMemberDTO } from '@/lib/club-data'
 import type { GradientVariant } from '@/components/layout/PageHeader'
-import type { RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
+import type { TeamMember, TeamData } from '@/components/features/clubs/TeamCard'
 
 type UnifiedRegistrationPageProps = {
   registrationId: string
 }
 
-type RegisteredTeamCardData = {
-  id: string
-  name: string
-  division: string
-  members?: RegisteredTeamMember[]
-  detailId: string
-}
+// Registration-specific team data (TeamData with required detailId)
+type RegisteredTeamData = TeamData & { detailId: string }
 
-function normalizeRegisteredMembers(members?: RegisteredMemberDTO[] | null): RegisteredTeamMember[] {
+function normalizeRegisteredMembers(members?: RegisteredMemberDTO[] | null): TeamMember[] {
   if (!members?.length) return []
   return members.map((member, index) => ({
     id: member.personId ?? member.id ?? `registered-member-${index}`,
@@ -140,7 +135,7 @@ export function UnifiedRegistrationPage({ registrationId }: UnifiedRegistrationP
   }
 
   // Build registered team cards
-  let registeredTeamCards: RegisteredTeamCardData[]
+  let registeredTeamCards: RegisteredTeamData[]
 
   if (localStorageReg) {
     registeredTeamCards = localStorageReg.teams.map(team => ({
@@ -171,7 +166,7 @@ export function UnifiedRegistrationPage({ registrationId }: UnifiedRegistrationP
   }
 
   // Group registered teams by division
-  const teamsByDivision = new Map<string, RegisteredTeamCardData[]>()
+  const teamsByDivision = new Map<string, RegisteredTeamData[]>()
   registeredTeamCards.forEach(card => {
     const existing = teamsByDivision.get(card.division) ?? []
     existing.push(card)

@@ -13,6 +13,7 @@
  *   - Main: section content
  */
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import TeamDetails from "@/components/features/clubs/TeamDetails";
@@ -21,10 +22,12 @@ import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { SearchIcon, UserPlusIcon } from "lucide-react";
 import { CreateTeamModal, type CreateTeamData } from "@/components/features/clubs/CreateTeamModal";
-import { TeamCard, type TeamData } from "@/components/features/clubs/TeamCard";
+import { TeamCard, type TeamData, type TeamMember } from "@/components/features/clubs/TeamCard";
 import type { RegistrationMember } from "@/components/features/registration/flow/types";
+import { DEFAULT_ROLE } from "@/components/features/registration/flow/types";
+import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
 import UploadRosterDialog from "@/components/features/clubs/UploadRosterDialog";
-import { FadeInSection } from "@/components/ui";
+import { fadeInUp } from "@/lib/animations";
 import { toast } from "@workspace/ui/shadcn/sonner";
 import { useClubData } from "@/hooks/useClubData";
 import { useUserTeams } from "@/hooks/useUserTeams";
@@ -115,7 +118,13 @@ function ClubsPageInner() {
         }
       />
       <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8">
-        <FadeInSection className="w-full">
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {selectedTeamId ? (
             <TeamDetails
               teamId={selectedTeamId}
@@ -128,21 +137,20 @@ function ClubsPageInner() {
           ) : (
             <TeamsContent userId={user.id} />
           )}
-        </FadeInSection>
+        </motion.div>
       </div>
     </section>
   );
 }
 
 function TeamsContent({ userId }: { userId?: string }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { data, loading, error, refresh } = useClubData(userId);
   const { addTeam: addUserTeam } = useUserTeams(userId);
   const [teams, setTeams] = useState<TeamData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [rosterEditorOpen, setRosterEditorOpen] = useState(false);
+  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<TeamData | null>(null);
 
   // Hydrate teams from data whenever data changes
   useEffect(() => {
@@ -207,15 +215,56 @@ function TeamsContent({ userId }: { userId?: string }) {
     return { teamsByDivision: grouped, allDivisions: sortedDivisions };
   }, [filteredTeams]);
 
-  const handleViewTeam = (teamId: string) => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
-    params.set("teamId", teamId);
-    router.replace(`${pathname}?${params.toString()}`);
+  const handleEdit = (team: TeamData) => {
+    setSelectedTeamForEdit(team);
+    setRosterEditorOpen(true);
   };
+
+  const handleSaveRoster = (members: RegistrationMember[]) => {
+    if (!selectedTeamForEdit) return;
+    
+    // Convert RegistrationMember[] back to TeamMember[] for storage
+    const teamMembers: TeamMember[] = members.map(m => ({
+      name: m.name,
+      role: m.type,
+      dob: m.dob,
+      email: m.email,
+      phone: m.phone,
+    }));
+    
+    // Update local state with new members
+    setTeams(prev =>
+      prev.map(t =>
+        t.id === selectedTeamForEdit.id ? { ...t, members: teamMembers } : t
+      )
+    );
+    
+    setRosterEditorOpen(false);
+    setSelectedTeamForEdit(null);
+    toast.success(`Roster updated for ${selectedTeamForEdit.name}`);
+  };
+  
+  // Convert TeamMember[] to RegistrationMember[] for the editor dialog
+  const selectedTeamMembers: RegistrationMember[] = useMemo(() => {
+    if (!selectedTeamForEdit?.members) return [];
+    return selectedTeamForEdit.members.map(m => ({
+      name: m.name ?? (m.firstName && m.lastName ? `${m.firstName} ${m.lastName}` : 'Team member'),
+      type: m.role ?? m.type ?? DEFAULT_ROLE,
+      dob: m.dob ?? undefined,
+      email: m.email ?? undefined,
+      phone: m.phone ?? undefined,
+    }));
+  }, [selectedTeamForEdit?.members]);
 
   return (
     <section className="space-y-6">
-      <FadeInSection className="w-full">
+      <motion.div 
+        className="w-full hidden"
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-md">
             <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
@@ -241,23 +290,41 @@ function TeamsContent({ userId }: { userId?: string }) {
             </Button>
           </div>
         </div>
-      </FadeInSection>
+      </motion.div>
 
       {loading ? (
-        <FadeInSection className="w-full" delay={80}>
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="text-muted-foreground rounded-xl border border-dashed border-border/60 p-8 text-center">
             Loading teams...
           </div>
-        </FadeInSection>
+        </motion.div>
       ) : error ? (
-        <FadeInSection className="w-full" delay={80}>
+        <motion.div 
+          className="w-full"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           <div className="text-destructive rounded-xl border border-dashed border-border/60 p-8 text-center">
             Failed to load teams.
           </div>
-        </FadeInSection>
+        </motion.div>
       ) : null}
 
-      <FadeInSection className="w-full" delay={loading || error ? 160 : 120}>
+      <motion.div 
+        className="w-full"
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <div className="flex flex-col gap-4 px-1">
           {allDivisions.length > 0 ? (
             <div className="flex flex-col gap-6">
@@ -271,7 +338,8 @@ function TeamsContent({ userId }: { userId?: string }) {
                         <TeamCard
                           key={team.id}
                           team={team}
-                          onViewTeam={handleViewTeam}
+                          isEditMode
+                          onEdit={handleEdit}
                         />
                       ))}
                     </div>
@@ -289,9 +357,19 @@ function TeamsContent({ userId }: { userId?: string }) {
             </div>
           )}
         </div>
-      </FadeInSection>
+      </motion.div>
 
       <CreateTeamModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onSubmit={handleCreateTeam} />
+      <RosterEditorDialog
+        open={rosterEditorOpen}
+        onOpenChange={open => {
+          setRosterEditorOpen(open);
+          if (!open) setSelectedTeamForEdit(null);
+        }}
+        members={selectedTeamMembers}
+        teamName={selectedTeamForEdit?.name ?? "Team"}
+        onSave={handleSaveRoster}
+      />
     </section>
   );
 }

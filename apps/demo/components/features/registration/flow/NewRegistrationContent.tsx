@@ -19,10 +19,11 @@ import { Button } from '@workspace/ui/shadcn/button'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
 import { toast } from '@workspace/ui/shadcn/sonner'
 
+import { motion } from 'framer-motion'
 import { PlusIcon, UploadIcon } from 'lucide-react'
 
-import { FadeInSection } from '@/components/ui'
-import { RegisteredTeamCard, type RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
+import { fadeInUp } from '@/lib/animations'
+import { TeamCard, type TeamData, type TeamMember } from '@/components/features/clubs/TeamCard'
 import { BulkUploadDialog } from '@/components/features/registration/bulk/BulkUploadDialog'
 import { RegisterTeamModal } from '@/components/features/registration/flow/RegisterTeamModal'
 import { RosterEditorDialog } from '@/components/features/registration/flow/RosterEditorDialog'
@@ -36,13 +37,8 @@ import type { RegistrationEntry, RegistrationMember, TeamOption } from './types'
 import type { DivisionPricing } from '@/types/events'
 import type { TeamRoster } from '@/types/club'
 
-type RegisteredTeamCardData = {
-  id: string
-  name: string
-  division: string
-  members?: RegisteredTeamMember[]
-  detailId: string
-}
+// Registration-specific team data (TeamData with required detailId)
+type RegisteredTeamData = TeamData & { detailId: string }
 
 type InvoiceLineItem = {
   id: string
@@ -104,13 +100,13 @@ export function NewRegistrationContent({
   }, [clubData?.rosters, serverRosters])
 
   // State for registered teams
-  const [registeredTeams, setRegisteredTeams] = useState<RegisteredTeamCardData[]>([])
+  const [registeredTeams, setRegisteredTeams] = useState<RegisteredTeamData[]>([])
   
   // Dialog states
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
   const [registerTeamOpen, setRegisterTeamOpen] = useState(false)
   const [rosterEditorOpen, setRosterEditorOpen] = useState(false)
-  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<RegisteredTeamCardData | null>(null)
+  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<RegisteredTeamData | null>(null)
 
   // Get all available divisions from pricing
   const allDivisions = useMemo(
@@ -120,7 +116,7 @@ export function NewRegistrationContent({
 
   // Group teams by division
   const teamsByDivision = useMemo(() => {
-    const grouped = new Map<string, RegisteredTeamCardData[]>()
+    const grouped = new Map<string, RegisteredTeamData[]>()
     registeredTeams.forEach(team => {
       const existing = grouped.get(team.division) ?? []
       grouped.set(team.division, [...existing, team])
@@ -129,7 +125,7 @@ export function NewRegistrationContent({
   }, [registeredTeams])
 
   // Get roster data for a team
-  const getRosterForTeam = useCallback((teamId: string): RegisteredTeamMember[] => {
+  const getRosterForTeam = useCallback((teamId: string): TeamMember[] => {
     const roster = rosters.find(r => r.teamId === teamId)
     if (!roster) return []
     
@@ -231,7 +227,7 @@ export function NewRegistrationContent({
     const existingTeam = entry.teamId ? teams.find(t => t.id === entry.teamId) : null
     const rosterMembers = entry.teamId ? getRosterForTeam(entry.teamId) : []
     
-    const newTeam: RegisteredTeamCardData = {
+    const newTeam: RegisteredTeamData = {
       id: entry.teamId ?? entry.id,
       name: entry.teamName ?? existingTeam?.name ?? 'New Team',
       division: entry.division,
@@ -264,7 +260,7 @@ export function NewRegistrationContent({
       return
     }
     
-    const newTeams: RegisteredTeamCardData[] = uniqueEntries.map(entry => {
+    const newTeams: RegisteredTeamData[] = uniqueEntries.map(entry => {
       const existingTeam = entry.teamId ? teams.find(t => t.id === entry.teamId) : null
       const rosterMembers = entry.teamId ? getRosterForTeam(entry.teamId) : []
       
@@ -313,13 +309,11 @@ export function NewRegistrationContent({
   }, [registeredTeams])
 
   // Handle team edit (open roster editor)
-  const handleEditTeam = useCallback((teamId: string) => {
-    const team = registeredTeams.find(t => t.detailId === teamId || t.id === teamId)
-    if (team) {
-      setSelectedTeamForEdit(team)
+  const handleEditTeam = useCallback((team: TeamData) => {
+    // Cast to RegisteredTeamData since we know detailId exists in this context
+    setSelectedTeamForEdit(team as RegisteredTeamData)
       setRosterEditorOpen(true)
-    }
-  }, [registeredTeams])
+  }, [])
 
   // Convert team members to RegistrationMember format for editor
   const selectedTeamMembers: RegistrationMember[] = useMemo(() => {
@@ -340,7 +334,7 @@ export function NewRegistrationContent({
       return
     }
 
-    const updatedMembers: RegisteredTeamMember[] = members.map((m, idx) => ({
+    const updatedMembers: TeamMember[] = members.map((m, idx) => ({
       id: `${selectedTeamForEdit.id}-member-${idx}`,
       name: m.name,
       firstName: m.name?.split(' ')[0] ?? null,
@@ -416,7 +410,13 @@ export function NewRegistrationContent({
 
   // Teams section
   const TeamsSection = (
-    <FadeInSection className="w-full" delay={160}>
+    <motion.div 
+      className="w-full"
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
       <div className="flex flex-col gap-4 px-1">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -454,10 +454,10 @@ export function NewRegistrationContent({
                   {teamsInDivision.length > 0 ? (
                     <div className="flex flex-col gap-3">
                       {teamsInDivision.map(card => (
-                        <RegisteredTeamCard
+                        <TeamCard
                           key={card.id}
-                          card={card}
-                          isEditMode={true}
+                          team={card}
+                          isEditMode
                           onEdit={handleEditTeam}
                         />
                       ))}
@@ -477,13 +477,18 @@ export function NewRegistrationContent({
           )}
         </div>
       </div>
-    </FadeInSection>
+    </motion.div>
   )
 
   // Invoice sidebar card
   const InvoiceSidebar = (
     <div className="hidden lg:block lg:sticky lg:top-8 lg:self-start">
-      <FadeInSection delay={200}>
+      <motion.div 
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <Card className="border-border/70 bg-card py-6">
           <CardContent className="flex flex-col gap-4 px-6 py-0">
             <p className="label text-muted-foreground">Invoice Summary</p>
@@ -566,7 +571,7 @@ export function NewRegistrationContent({
             </p>
           </CardContent>
         </Card>
-      </FadeInSection>
+      </motion.div>
     </div>
   )
 

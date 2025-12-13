@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * EventCategoriesSection
  *
@@ -11,8 +13,10 @@
  *   - Header: category title + subtitle
  *   - Grid: EventCard[] (responsive columns)
  */
-import { EventCard, FadeInSection } from "@/components/ui";
+import { motion } from "framer-motion";
+import { EventCard } from "@/components/ui";
 import type { EventCategory } from "@/types/events";
+import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 type EventCategoriesSectionProps = {
   categories: EventCategory[];
@@ -23,9 +27,15 @@ type EventCategoriesSectionProps = {
 export default function EventCategoriesSection({ categories, id = "categories", cardSize = "default" }: EventCategoriesSectionProps) {
   return (
     <section className="bg-background py-16" id={id}>
-      <div className="mx-auto max-w-7xl space-y-12 px-6">
-        {categories.map((category, index) => (
-          <FadeInSection key={category.title} delay={index * 100}>
+      <motion.div 
+        className="mx-auto max-w-7xl space-y-12 px-6"
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {categories.map((category) => (
+          <motion.div key={category.title} variants={fadeInUp}>
             <div className="space-y-6">
               {/* Category header: title and supporting subtitle */}
               <header className="space-y-2">
@@ -49,9 +59,9 @@ export default function EventCategoriesSection({ categories, id = "categories", 
                 ))}
               </div>
             </div>
-          </FadeInSection>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }

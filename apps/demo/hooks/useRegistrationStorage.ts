@@ -1,15 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import type { RegisteredTeamMember } from '@/components/features/clubs/RegisteredTeamCard'
+import type { TeamMember, TeamData } from '@/components/features/clubs/TeamCard'
 
-type RegisteredTeamCardData = {
-  id: string
-  name: string
-  division: string
-  members?: RegisteredTeamMember[]
-  detailId: string
-}
+// Registration-specific team data (TeamData with required detailId)
+type RegisteredTeamData = TeamData & { detailId: string }
 
 export type StoredInvoiceInfo = {
   invoiceNumber: string
@@ -17,15 +12,15 @@ export type StoredInvoiceInfo = {
   total: number
   status?: 'paid' | 'unpaid' | 'void'
   // Snapshot of changes at the time this invoice was created
-  addedTeams?: RegisteredTeamCardData[]
+  addedTeams?: RegisteredTeamData[]
   removedTeamIds?: string[]
-  modifiedRosters?: Record<string, RegisteredTeamMember[]>
+  modifiedRosters?: Record<string, TeamMember[]>
 }
 
 export type StoredRegistrationChanges = {
-  addedTeams: RegisteredTeamCardData[]
+  addedTeams: RegisteredTeamData[]
   removedTeamIds: string[]
-  modifiedRosters: Record<string, RegisteredTeamMember[]>
+  modifiedRosters: Record<string, TeamMember[]>
   submittedAt?: string
   // Invoice tracking - current invoice
   newInvoice?: StoredInvoiceInfo
