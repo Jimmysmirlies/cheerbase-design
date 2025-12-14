@@ -709,7 +709,7 @@ export function RegistrationDetailContent({
       <div className="flex flex-col gap-4 px-1">
         <div className="flex flex-col gap-4">
           {!isEditMode && <div className="h-px w-full bg-border" />}
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between">
             <p className="heading-4">Registered Teams</p>
             {isEditMode ? (
               // Edit mode: show Bulk Upload and Register Team buttons
@@ -777,14 +777,14 @@ export function RegistrationDetailContent({
             </div>
           ) : null}
         </div>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 min-w-0">
           {allDivisions.map(division => {
             const teamsInDivision = teamsByDivision.get(division) ?? []
             return (
-              <div key={division} className="flex flex-col gap-3">
+              <div key={division} className="flex flex-col gap-3 min-w-0">
                 <p className="label text-muted-foreground">{division}</p>
                 {teamsInDivision.length > 0 ? (
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 min-w-0">
                     {teamsInDivision.map(card => (
                       <TeamCard
                         key={card.id}
@@ -1133,10 +1133,10 @@ export function RegistrationDetailContent({
           ]}
         />
 
-        <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
-          <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
+          <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
             <motion.div 
-              className="space-y-8"
+              className="space-y-8 min-w-0"
               variants={staggerSections}
               initial="hidden"
               whileInView="visible"
@@ -1204,11 +1204,9 @@ export function RegistrationDetailContent({
         title={registration.eventName}
         hideSubtitle
         gradientVariant={organizerGradientVariant}
-        breadcrumbItems={[
-          { label: 'Clubs', href: '/clubs' },
-          { label: 'Registrations', href: '/clubs/registrations' },
-          { label: registration.eventName },
-        ]}
+        eventInfo={{
+          date: eventDateLabel,
+        }}
         action={
           <LayoutToggle
             variants={['A', 'B', 'C'] as const}
@@ -1223,10 +1221,10 @@ export function RegistrationDetailContent({
       {layoutVariant === 'A' ? (
         // LAYOUT A: Two-column with CTA sidebar
         <>
-          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
-            <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
+            <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
               <motion.div 
-                className="space-y-12"
+                className="space-y-12 min-w-0"
                 variants={staggerSections}
                 initial="hidden"
                 whileInView="visible"
@@ -1244,7 +1242,7 @@ export function RegistrationDetailContent({
       ) : layoutVariant === 'B' ? (
         // LAYOUT B: Single column with top payment notice + buttons
         <>
-          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
+          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
             {/* Top payment notice banner */}
             <motion.div 
               className="mb-8"
@@ -1263,7 +1261,7 @@ export function RegistrationDetailContent({
             </motion.div>
 
             <motion.div 
-              className="space-y-12"
+              className="space-y-12 min-w-0"
               variants={staggerSections}
               initial="hidden"
               whileInView="visible"
@@ -1279,7 +1277,7 @@ export function RegistrationDetailContent({
       ) : (
         // LAYOUT C: Single column with quick action row + simple notice (no buttons)
         <>
-          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
+          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
             {/* Quick action buttons row */}
             <motion.div 
               className="mb-4 flex flex-wrap items-center gap-2"
@@ -1324,7 +1322,7 @@ export function RegistrationDetailContent({
             </motion.div>
 
             <motion.div 
-              className="space-y-12"
+              className="space-y-12 min-w-0"
               variants={staggerSections}
               initial="hidden"
               whileInView="visible"

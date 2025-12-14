@@ -117,9 +117,9 @@ function ClubsPageInner() {
             : undefined
         }
       />
-      <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8 min-w-0">
         <motion.div 
-          className="w-full"
+          className="w-full min-w-0"
           variants={fadeInUp}
           initial="hidden"
           whileInView="visible"
@@ -325,15 +325,15 @@ function TeamsContent({ userId }: { userId?: string }) {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="flex flex-col gap-4 px-1">
+        <div className="flex flex-col gap-4 px-1 min-w-0">
           {allDivisions.length > 0 ? (
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 min-w-0">
               {allDivisions.map(division => {
                 const teamsInDivision = teamsByDivision.get(division) ?? [];
                 return (
-                  <div key={division} className="flex flex-col gap-3">
+                  <div key={division} className="flex flex-col gap-3 min-w-0">
                     <p className="label text-muted-foreground">{division.toUpperCase()}</p>
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 min-w-0">
                       {teamsInDivision.map(team => (
                         <TeamCard
                           key={team.id}

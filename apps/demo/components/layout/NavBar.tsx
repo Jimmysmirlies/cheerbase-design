@@ -13,7 +13,9 @@
  * - Auth dropdown for signed-in users; Get Started CTA for guests
  */
 import type React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+import { motion, AnimatePresence } from 'framer-motion'
 
 import { Avatar, AvatarFallback } from '@workspace/ui/shadcn/avatar'
 import { Button } from '@workspace/ui/shadcn/button'
@@ -77,7 +79,8 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
   const [debouncedTerm, setDebouncedTerm] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [isNarrow, setIsNarrow] = useState(false)
-  const [avatarSheetOpen, setAvatarSheetOpen] = useState(false)
+  const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Build event-only search list
   const eventSearchItems: SearchItem[] = useMemo(() => {
@@ -111,7 +114,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const query = window.matchMedia('(max-width: 767px)')
+    const query = window.matchMedia('(max-width: 1023px)')
     const sync = (target: Pick<MediaQueryList, 'matches'>) => setIsNarrow(target.matches)
     sync(query)
     const handler = (event: MediaQueryListEvent) => sync(event)
@@ -123,9 +126,12 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
     return () => query.removeListener(handler)
   }, [])
 
+  // Auto-focus mobile search input when expanded
   useEffect(() => {
-    if (!isNarrow) setAvatarSheetOpen(false)
-  }, [isNarrow])
+    if (mobileSearchExpanded && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100)
+    }
+  }, [mobileSearchExpanded])
 
   // Initialize theme state from localStorage
   useEffect(() => {
@@ -174,8 +180,10 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
         {({ openStart }) => (
           <>
           <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
-            <div className="mx-auto grid w-full grid-cols-[auto,auto] grid-rows-[auto,auto] items-center gap-x-3 gap-y-3 px-6 py-4 lg:grid-cols-[auto,1fr,auto] lg:grid-rows-1 lg:items-center lg:gap-4">
-              <div className="col-start-1 row-start-1 flex items-center gap-3 lg:col-start-1 lg:row-start-1">
+            {/* Main row - always 68px */}
+            <div className="mx-auto flex h-[68px] w-full items-center justify-between gap-3 px-6">
+              {/* Logo */}
+              <div className="flex items-center gap-3">
                 {showSidebarToggle && onSidebarToggle ? (
                   <Button
                     variant="ghost"
@@ -199,18 +207,19 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                 </Link>
               </div>
 
-              <div className="col-span-2 row-start-2 w-full lg:col-start-2 lg:row-start-1 lg:col-span-1 lg:mx-auto lg:w-full lg:place-self-center">
+              {/* Desktop search - hidden on mobile */}
+              <div className="hidden flex-1 px-4 lg:block lg:max-w-xl">
                 <form
-                className="relative w-full"
-                onSubmit={e => {
-                  e.preventDefault()
-                  const trimmed = searchTerm.trim()
-                  if (trimmed) {
-                    setSearchOpen(false)
-                    router.push(`/events/search?q=${encodeURIComponent(trimmed)}`)
-                  }
-                }}
-              >
+                  className="relative w-full"
+                  onSubmit={e => {
+                    e.preventDefault()
+                    const trimmed = searchTerm.trim()
+                    if (trimmed) {
+                      setSearchOpen(false)
+                      router.push(`/events/search?q=${encodeURIComponent(trimmed)}`)
+                    }
+                  }}
+                >
                   <Input
                     value={searchTerm}
                     onChange={e => {
@@ -265,64 +274,64 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                 </form>
               </div>
 
-              <div className="col-start-2 row-start-1 ml-2 flex items-center justify-end justify-self-end lg:col-start-3 lg:row-start-1 lg:ml-4 lg:justify-self-end">
+              {/* Right side actions */}
+              <div className="flex items-center gap-2">
+                {/* Mobile search toggle */}
+                {isNarrow && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileSearchExpanded(!mobileSearchExpanded)}
+                    aria-label={mobileSearchExpanded ? "Close search" : "Open search"}
+                  >
+                    {mobileSearchExpanded ? (
+                      <XIcon className="size-5" />
+                    ) : (
+                      <SearchIcon className="size-5" />
+                    )}
+                  </Button>
+                )}
                 {role ? (
-                  isNarrow ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                      onClick={() => setAvatarSheetOpen(true)}
-                      aria-label="Open account menu"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
+                        <Avatar className="h-11 w-11 bg-primary">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
+                            {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="min-w-52 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0"
                     >
-                      <Avatar className="h-11 w-11 bg-primary">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
-                          {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
-                          <Avatar className="h-11 w-11 bg-primary">
-                            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
-                              {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
-                            </AvatarFallback>
-                          </Avatar>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="min-w-52 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0"
-                      >
-                        <DropdownMenuLabel className="space-y-1">
-                          <span className="block text-xs uppercase tracking-[0.08em] text-muted-foreground">Signed in as</span>
-                          <span className="text-sm font-semibold">{user?.name ?? 'User'}</span>
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <div className="flex items-center justify-between px-2 py-1.5">
-                          <div className="flex items-center gap-2 text-sm">
-                            {isDark ? <MoonIcon className="size-4" /> : <SunIcon className="size-4" />}
-                            <span>Theme</span>
-                          </div>
-                          <Switch checked={isDark} onCheckedChange={toggleTheme} />
+                      <DropdownMenuLabel className="space-y-1">
+                        <span className="block text-xs uppercase tracking-[0.08em] text-muted-foreground">Signed in as</span>
+                        <span className="text-sm font-semibold">{user?.name ?? 'User'}</span>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <div className="flex items-center justify-between px-2 py-1.5">
+                        <div className="flex items-center gap-2 text-sm">
+                          {isDark ? <MoonIcon className="size-4" /> : <SunIcon className="size-4" />}
+                          <span>Theme</span>
                         </div>
-                        <DropdownMenuSeparator />
-                        {menuItems.map((item, idx) => (
-                          <DropdownMenuItem
-                            key={item.label}
-                            onClick={item.onClick}
-                            className="dropdown-fade-in flex items-center gap-2"
-                            style={{ animationDelay: `${idx * 60}ms` }}
-                          >
-                            {item.icon && <item.icon className="size-4 text-muted-foreground" />}
-                            <span>{item.label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )
+                        <Switch checked={isDark} onCheckedChange={toggleTheme} />
+                      </div>
+                      <DropdownMenuSeparator />
+                      {menuItems.map((item, idx) => (
+                        <DropdownMenuItem
+                          key={item.label}
+                          onClick={item.onClick}
+                          className="dropdown-fade-in flex items-center gap-2"
+                          style={{ animationDelay: `${idx * 60}ms` }}
+                        >
+                          {item.icon && <item.icon className="size-4 text-muted-foreground" />}
+                          <span>{item.label}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" className="px-4" onClick={() => openStart('choose')}>
@@ -335,6 +344,87 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                 )}
               </div>
             </div>
+
+            {/* Mobile search - animated with Framer Motion */}
+            <AnimatePresence>
+              {mobileSearchExpanded && isNarrow && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-6 py-3">
+                    <form
+                      className="relative w-full"
+                      onSubmit={e => {
+                        e.preventDefault()
+                        const trimmed = searchTerm.trim()
+                        if (trimmed) {
+                          setSearchOpen(false)
+                          setMobileSearchExpanded(false)
+                          router.push(`/events/search?q=${encodeURIComponent(trimmed)}`)
+                        }
+                      }}
+                    >
+                      <Input
+                        ref={searchInputRef}
+                        value={searchTerm}
+                        onChange={e => {
+                          setSearchTerm(e.target.value)
+                          if (e.target.value.trim().length > 0) setSearchOpen(true)
+                        }}
+                        onFocus={() => {
+                          if (searchTerm.trim().length > 0) setSearchOpen(true)
+                        }}
+                        onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
+                        placeholder="Search events, divisions, organizers, and locations"
+                        className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
+                      />
+                      <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+                      {searchOpen && debouncedTerm && (
+                        <div
+                          className="absolute left-0 right-0 top-12 z-20 overflow-hidden rounded-xl border border-border/70 bg-card/90 shadow-xl backdrop-blur-md"
+                        >
+                          <ul className="divide-y divide-border/70">
+                            {filteredHits.length > 0 ? (
+                              filteredHits.map((item, idx) => (
+                                <li
+                                  key={`${item.href}-${idx}`}
+                                  className="dropdown-fade-in hover:bg-accent/40 focus-within:bg-accent/40 transition"
+                                  style={{ animationDelay: `${idx * 60}ms` }}
+                                >
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center justify-between px-4 py-3 text-left"
+                                    onMouseDown={e => e.preventDefault()}
+                                    onClick={() => {
+                                      setSearchOpen(false)
+                                      setSearchTerm('')
+                                      setMobileSearchExpanded(false)
+                                      router.push(item.href)
+                                    }}
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="text-sm font-semibold text-foreground">{item.label}</span>
+                                      {item.meta && <span className="text-xs text-muted-foreground">{item.meta}</span>}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">Enter</span>
+                                  </button>
+                                </li>
+                              ))
+                            ) : (
+                              <li className="px-4 py-3 text-sm text-muted-foreground">No results yet</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </form>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </header>
 
           <AuthDialog
@@ -356,14 +446,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
         )}
       </AuthSignUp>
 
-      {isNarrow ? (
-        <AvatarSheet
-          open={avatarSheetOpen}
-          onClose={() => setAvatarSheetOpen(false)}
-          items={menuItems}
-          userName={user?.name ?? 'User'}
-        />
-      ) : null}
+      {/* AvatarSheet removed for now - keeping component code below in case needed later */}
     </>
   )
 }
@@ -396,7 +479,21 @@ type SheetItem = {
   onClick: () => void
 }
 
-function AvatarSheet({ open, onClose, items, userName }: { open: boolean; onClose: () => void; items: SheetItem[]; userName: string }) {
+function AvatarSheet({ 
+  open, 
+  onClose, 
+  items, 
+  userName, 
+  isDark, 
+  onToggleTheme 
+}: { 
+  open: boolean
+  onClose: () => void
+  items: SheetItem[]
+  userName: string
+  isDark: boolean
+  onToggleTheme: () => void
+}) {
   return (
     <>
       <div
@@ -442,6 +539,14 @@ function AvatarSheet({ open, onClose, items, userName }: { open: boolean; onClos
                 {item.detail ? <span className="ml-2 text-base text-muted-foreground">({item.detail})</span> : null}
               </button>
             ))}
+
+            <div className="dropdown-fade-in mt-4 flex items-center justify-center gap-3 rounded-full border border-border/40 bg-card/40 px-5 py-3 backdrop-blur-sm" style={{ animationDelay: `${items.length * 80}ms` }}>
+              <div className="flex items-center gap-2">
+                {isDark ? <MoonIcon className="size-5" /> : <SunIcon className="size-5" />}
+                <span className="text-base font-medium">Theme</span>
+              </div>
+              <Switch checked={isDark} onCheckedChange={onToggleTheme} />
+            </div>
           </div>
         </div>
       </div>

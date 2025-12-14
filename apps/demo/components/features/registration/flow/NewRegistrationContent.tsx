@@ -444,15 +444,15 @@ export function NewRegistrationContent({
           </div>
         </div>
         
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 min-w-0">
           {allDivisions.length > 0 ? (
             allDivisions.map(division => {
               const teamsInDivision = teamsByDivision.get(division) ?? []
               return (
-                <div key={division} className="flex flex-col gap-3">
+                <div key={division} className="flex flex-col gap-3 min-w-0">
                   <p className="label text-muted-foreground">{division}</p>
                   {teamsInDivision.length > 0 ? (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 min-w-0">
                       {teamsInDivision.map(card => (
                         <TeamCard
                           key={card.id}
@@ -603,9 +603,9 @@ export function NewRegistrationContent({
 
   return (
     <>
-      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-8">
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
+        <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
+          <div className="space-y-8 min-w-0">
             {TeamsSection}
           </div>
           {InvoiceSidebar}

@@ -12,6 +12,12 @@ type BreadcrumbItem = {
   href?: string
 }
 
+type EventInfoProps = {
+  organizer?: string
+  location?: string
+  date?: string
+}
+
 type PageHeaderProps = {
   title: string
   subtitle?: string
@@ -28,6 +34,7 @@ type PageHeaderProps = {
   metadataColumns?: number
   gradientVariant?: GradientVariant
   showEventDateAsBreadcrumb?: boolean
+  eventInfo?: EventInfoProps
 }
 
 const SECOND_IN_MS = 1000
@@ -100,6 +107,7 @@ export function PageHeader({
   metadataColumns = 3,
   gradientVariant = 'primary',
   showEventDateAsBreadcrumb = false,
+  eventInfo,
 }: PageHeaderProps) {
   // Initialize as null to avoid hydration mismatch (Date.now() differs between server and client)
   const [eventCountdown, setEventCountdown] = useState<CountdownDisplay | null>(null)
@@ -143,7 +151,8 @@ export function PageHeader({
         ]
       : null
   const hasBreadcrumbItems = (breadcrumbItems?.length ?? 0) > 0
-  const showBreadcrumbArea = showEventDateAsBreadcrumb ? formattedEventDate : (hasBreadcrumbItems || breadcrumbs)
+  const hasEventInfo = eventInfo && (eventInfo.organizer || eventInfo.location || eventInfo.date)
+  const showBreadcrumbArea = hasEventInfo || showEventDateAsBreadcrumb ? formattedEventDate : (hasBreadcrumbItems || breadcrumbs)
 
   return (
     <div
@@ -159,9 +168,17 @@ export function PageHeader({
         <div className="flex flex-col justify-end gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-2">
-              {showBreadcrumbArea ? (
+              {(showBreadcrumbArea || hasEventInfo) ? (
                 <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/80">
-                  {showEventDateAsBreadcrumb && formattedEventDate ? (
+                  {hasEventInfo ? (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      {eventInfo.organizer && <span>{eventInfo.organizer}</span>}
+                      {eventInfo.organizer && (eventInfo.location || eventInfo.date) && <span className="text-white/50">·</span>}
+                      {eventInfo.location && <span>{eventInfo.location}</span>}
+                      {eventInfo.location && eventInfo.date && <span className="text-white/50">·</span>}
+                      {eventInfo.date && <span>{eventInfo.date}</span>}
+                    </div>
+                  ) : showEventDateAsBreadcrumb && formattedEventDate ? (
                     <div>{formattedEventDate}</div>
                   ) : hasBreadcrumbItems ? (
                     <nav className="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">

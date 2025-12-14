@@ -121,7 +121,7 @@ export function TeamRow({ entry, onRemove, onUpdateMembers, status, readOnly }: 
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-foreground truncate heading-4">
+            <p className="text-foreground heading-4">
               {entry.teamName ?? entry.fileName ?? 'Team'}
             </p>
             {showMemberPreview ? (

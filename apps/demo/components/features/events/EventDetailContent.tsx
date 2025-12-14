@@ -128,8 +128,10 @@ export function EventDetailContent({
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {/* Section Navigation Badges - Layout B only */}
-            {layout === 'B' && <EventSectionBadges />}
+            {/* Section Navigation Badges - always on mobile, Layout B on desktop too */}
+            <div className={layout === 'B' ? '' : 'lg:hidden'}>
+              <EventSectionBadges />
+            </div>
 
             {/* Overview Section */}
             <motion.div variants={fadeInUp}>

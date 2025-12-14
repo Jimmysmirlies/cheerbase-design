@@ -355,6 +355,7 @@ function RegistrationsContent({
 
       {viewMode === 'month' ? (
         <motion.div 
+          key={`month-view-${season.id}`}
           className="w-full"
           variants={fadeInUp}
           initial="hidden"
@@ -424,6 +425,7 @@ function RegistrationsContent({
         </motion.div>
       ) : (
         <motion.div 
+          key={`list-view-${season.id}`}
           className="w-full"
           variants={fadeInUp}
           initial="hidden"
