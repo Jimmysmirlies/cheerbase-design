@@ -2,6 +2,7 @@ import type { Organizer } from '@/types/events'
 
 export const organizers: Organizer[] = [
   {
+    id: 'cheer-elite-events',
     name: 'Cheer Elite Events',
     visibility: 'Public',
     region: 'National',
@@ -11,6 +12,7 @@ export const organizers: Organizer[] = [
     hostingYears: 1,
   },
   {
+    id: 'spirit-sports-co',
     name: 'Spirit Sports Co.',
     visibility: 'Public',
     region: 'Southeast',
@@ -20,6 +22,7 @@ export const organizers: Organizer[] = [
     hostingYears: 3,
   },
   {
+    id: 'west-coast-cheer',
     name: 'West Coast Cheer',
     visibility: 'Public',
     region: 'California',
@@ -29,6 +32,7 @@ export const organizers: Organizer[] = [
     hostingYears: 5,
   },
   {
+    id: 'cheer-squad-prestige-academy',
     name: 'Cheer Squad Prestige Academy',
     visibility: 'Invite-only',
     region: 'Midwest',
@@ -38,6 +42,7 @@ export const organizers: Organizer[] = [
     hostingYears: 2,
   },
   {
+    id: 'midwest-athletics',
     name: 'Midwest Athletics',
     visibility: 'Public',
     region: 'Illinois',
@@ -47,6 +52,7 @@ export const organizers: Organizer[] = [
     hostingYears: 4,
   },
   {
+    id: 'southern-spirit',
     name: 'Southern Spirit',
     visibility: 'Public',
     region: 'Texas',
@@ -56,6 +62,7 @@ export const organizers: Organizer[] = [
     hostingYears: 3,
   },
   {
+    id: 'east-region-events',
     name: 'East Region Events',
     visibility: 'Public',
     region: 'New England',
@@ -65,12 +72,15 @@ export const organizers: Organizer[] = [
     hostingYears: 2,
   },
   {
+    id: 'sapphire-productions',
     name: 'Sapphire Productions',
     visibility: 'Public',
     region: 'Quebec',
     gradient: 'primary',
+    email: 'contact@sapphireproductions.ca',
+    supportEmail: 'support@sapphireproductions.ca',
     followers: 2800,
-    eventsCount: 15,
+    eventsCount: 5,
     hostingYears: 6,
   },
 ]
@@ -80,6 +90,13 @@ export const organizers: Organizer[] = [
  */
 export function findOrganizerByName(name: string): Organizer | undefined {
   return organizers.find((org) => org.name === name)
+}
+
+/**
+ * Find an organizer by id
+ */
+export function findOrganizerById(id: string): Organizer | undefined {
+  return organizers.find((org) => org.id === id)
 }
 
 /**

@@ -1,10 +1,15 @@
 import type { BrandGradient } from '@/lib/gradients'
 
 export type Organizer = {
+  id: string
   name: string
   visibility: string
   region: string
   gradient: BrandGradient
+  // Profile
+  email?: string
+  supportEmail?: string
+  logo?: string
   // Stats
   followers: number
   eventsCount: number
@@ -26,7 +31,6 @@ export type Event = {
     capacity: number
     statusLabel?: string
   }
-  registrationFeePercent?: number
   pricePerParticipant: string
   description: string
   tags?: string[]

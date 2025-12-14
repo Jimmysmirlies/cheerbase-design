@@ -17,7 +17,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { Avatar, AvatarFallback } from '@workspace/ui/shadcn/avatar'
 import { Button } from '@workspace/ui/shadcn/button'
 import {
   DropdownMenu,
@@ -37,6 +36,7 @@ import { useRouter } from 'next/navigation'
 import { AuthSignUp } from '@/components/features/auth/AuthSignUp'
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
 import { eventCategories } from '@/data/events/categories'
 import { 
   SearchIcon, 
@@ -294,39 +294,38 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                 {role ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground">
-                        <Avatar className="h-11 w-11 bg-primary">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium uppercase">
-                            {user?.name?.slice(0, 2).toUpperCase() || (role === 'club_owner' ? 'CO' : 'OR')}
-                          </AvatarFallback>
-                        </Avatar>
+                      <Button variant="ghost" size="icon" className="p-0 hover:opacity-90">
+                        <GradientAvatar 
+                          name={user?.name || (role === 'club_owner' ? 'Club Owner' : 'Organizer')} 
+                          size="sm"
+                        />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="min-w-52 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0"
+                      className="min-w-[280px] md:min-w-64 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md p-2 data-[state=open]:animate-in data-[state=open]:fade-in-0"
                     >
-                      <DropdownMenuLabel className="space-y-1">
-                        <span className="block text-xs uppercase tracking-[0.08em] text-muted-foreground">Signed in as</span>
-                        <span className="text-sm font-semibold">{user?.name ?? 'User'}</span>
+                      <DropdownMenuLabel className="px-3 py-2 space-y-1">
+                        <span className="block label text-muted-foreground">Signed in as</span>
+                        <span className="body-text font-semibold">{user?.name ?? 'User'}</span>
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <div className="flex items-center justify-between px-2 py-1.5">
-                        <div className="flex items-center gap-2 text-sm">
-                          {isDark ? <MoonIcon className="size-4" /> : <SunIcon className="size-4" />}
-                          <span>Theme</span>
+                      <DropdownMenuSeparator className="my-2" />
+                      <div className="flex items-center justify-between px-3 py-2.5">
+                        <div className="flex items-center gap-2.5">
+                          {isDark ? <MoonIcon className="size-5" /> : <SunIcon className="size-5" />}
+                          <span className="body-text md:body-small">Theme</span>
                         </div>
                         <Switch checked={isDark} onCheckedChange={toggleTheme} />
                       </div>
-                      <DropdownMenuSeparator />
+                      <DropdownMenuSeparator className="my-2" />
                       {menuItems.map((item, idx) => (
                         <DropdownMenuItem
                           key={item.label}
                           onClick={item.onClick}
-                          className="dropdown-fade-in flex items-center gap-2"
+                          className="dropdown-fade-in flex items-center gap-3 px-3 py-2.5 body-text md:body-small cursor-pointer"
                           style={{ animationDelay: `${idx * 60}ms` }}
                         >
-                          {item.icon && <item.icon className="size-4 text-muted-foreground" />}
+                          {item.icon && <item.icon className="size-5 md:size-4 text-muted-foreground" />}
                           <span>{item.label}</span>
                         </DropdownMenuItem>
                       ))}
@@ -431,14 +430,23 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
             open={loginOpen}
             onOpenChange={setLoginOpen}
             onDemoLogin={nextRole => {
-              const demoId = nextRole === 'club_owner' ? 'club-owner-1' : 'organizer-demo-1'
-              signInAsRole(nextRole, nextRole === 'club_owner' ? 'Demo Club Owner' : 'Demo Organizer', `${nextRole}@demo.test`, {
-                demoId,
-                isDemo: true,
-              })
-              setLoginOpen(false)
-              if (nextRole === 'organizer') router.push('/organizer')
-              else router.push('/clubs')
+              if (nextRole === 'organizer') {
+                // Demo organizer login as Sapphire Productions
+                signInAsRole(nextRole, 'Sapphire Productions', 'contact@sapphireproductions.ca', {
+                  demoId: 'sapphire-productions',
+                  isDemo: true,
+                  organizerId: 'sapphire-productions',
+                })
+                setLoginOpen(false)
+                router.push('/organizer')
+              } else {
+                signInAsRole(nextRole, 'Demo Club Owner', 'club_owner@demo.test', {
+                  demoId: 'club-owner-1',
+                  isDemo: true,
+                })
+                setLoginOpen(false)
+                router.push('/clubs')
+              }
             }}
             onJoinClick={() => openStart('choose')}
           />
@@ -479,6 +487,8 @@ type SheetItem = {
   onClick: () => void
 }
 
+// AvatarSheet kept for future use; currently unused
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function AvatarSheet({ 
   open, 
   onClose, 

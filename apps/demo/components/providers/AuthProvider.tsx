@@ -10,6 +10,8 @@ type AuthUser = {
   role: UserRole
   onboarded?: boolean
   isDemo?: boolean
+  /** For organizer role: the organizer profile ID */
+  organizerId?: string
 }
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
@@ -38,7 +40,7 @@ type AuthContextValue = {
   status: AuthStatus
   signUp: (input: SignUpInput) => Promise<void>
   signIn: (input: SignInInput) => Promise<SignInResult>
-  signInAsRole: (role: UserRole, name?: string, email?: string, options?: { demoId?: string; isDemo?: boolean }) => Promise<void>
+  signInAsRole: (role: UserRole, name?: string, email?: string, options?: { demoId?: string; isDemo?: boolean; organizerId?: string }) => Promise<void>
   signOut: () => void
   updateUser: (patch: Partial<AuthUser>) => void
 }
@@ -186,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true }
   }, [])
 
-  const signInAsRole = useCallback(async (role: UserRole, name?: string, email?: string, options?: { demoId?: string; isDemo?: boolean }) => {
+  const signInAsRole = useCallback(async (role: UserRole, name?: string, email?: string, options?: { demoId?: string; isDemo?: boolean; organizerId?: string }) => {
     const id =
       options?.demoId ??
       (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `user-${Date.now()}`)
@@ -197,6 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role,
       onboarded: true,
       isDemo: options?.isDemo ?? false,
+      organizerId: options?.organizerId,
     }
     setUser(nextUser)
     setStatus('authenticated')

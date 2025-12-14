@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Hero } from "@/components/ui";
 import { EventCard } from "@/components/ui/cards/EventCard";
@@ -85,28 +85,30 @@ export default function HomePage() {
             />
         </motion.header>
 
-        <motion.div 
-          key={`province-${selectedProvince || "all"}`}
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {provinceEvents.map((event) => (
-            <motion.div key={`${event.id}-${event.location}`} variants={fadeInUp} className="h-full">
-                <EventCard
-                  image={event.image}
-                  title={event.name}
-                  organizer={event.organizer}
-                  date={event.date}
-                  location={event.location}
-                  teams={event.teams}
-                  href={`/events/${encodeURIComponent(event.id)}`}
-                />
-            </motion.div>
-            ))}
-        </motion.div>
+        <AnimatePresence mode="popLayout">
+          <motion.div 
+            key={`province-${selectedProvince || "all"}`}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0 }}
+          >
+            {provinceEvents.map((event) => (
+              <motion.div key={`${event.id}-${event.location}`} variants={fadeInUp} className="h-full">
+                  <EventCard
+                    image={event.image}
+                    title={event.name}
+                    organizer={event.organizer}
+                    date={event.date}
+                    location={event.location}
+                    teams={event.teams}
+                    href={`/events/${encodeURIComponent(event.id)}`}
+                  />
+              </motion.div>
+              ))}
+          </motion.div>
+        </AnimatePresence>
       </section>
 
       {/* Organizer-first browsing: select an organizer, see their events */}
@@ -129,27 +131,30 @@ export default function HomePage() {
             </header>
         </motion.div>
 
-        <motion.div 
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {organizerEvents.map((event) => (
-            <motion.div key={`${event.id}-organizer`} variants={fadeInUp} className="h-full">
-                <EventCard
-                  image={event.image}
-                  title={event.name}
-                  organizer={event.organizer}
-                  date={event.date}
-                  location={event.location}
-                  teams={event.teams}
-                  href={`/events/${encodeURIComponent(event.id)}`}
-                />
-            </motion.div>
-            ))}
-        </motion.div>
+        <AnimatePresence mode="popLayout">
+          <motion.div 
+            key={`organizer-${selectedOrganizer || "all"}`}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0 }}
+          >
+            {organizerEvents.map((event) => (
+              <motion.div key={`${event.id}-organizer`} variants={fadeInUp} className="h-full">
+                  <EventCard
+                    image={event.image}
+                    title={event.name}
+                    organizer={event.organizer}
+                    date={event.date}
+                    location={event.location}
+                    teams={event.teams}
+                    href={`/events/${encodeURIComponent(event.id)}`}
+                  />
+              </motion.div>
+              ))}
+          </motion.div>
+        </AnimatePresence>
       </section>
 
       {/* Footer: Global links and product tagline */}

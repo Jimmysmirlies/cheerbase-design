@@ -34,7 +34,6 @@ export const eventCategories: EventCategory[] = [
           capacity: 48,
           statusLabel: "Few spots left",
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$125 per athlete",
         description:
           "Three-day championship featuring certified judges, optional skills clinics, and on-site video review lounges for coaches.",
@@ -90,7 +89,6 @@ export const eventCategories: EventCategory[] = [
           capacity: 32,
           statusLabel: "Plenty of space",
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$95 per athlete",
         description:
           "One-day meet with optional travel packages, full warm-up rotations, and feedback sessions from regional judges.",
@@ -145,7 +143,6 @@ export const eventCategories: EventCategory[] = [
           filled: 12,
           capacity: 24,
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$105 per athlete",
         description:
           "Invitation-only showcase with spotlight performances, curated judges panel, and hospitality lounge for club directors.",
@@ -201,7 +198,6 @@ export const eventCategories: EventCategory[] = [
           capacity: 36,
           statusLabel: "Summer favorite",
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$110 per athlete",
         description:
           "Season warm-up featuring outdoor block party, optional choreography labs, and live-streamed finals for families.",
@@ -262,7 +258,6 @@ export const eventCategories: EventCategory[] = [
           filled: 20,
           capacity: 40,
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$118 per athlete",
         description:
           "Signature fall opener with panel feedback, specialty stunt divisions, and upgraded production lighting.",
@@ -318,7 +313,6 @@ export const eventCategories: EventCategory[] = [
           capacity: 30,
           statusLabel: "Elite showcase",
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$135 per athlete",
         description:
           "Prestige-branded invitational with curated emcees, cinematic streaming, and judges meet-and-greet.",
@@ -373,7 +367,6 @@ export const eventCategories: EventCategory[] = [
           filled: 14,
           capacity: 28,
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$99 per athlete",
         description:
           "High-energy regional with climate-controlled warm-ups, vendor village, and on-site routine replay booths.",
@@ -429,7 +422,6 @@ export const eventCategories: EventCategory[] = [
           capacity: 48,
           statusLabel: "Trending",
         },
-        registrationFeePercent: 3,
         pricePerParticipant: "$120 per athlete",
         description:
           "Metro-season finals with live scoring displays, certified athletic trainers, and coaches strategy summit.",
