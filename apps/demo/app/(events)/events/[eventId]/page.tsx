@@ -241,7 +241,7 @@ export default async function EventPage({ params }: EventPageProps) {
   };
   
   // Get organizer gradient styling for the current phase
-  const gradientKey: BrandGradient = organizer?.gradient ?? 'primary';
+  const gradientKey: BrandGradient = organizer?.gradient ?? 'teal';
   const gradient = brandGradients[gradientKey];
   
   // Extract the first color from the gradient for border
@@ -346,28 +346,28 @@ export default async function EventPage({ params }: EventPageProps) {
 
   return (
     <EventDetailContent
-      event={{
-        id: event.id,
-        name: event.name,
-        date: event.date,
-        description: event.description,
-        organizer: event.organizer,
-        location: event.location,
-      }}
-      organizerGradient={organizer?.gradient ?? 'primary'}
-      organizerFollowers={organizer ? formatFollowers(organizer.followers) : '—'}
-      organizerEventsCount={organizer?.eventsCount}
-      organizerHostingDuration={organizer ? formatHostingDuration(organizer.hostingYears) : undefined}
-      galleryImages={galleryImages}
-      eventDateParts={eventDateParts}
-      venueName={venueName}
-      cityState={cityState}
-      registrationDeadlineISO={registrationDeadlineISO}
-      registrationClosed={registrationClosed}
-      timelinePhases={timelinePhases}
-      pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
-      pricingRows={pricingRowsArray}
-      documents={documents}
+        event={{
+          id: event.id,
+          name: event.name,
+          date: event.date,
+          description: event.description,
+          organizer: event.organizer,
+          location: event.location,
+        }}
+        organizerGradient={organizer?.gradient ?? 'teal'}
+        organizerFollowers={organizer ? formatFollowers(organizer.followers) : '—'}
+        organizerEventsCount={organizer?.eventsCount}
+        organizerHostingDuration={organizer ? formatHostingDuration(organizer.hostingYears) : undefined}
+        galleryImages={galleryImages}
+        eventDateParts={eventDateParts}
+        venueName={venueName}
+        cityState={cityState}
+        registrationDeadlineISO={registrationDeadlineISO}
+        registrationClosed={registrationClosed}
+        timelinePhases={timelinePhases}
+        pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
+        pricingRows={pricingRowsArray}
+        documents={documents}
     />
   );
 }

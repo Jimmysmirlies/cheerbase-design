@@ -17,12 +17,16 @@ import {
 export type TextSelectOption = {
   value: string
   label: ReactNode
-}
+} | { type: "separator" }
 
 export type TextSelectSection = {
   label?: ReactNode
   options: TextSelectOption[]
   showDivider?: boolean
+}
+
+function isSeparator(opt: TextSelectOption): opt is { type: "separator" } {
+  return "type" in opt && opt.type === "separator"
 }
 
 type TextSelectSize = "default" | "large"
@@ -64,7 +68,11 @@ export function TextSelect({
 
   // Option renderer — "Cascade": staggers dropdown-fade animation for each item.
   const renderOptions = (list: TextSelectOption[]) =>
-    list.map(option => {
+    list.map((option, idx) => {
+      if (isSeparator(option)) {
+        return <SelectSeparator key={`separator-${idx}`} className="my-1" />
+      }
+      
       const delay = itemCounter * 60
       itemCounter += 1
       return (

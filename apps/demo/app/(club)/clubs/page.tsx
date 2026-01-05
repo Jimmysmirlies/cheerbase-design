@@ -18,6 +18,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import TeamDetails from "@/components/features/clubs/TeamDetails";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { type BrandGradient } from "@/lib/gradients";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { SearchIcon, UserPlusIcon } from "lucide-react";
@@ -40,6 +41,41 @@ function ClubsPageInner() {
   const searchParams = useSearchParams();
   const selectedTeamId = searchParams.get("teamId");
   const { data } = useClubData(user?.id);
+  const [clubGradient, setClubGradient] = useState<BrandGradient | undefined>(undefined);
+
+  // Load club gradient settings
+  useEffect(() => {
+    const loadGradient = () => {
+      if (user?.id) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-club-settings-${user.id}`);
+          if (stored) {
+            const settings = JSON.parse(stored);
+            if (settings.gradient) {
+              setClubGradient(settings.gradient);
+              return;
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      setClubGradient(undefined);
+    };
+
+    loadGradient();
+
+    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setClubGradient(event.detail.gradient as BrandGradient);
+      }
+    };
+
+    window.addEventListener('club-settings-changed', handleSettingsChange as EventListener);
+    return () => {
+      window.removeEventListener('club-settings-changed', handleSettingsChange as EventListener);
+    };
+  }, [user?.id]);
 
   const selectedTeam = useMemo(
     () => data?.teams.find(team => team.id === selectedTeamId),
@@ -103,11 +139,9 @@ function ClubsPageInner() {
     <section className="flex flex-1 flex-col">
       <PageHeader
         title={selectedTeam?.name ?? "Teams"}
-        subtitle="Create teams and manage rosters for your club"
-        hideSubtitle
-        hideSubtitleDivider
-        breadcrumbItems={breadcrumbItems}
-        metadataItems={
+        breadcrumbs={breadcrumbItems}
+        gradient={clubGradient}
+        metadata={
           selectedTeam
             ? [
                 { label: "Division", value: divisionLabel },

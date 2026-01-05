@@ -170,8 +170,7 @@ export default function ApiContractsPage() {
       <PageHeader
         title="API Contracts"
         subtitle="Reference endpoints that power the discovery-first experience. Each table pairs the request/response shape with the UI states designers need to mock."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

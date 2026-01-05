@@ -27,14 +27,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-10-12",
         location: "Madison Square Garden, NY",
         teams: "32 / 48 teams",
-        fee: "$450",
         image: getLocalEventImage("national-championship"),
         slots: {
           filled: 32,
           capacity: 48,
           statusLabel: "Few spots left",
         },
-        pricePerParticipant: "$125 per athlete",
         description:
           "Three-day championship featuring certified judges, optional skills clinics, and on-site video review lounges for coaches.",
         tags: ["Nationals Qualifier", "Just Added"],
@@ -82,14 +80,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-02-10",
         location: "Dallas Convention Center, TX",
         teams: "18 / 32 teams",
-        fee: "$325",
         image: getLocalEventImage("spring-regional"),
         slots: {
           filled: 18,
           capacity: 32,
           statusLabel: "Plenty of space",
         },
-        pricePerParticipant: "$95 per athlete",
         description:
           "One-day meet with optional travel packages, full warm-up rotations, and feedback sessions from regional judges.",
         tags: ["Travel Friendly"],
@@ -137,13 +133,11 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-03-01",
         location: "Boston Convention Center, MA",
         teams: "12 / 24 teams",
-        fee: "$375",
         image: getLocalEventImage("atlantic-showdown"),
         slots: {
           filled: 12,
           capacity: 24,
         },
-        pricePerParticipant: "$105 per athlete",
         description:
           "Invitation-only showcase with spotlight performances, curated judges panel, and hospitality lounge for club directors.",
         tags: ["Invite Only"],
@@ -191,14 +185,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-06-01",
         location: "Austin Sports Center, TX",
         teams: "28 / 36 teams",
-        fee: "$410",
         image: getLocalEventImage("summer-series"),
         slots: {
           filled: 28,
           capacity: 36,
           statusLabel: "Summer favorite",
         },
-        pricePerParticipant: "$110 per athlete",
         description:
           "Season warm-up featuring outdoor block party, optional choreography labs, and live-streamed finals for families.",
         tags: ["Outdoor Fan Fest"],
@@ -252,13 +244,11 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-07-15",
         location: "Buffalo Convention Center, NY",
         teams: "20 / 40 teams",
-        fee: "$390",
         image: getLocalEventImage("northeast-open"),
         slots: {
           filled: 20,
           capacity: 40,
         },
-        pricePerParticipant: "$118 per athlete",
         description:
           "Signature fall opener with panel feedback, specialty stunt divisions, and upgraded production lighting.",
         tags: ["Season Kickoff"],
@@ -306,14 +296,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-09-05",
         location: "Los Angeles Convention Center, CA",
         teams: "25 / 30 teams",
-        fee: "$460",
         image: getLocalEventImage("pacific-prestige"),
         slots: {
           filled: 25,
           capacity: 30,
           statusLabel: "Elite showcase",
         },
-        pricePerParticipant: "$135 per athlete",
         description:
           "Prestige-branded invitational with curated emcees, cinematic streaming, and judges meet-and-greet.",
         tags: ["Premier Production", "Invite Only"],
@@ -361,13 +349,11 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-05-15",
         location: "Phoenix Civic Center, AZ",
         teams: "14 / 28 teams",
-        fee: "$340",
         image: getLocalEventImage("southwest-showdown"),
         slots: {
           filled: 14,
           capacity: 28,
         },
-        pricePerParticipant: "$99 per athlete",
         description:
           "High-energy regional with climate-controlled warm-ups, vendor village, and on-site routine replay booths.",
         tags: ["Regional Circuit"],
@@ -415,14 +401,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-09-10",
         location: "United Center, IL",
         teams: "30 / 48 teams",
-        fee: "$445",
         image: getLocalEventImage("metro-finals"),
         slots: {
           filled: 30,
           capacity: 48,
           statusLabel: "Trending",
         },
-        pricePerParticipant: "$120 per athlete",
         description:
           "Metro-season finals with live scoring displays, certified athletic trainers, and coaches strategy summit.",
         tags: ["Finals Weekend"],
@@ -476,14 +460,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-09-30",
         location: "Palais des congrès de Montréal, Montreal, QC, Canada",
         teams: "30 / 50 teams",
-        fee: "$430",
         image: getLocalEventImage("adrenaline-quebec"),
         slots: {
           filled: 30,
           capacity: 50,
           statusLabel: "Montreal spotlight",
         },
-        pricePerParticipant: "$120 per athlete",
         description:
           "Season opener with bilingual emcees, live-streamed judges panels, and a coaches-only strategy lounge.",
         tags: ["Quebec Circuit"],
@@ -531,13 +513,11 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2025-11-30",
         location: "Centre Pierre-Charbonneau, Montreal, QC, Canada",
         teams: "22 / 40 teams",
-        fee: "$390",
         image: getLocalEventImage("frostfest-montreal"),
         slots: {
           filled: 22,
           capacity: 40,
         },
-        pricePerParticipant: "$105 per athlete",
         description:
           "Winter festival event featuring ice-sculpture village, hot chocolate lounge, and judges feedback pods.",
         tags: ["Winter Series"],
@@ -585,14 +565,12 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2025-12-01",
         location: "Palais des congrès de Montréal, Montreal, QC, Canada",
         teams: "34 / 50 teams",
-        fee: "$420",
         image: getLocalEventImage("cheerfest-quebec"),
         slots: {
           filled: 34,
           capacity: 50,
           statusLabel: "Returning favorite",
         },
-        pricePerParticipant: "$118 per athlete",
         description:
           "High-energy stage with synchronized lighting cues, bilingual announcers, and premium hospitality for club directors.",
         tags: ["Signature Event"],
@@ -620,13 +598,11 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-01-15",
         location: "École secondaire Casavant, Saint-Hyacinthe, QC, Canada",
         teams: "18 / 32 teams",
-        fee: "$360",
         image: getLocalEventImage("cheerup-quebec"),
         slots: {
           filled: 18,
           capacity: 32,
         },
-        pricePerParticipant: "$95 per athlete",
         description:
           "Community-focused invitational with on-site clinics, emerging team spotlights, and local vendor market.",
         tags: ["Community"],
@@ -654,13 +630,11 @@ export const eventCategories: EventCategory[] = [
         earlyBirdDeadline: "2026-02-15",
         location: "Théâtre Marcellin-Champagnat, Laval, QC, Canada",
         teams: "24 / 36 teams",
-        fee: "$380",
         image: getLocalEventImage("groovefest-quebec"),
         slots: {
           filled: 24,
           capacity: 36,
         },
-        pricePerParticipant: "$105 per athlete",
         description:
           "Hybrid dance and cheer showdown with custom stage backdrops, live DJ sets, and panel chats for coaches.",
         tags: ["Dance & Cheer"],

@@ -8,8 +8,7 @@ export default function EventCardComponentPage() {
       <PageHeader
         title="Event Card"
         subtitle="Marketplace-ready card that surfaces event metadata, pricing, and an action button."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}

@@ -116,7 +116,7 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
             <span
               className="mx-auto heading-2 bg-clip-text text-transparent"
               style={{
-                backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
+                backgroundImage: "linear-gradient(160deg, #0D9488 0%, #0891B2 50.22%, #06B6D4 100%)",
               }}
             >
               cheerbase
@@ -202,7 +202,7 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => {

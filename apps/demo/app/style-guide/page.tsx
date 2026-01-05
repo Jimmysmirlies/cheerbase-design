@@ -6,8 +6,7 @@ export default function StyleGuideOverview() {
       <PageHeader
         title="Overview"
         subtitle="Use this style guide as the source of truth for Cheerbase's design system tokens and reusable components. Each section dives deeper into colors, typography, spacing, interactions, and shared UI patterns that power the public marketplace, club portal, and organizer hub."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

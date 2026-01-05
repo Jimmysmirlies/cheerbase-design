@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { LogOutIcon } from 'lucide-react'
 
 import { Button } from '@workspace/ui/shadcn/button'
-import { ScrollArea } from '@workspace/ui/shadcn/scroll-area'
 import { cn } from '@workspace/ui/lib/utils'
 
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -58,27 +57,15 @@ export function Sidebar({
   const router = useRouter()
   const offset = Number.isFinite(navOffset) ? Math.max(navOffset, 0) : 72
   const offsetPx = `${offset}px`
-  const availableHeight = `calc(100vh - ${offset}px)`
+  const availableHeight = offset > 0 ? `calc(100vh - ${offset}px)` : '100vh'
 
   return (
-    <div className="flex min-h-screen bg-background" style={{ paddingTop: offsetPx }}>
-      {isMobile ? (
-        <button
-          type="button"
-          aria-label="Close sidebar overlay"
-          className={cn(
-            'fixed left-0 right-0 z-20 bg-black/50 backdrop-blur-[1px] transition-opacity duration-300 lg:hidden',
-            isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-          )}
-          style={{ top: offsetPx, height: availableHeight }}
-          onClick={onClose}
-        />
-      ) : null}
-
+    <>
       <aside
         className={cn(
-          'fixed left-0 z-30 flex w-72 flex-col border-r border-sidebar-border bg-sidebar shadow-lg transition-transform duration-300 lg:translate-x-0 lg:shadow-none',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          'sticky flex w-72 flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300 lg:translate-x-0',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
+          isMobile ? 'fixed left-0 z-30 shadow-lg' : ''
         )}
         style={{ top: offsetPx, height: availableHeight }}
       >
@@ -158,11 +145,15 @@ export function Sidebar({
         </div>
       </aside>
 
-      <div className="flex-1 transition-[margin-left] duration-300 lg:ml-72">
-        <ScrollArea className="w-full" style={{ height: availableHeight }}>
-          <div className="min-h-full">{children}</div>
-        </ScrollArea>
-      </div>
-    </div>
+      {isMobile && isOpen ? (
+        <button
+          type="button"
+          aria-label="Close sidebar overlay"
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-[1px] lg:hidden"
+          style={{ top: offsetPx }}
+          onClick={onClose}
+        />
+      ) : null}
+    </>
   )
 }

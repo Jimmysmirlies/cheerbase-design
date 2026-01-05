@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/shadcn/card";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -22,9 +23,11 @@ import {
   PLATFORM_TAKE_RATE,
   type SubscriptionPlanId,
 } from "@/lib/platform-pricing";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { type BrandGradient } from "@/lib/gradients";
 
 export default function SubscriptionPage() {
-  const { organizerId, isLoading: organizerLoading } = useOrganizer();
+  const { organizer, organizerId, isLoading: organizerLoading } = useOrganizer();
   const {
     plan: currentPlan,
     subscription,
@@ -32,9 +35,46 @@ export default function SubscriptionPage() {
     downgradeToFree,
     isLoading: subscriptionLoading,
   } = useOrganizerSubscription();
+  const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
 
   const activeEventCount = organizerId ? getActiveEventCount(organizerId) : 0;
   const isLoading = organizerLoading || subscriptionLoading;
+
+  // Load organizer gradient from settings or default
+  useEffect(() => {
+    const loadGradient = () => {
+      if (organizerId) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-organizer-settings-${organizerId}`)
+          if (stored) {
+            const settings = JSON.parse(stored)
+            if (settings.gradient) {
+              setOrganizerGradient(settings.gradient)
+              return
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      // Fall back to organizer's default gradient
+      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined)
+    }
+
+    loadGradient()
+
+    // Listen for settings changes
+    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setOrganizerGradient(event.detail.gradient as BrandGradient)
+      }
+    }
+
+    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    return () => {
+      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    }
+  }, [organizerId, organizer?.gradient])
 
   const handlePlanChange = (planId: SubscriptionPlanId) => {
     if (planId === currentPlan.id) return;
@@ -63,7 +103,11 @@ export default function SubscriptionPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 lg:px-8">
+        <PageHeader
+          title="Manage Subscription"
+          gradient={organizerGradient || organizer?.gradient}
+        />
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="grid gap-6 md:grid-cols-2">
             <div className="h-80 animate-pulse rounded-lg bg-muted" />
@@ -78,25 +122,20 @@ export default function SubscriptionPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 lg:px-8">
-        {/* Header */}
-        <div className="space-y-4">
+      <PageHeader
+        title="Manage Subscription"
+        gradient={organizerGradient || organizer?.gradient}
+        topRightAction={
           <Link
             href="/organizer/settings"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors"
           >
             <ArrowLeftIcon className="size-4" />
             Back to Settings
           </Link>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Manage Subscription
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Choose the plan that works best for your organization.
-            </p>
-          </div>
-        </div>
+        }
+      />
+      <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 lg:px-8">
 
         {/* Current usage */}
         <Card className="bg-muted/30">

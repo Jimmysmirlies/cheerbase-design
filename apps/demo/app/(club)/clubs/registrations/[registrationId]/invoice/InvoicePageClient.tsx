@@ -9,11 +9,40 @@ import { Button } from '@workspace/ui/shadcn/button'
 import { ToggleGroup, ToggleGroupItem } from '@workspace/ui/shadcn/toggle-group'
 import { InvoiceView, type InvoiceData, type InvoiceChangeInfo, type InvoiceSelectOption, type InvoiceHistoryItem } from '@/components/features/registration/invoice/InvoiceView'
 import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
+import { MarkAsPaidDialog } from '@/components/features/registration/invoice/MarkAsPaidDialog'
+import { toast } from '@workspace/ui/shadcn/sonner'
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 import { fadeInUp } from '@/lib/animations'
 import { formatFriendlyDate } from '@/utils/format'
 import { useRegistrationStorage } from '@/hooks/useRegistrationStorage'
+import { getEntryMemberCount } from '@/utils/registration-stats'
+import { resolveDivisionPricing } from '@/utils/pricing'
 import type { RegistrationEntry } from '@/components/features/registration/flow/types'
+
+// Calculate invoice total from invoice data
+function calculateInvoiceTotal(invoice: InvoiceData): number {
+  const gstRate = invoice.gstRate ?? 0.05
+  const qstRate = invoice.qstRate ?? 0.09975
+  const referenceDate = invoice.issuedDate || new Date()
+
+  const pricingByDivision = invoice.divisionPricing.reduce<Record<string, (typeof invoice.divisionPricing)[0]>>((acc, option) => {
+    acc[option.name] = option
+    return acc
+  }, {})
+
+  let subtotal = 0
+  for (const [divisionName, entries] of Object.entries(invoice.entriesByDivision)) {
+    const qty = entries.reduce((sum, entry) => sum + getEntryMemberCount(entry), 0)
+    const pricing = pricingByDivision[divisionName]
+    if (pricing) {
+      const activeTier = resolveDivisionPricing(pricing, referenceDate)
+      subtotal += qty * activeTier.price
+    }
+  }
+
+  const totalTax = subtotal * (gstRate + qstRate)
+  return subtotal + totalTax
+}
 
 type LayoutVariant = 'A' | 'B'
 
@@ -73,6 +102,8 @@ type InvoicePageClientProps = {
   registrationHref: string
   registrationId: string
   originalPaymentStatus: 'paid' | 'unpaid'
+  /** When true, shows organizer-specific actions like "Mark as Paid" */
+  isOrganizer?: boolean
 }
 
 export function InvoicePageClient({
@@ -80,6 +111,7 @@ export function InvoicePageClient({
   registrationHref,
   registrationId,
   originalPaymentStatus,
+  isOrganizer = false,
 }: InvoicePageClientProps) {
   // Get saved changes from localStorage to check for past invoices
   const { savedChanges, hasStoredChanges } = useRegistrationStorage(registrationId)
@@ -266,10 +298,46 @@ export function InvoicePageClient({
   )
 
   // Sort by version number (higher version = current), not by date
-  const sortedInvoices = useMemo(
+  const sortedInvoicesBase = useMemo(
     () => [...normalizedInvoices].sort((a, b) => b.orderVersion - a.orderVersion),
     [normalizedInvoices]
   )
+
+  // Track manual payments recorded by organizer (keyed by invoice number)
+  // Must be declared before sortedInvoices memo which depends on it
+  const [manualPayments, setManualPayments] = useState<
+    Record<string, { amount: number; method: string; date: Date; notes: string }>
+  >({})
+
+  // Apply manual payments to invoices - update status and payments array
+  const sortedInvoices = useMemo(() => {
+    return sortedInvoicesBase.map(invoice => {
+      const manualPayment = manualPayments[invoice.invoiceNumber]
+      if (!manualPayment) return invoice
+
+      // Calculate total from line items (we need this for the payment amount)
+      // For simplicity, we'll use the payment amount that covers the full invoice
+      const existingPayments = invoice.payments ?? []
+      const newPayment = {
+        amount: manualPayment.amount,
+        method: manualPayment.method,
+        lastFour: '', // Manual payments don't have card details
+        date: manualPayment.date,
+      }
+
+      const allPayments = [...existingPayments, newPayment]
+
+      // Determine new status based on payment
+      // We assume full payment since the dialog records the full invoice amount
+      const newStatus: 'paid' | 'partial' | 'unpaid' = 'paid'
+
+      return {
+        ...invoice,
+        payments: allPayments,
+        status: newStatus,
+      }
+    })
+  }, [sortedInvoicesBase, manualPayments])
   
   // Current invoice is the one with highest version number
   const currentInvoice = sortedInvoices[0] ?? null
@@ -292,6 +360,7 @@ export function InvoicePageClient({
     }
   }, [currentInvoiceNumber, prevCurrentInvoiceNumber])
   const [showPaymentMethods, setShowPaymentMethods] = useState(false)
+  const [showMarkAsPaid, setShowMarkAsPaid] = useState(false)
   const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>('A')
 
   const selectedInvoice =
@@ -325,6 +394,31 @@ export function InvoicePageClient({
     }))
     .sort((a, b) => new Date(a.issuedDate).getTime() - new Date(b.issuedDate).getTime())
 
+  // Handle marking invoice as paid (for organizers)
+  const handleMarkAsPaid = (data: {
+    paymentDate: Date
+    paymentMethod: string
+    notes: string
+    invoiceTotal: number
+  }) => {
+    if (!selectedInvoice) return
+
+    // Record the manual payment
+    setManualPayments(prev => ({
+      ...prev,
+      [selectedInvoice.invoiceNumber]: {
+        amount: data.invoiceTotal,
+        method: data.paymentMethod,
+        date: data.paymentDate,
+        notes: data.notes,
+      },
+    }))
+
+    toast.success('Invoice marked as paid', {
+      description: `Payment of $${data.invoiceTotal.toLocaleString()} recorded for invoice #${selectedInvoice.invoiceNumber}`,
+    })
+  }
+
   // Shared actions for InvoiceView
   const invoiceActions = (
     <>
@@ -332,7 +426,12 @@ export function InvoicePageClient({
         <PrinterIcon className="mr-2 h-4 w-4" />
         Print
       </Button>
-      {isPayable && (
+      {isOrganizer && isPayable && (
+        <Button size="sm" onClick={() => setShowMarkAsPaid(true)}>
+          Mark as Paid
+        </Button>
+      )}
+      {!isOrganizer && isPayable && (
         <WalkthroughSpotlight step="complete" side="bottom" align="end">
           <Button size="sm" onClick={() => setShowPaymentMethods(true)}>
             Pay Invoice
@@ -494,9 +593,17 @@ export function InvoicePageClient({
         </div>
       </section>
 
-      <PaymentMethodsDialog 
-        open={showPaymentMethods} 
-        onOpenChange={setShowPaymentMethods} 
+      <PaymentMethodsDialog
+        open={showPaymentMethods}
+        onOpenChange={setShowPaymentMethods}
+      />
+
+      <MarkAsPaidDialog
+        open={showMarkAsPaid}
+        onOpenChange={setShowMarkAsPaid}
+        invoiceNumber={selectedInvoice?.invoiceNumber ?? ''}
+        invoiceTotal={selectedInvoice ? calculateInvoiceTotal(selectedInvoice) : 0}
+        onConfirm={handleMarkAsPaid}
       />
     </>
   )

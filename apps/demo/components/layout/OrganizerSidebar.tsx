@@ -27,7 +27,7 @@ const navItems = [
   { href: '/organizer', label: 'Dashboard', icon: <HomeIcon className="size-4" /> },
   { href: '/organizer/events', label: 'Events', icon: <LayoutGridIcon className="size-4" /> },
   { href: '/organizer/registrations', label: 'Registrations', icon: <ClipboardListIcon className="size-4" /> },
-  { href: '/organizer/analytics', label: 'Analytics', icon: <BarChart3Icon className="size-4" /> },
+  { href: '/organizer/invoices', label: 'Invoices', icon: <BarChart3Icon className="size-4" /> },
   { href: '/organizer/settings', label: 'Settings', icon: <SettingsIcon className="size-4" /> },
 ]
 

@@ -9,8 +9,7 @@ export default function EventCategoriesSectionComponentPage() {
       <PageHeader
         title="Event Categories"
         subtitle="Grid-based section that lists categories and renders event cards per category."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}

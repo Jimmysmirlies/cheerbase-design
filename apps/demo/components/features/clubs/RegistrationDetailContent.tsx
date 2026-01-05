@@ -10,7 +10,8 @@ import { Button } from '@workspace/ui/shadcn/button'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
 
 import { motion } from 'framer-motion'
-import { PageHeader, type GradientVariant } from '@/components/layout/PageHeader'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { type BrandGradient } from '@/lib/gradients'
 import { TeamCard, type TeamData, type TeamMember } from '@/components/features/clubs/TeamCard'
 import { OrganizerCard } from '@/components/features/clubs/OrganizerCard'
 import { RegistrationPaymentCTA } from '@/components/features/clubs/RegistrationPaymentCTA'
@@ -50,7 +51,7 @@ type DivisionPricingProp = {
   name: string
   earlyBird?: {
     price: number
-    deadline: string
+    deadline?: string
   }
   regular: {
     price: number
@@ -82,7 +83,7 @@ type RegistrationDetailContentProps = {
     eventId: string
   }
   organizerName: string
-  organizerGradientVariant: GradientVariant
+  organizerGradientVariant: BrandGradient
   organizerFollowersLabel: string
   organizerEventsCount: number
   organizerHostingLabel: string
@@ -1123,9 +1124,8 @@ export function RegistrationDetailContent({
       <section className="flex flex-1 flex-col">
         <PageHeader
           title={`Edit Registration: ${registration.eventName}`}
-          hideSubtitle
-          gradientVariant={organizerGradientVariant}
-          breadcrumbItems={[
+          gradient={organizerGradientVariant}
+          breadcrumbs={[
             { label: 'Clubs', href: '/clubs' },
             { label: 'Registrations', href: '/clubs/registrations' },
             { label: registration.eventName, href: `/clubs/registrations/${registration.id}` },
@@ -1202,12 +1202,9 @@ export function RegistrationDetailContent({
     <section className="flex flex-1 flex-col">
       <PageHeader
         title={registration.eventName}
-        hideSubtitle
-        gradientVariant={organizerGradientVariant}
-        eventInfo={{
-          date: eventDateLabel,
-        }}
-        action={
+        gradient={organizerGradientVariant}
+        dateLabel={eventDateLabel}
+        topRightAction={
           <LayoutToggle
             variants={['A', 'B', 'C'] as const}
             value={layoutVariant}

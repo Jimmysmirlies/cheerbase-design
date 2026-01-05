@@ -14,6 +14,14 @@ import { useClubData } from "@/hooks/useClubData";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+} from "@/components/ui/tables";
 import type { TeamOption } from "@/components/features/registration/flow/types";
 import type { DivisionPricing } from "@/types/events";
 
@@ -26,30 +34,28 @@ function RosterTable({
     return <p className="text-sm text-muted-foreground">No members in this list yet.</p>;
   }
   return (
-    <div className="overflow-x-auto border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/30 text-muted-foreground">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Name</th>
-            <th className="px-4 py-3 text-left font-medium">DOB</th>
-            <th className="px-4 py-3 text-left font-medium">Email</th>
-            <th className="px-4 py-3 text-left font-medium">Phone</th>
-            <th className="px-4 py-3 text-left font-medium">Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {people.map((p) => (
-            <tr key={p.id} className="border-t align-top">
-              <td className="px-4 py-3">{`${p.firstName} ${p.lastName}`}</td>
-              <td className="px-4 py-3">{formatFriendlyDate(p.dob)}</td>
-              <td className="px-4 py-3">{p.email ?? "—"}</td>
-              <td className="px-4 py-3">{formatPhoneNumber(p.phone)}</td>
-              <td className="px-4 py-3 text-muted-foreground">{p.role ?? "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable>
+      <DataTableHeader>
+        <tr>
+          <DataTableHead>Name</DataTableHead>
+          <DataTableHead>DOB</DataTableHead>
+          <DataTableHead>Email</DataTableHead>
+          <DataTableHead>Phone</DataTableHead>
+          <DataTableHead>Role</DataTableHead>
+        </tr>
+      </DataTableHeader>
+      <DataTableBody>
+        {people.map((p, index) => (
+          <DataTableRow key={p.id} animationDelay={index * 40}>
+            <DataTableCell className="text-foreground">{`${p.firstName} ${p.lastName}`}</DataTableCell>
+            <DataTableCell>{formatFriendlyDate(p.dob)}</DataTableCell>
+            <DataTableCell>{p.email ?? "—"}</DataTableCell>
+            <DataTableCell>{formatPhoneNumber(p.phone)}</DataTableCell>
+            <DataTableCell className="text-muted-foreground">{p.role ?? "—"}</DataTableCell>
+          </DataTableRow>
+        ))}
+      </DataTableBody>
+    </DataTable>
   );
 }
 

@@ -90,8 +90,7 @@ export default function ButtonsPage() {
       <PageHeader
         title="Button Patterns"
         subtitle="These examples map to shadcn button variants. Pair the purple primary with secondary, ghost, and accent styles to build consistent call-to-action hierarchies."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

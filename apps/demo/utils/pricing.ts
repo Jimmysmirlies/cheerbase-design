@@ -6,7 +6,7 @@ export type ActiveDivisionRate = {
 }
 
 export function resolveDivisionPricing(pricing: DivisionPricing, referenceDate: Date = new Date()): ActiveDivisionRate {
-  if (pricing.earlyBird) {
+  if (pricing.earlyBird && pricing.earlyBird.deadline) {
     const deadline = parseIsoDateToLocal(pricing.earlyBird.deadline)
     if (referenceDate <= deadline) {
       return { price: pricing.earlyBird.price, tier: 'earlyBird' }

@@ -2,14 +2,21 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/shadcn/card";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Button } from "@workspace/ui/shadcn/button";
 import { toast } from "@workspace/ui/shadcn/sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/shadcn/select";
 import { Badge } from "@workspace/ui/shadcn/badge";
-import { CheckIcon, CreditCardIcon, SparklesIcon } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/shadcn/dialog";
+import { CheckIcon, CreditCardIcon, PencilIcon, SparklesIcon } from "lucide-react";
 
 import { useOrganizer } from "@/hooks/useOrganizer";
 import { useOrganizerSubscription } from "@/hooks/useOrganizerSubscription";
@@ -17,6 +24,7 @@ import { getActiveEventCount } from "@/data/events/selectors";
 import { formatPlanPrice } from "@/lib/platform-pricing";
 import { brandGradients, getGradientOptions, type BrandGradient } from "@/lib/gradients";
 import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
+import { Section } from "@/components/layout/Section";
 
 type OrganizerSettings = {
   name: string;
@@ -58,7 +66,15 @@ export default function OrganizerSettingsPage() {
     region: "",
     gradient: "primary",
   });
+  const [editForm, setEditForm] = useState<OrganizerSettings>({
+    name: "",
+    email: "",
+    supportEmail: "",
+    region: "",
+    gradient: "primary",
+  });
   const [saving, setSaving] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Initialize form with organizer data or saved settings
   useEffect(() => {
@@ -85,35 +101,62 @@ export default function OrganizerSettingsPage() {
     }
   }, [organizer, organizerId]);
 
-  const handleChange = (field: keyof OrganizerSettings) => (
+  const handleEditChange = (field: keyof OrganizerSettings) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    setEditForm((prev) => ({ ...prev, [field]: event.target.value }));
   };
 
   const handleGradientChange = (value: string) => {
-    setForm((prev) => ({ ...prev, gradient: value as BrandGradient }));
+    const newGradient = value as BrandGradient;
+    setForm((prev) => ({ ...prev, gradient: newGradient }));
+
+    // Save immediately when gradient changes
+    if (organizerId) {
+      const updatedSettings = { ...form, gradient: newGradient };
+      saveSettings(organizerId, updatedSettings);
+      window.dispatchEvent(new CustomEvent('organizer-settings-changed', {
+        detail: { gradient: newGradient }
+      }));
+      toast.success("Brand gradient updated");
+    }
   };
 
-  const handleSave = async () => {
+  const openEditDialog = () => {
+    setEditForm({ ...form });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveProfile = async () => {
     if (!organizerId) return;
     setSaving(true);
 
     // Simulate save delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    saveSettings(organizerId, form);
+    const updatedSettings = { ...editForm, gradient: form.gradient };
+    setForm(updatedSettings);
+    saveSettings(organizerId, updatedSettings);
+
+    // Dispatch custom event to notify other components (e.g., NavBar) of settings change
+    window.dispatchEvent(new CustomEvent('organizer-settings-changed', {
+      detail: { gradient: updatedSettings.gradient }
+    }));
+
     setSaving(false);
+    setEditDialogOpen(false);
     toast.success("Settings saved successfully", {
       description: "Your organization profile has been updated.",
     });
   };
 
+  const gradient = brandGradients[form.gradient] || brandGradients.primary;
+
   if (isLoading || subscriptionLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
-          <div className="h-8 w-32 animate-pulse rounded bg-muted" />
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
+          <div className="h-10 w-32 animate-pulse rounded bg-muted" />
           <div className="h-64 animate-pulse rounded-lg bg-muted" />
         </div>
       </section>
@@ -124,103 +167,114 @@ export default function OrganizerSettingsPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-          <p className="text-sm text-muted-foreground">
-            Organization details and preferences.
-          </p>
-        </div>
+      <div className="mx-auto w-full max-w-7xl space-y-2 px-4 pt-8 lg:px-8">
+        <h1
+          className="heading-2 bg-clip-text text-transparent"
+          style={{ backgroundImage: gradient.css }}
+        >
+          Settings
+        </h1>
+      </div>
+      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
 
-        {/* Organization Profile Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Organization Profile</CardTitle>
-            <CardDescription>
-              Update your organization&apos;s public profile information.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Preview */}
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 border border-border/60">
-              <GradientAvatar name={form.name || "Organization"} gradient={form.gradient} size="lg" />
-              <div>
-                <p className="font-semibold">{form.name || "Organization Name"}</p>
-                <p className="text-sm text-muted-foreground">{form.region || "Region"}</p>
-              </div>
+        {/* Organization Profile Section */}
+        <Section
+          title="Organization Profile"
+          description="Your organization's public profile information."
+          showDivider={false}
+        >
+          {/* Preview */}
+          <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 border border-border/60">
+            <GradientAvatar name={form.name || "Organization"} gradient={form.gradient} size="lg" />
+            <div>
+              <p className="font-semibold">{form.name || "Organization Name"}</p>
+              <p className="text-sm text-muted-foreground">{form.region || "Region"}</p>
             </div>
+          </div>
 
-            {/* Form Fields */}
-            <div className="grid gap-4 sm:grid-cols-2">
+          {/* Read-only Display */}
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center justify-between py-2 border-b border-border/40">
+              <span className="text-muted-foreground">Organization Name</span>
+              <span className="font-medium">{form.name || "Not set"}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-border/40">
+              <span className="text-muted-foreground">Region</span>
+              <span className="font-medium">{form.region || "Not set"}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-border/40">
+              <span className="text-muted-foreground">Contact Email</span>
+              <span className="font-medium">{form.email || "Not set"}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground">Support Email</span>
+              <span className="font-medium">{form.supportEmail || "Not set"}</span>
+            </div>
+          </div>
+
+          {/* Edit Button */}
+          <div className="flex justify-end">
+            <Button onClick={openEditDialog} variant="outline" className="gap-2">
+              <PencilIcon className="size-4" />
+              Edit Profile
+            </Button>
+          </div>
+        </Section>
+
+        {/* Edit Profile Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Organization Profile</DialogTitle>
+              <DialogDescription>
+                Update your organization&apos;s public profile information.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="org-name">Organization Name</Label>
+                <Label htmlFor="edit-org-name">Organization Name</Label>
                 <Input
-                  id="org-name"
-                  value={form.name}
-                  onChange={handleChange("name")}
+                  id="edit-org-name"
+                  value={editForm.name}
+                  onChange={handleEditChange("name")}
                   placeholder="Sapphire Productions"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
+                <Label htmlFor="edit-region">Region</Label>
                 <Input
-                  id="region"
-                  value={form.region}
-                  onChange={handleChange("region")}
+                  id="edit-region"
+                  value={editForm.region}
+                  onChange={handleEditChange("region")}
                   placeholder="Quebec"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact-email">Contact Email</Label>
+                <Label htmlFor="edit-contact-email">Contact Email</Label>
                 <Input
-                  id="contact-email"
+                  id="edit-contact-email"
                   type="email"
-                  value={form.email}
-                  onChange={handleChange("email")}
+                  value={editForm.email}
+                  onChange={handleEditChange("email")}
                   placeholder="contact@example.com"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="support-email">Support Email</Label>
+                <Label htmlFor="edit-support-email">Support Email</Label>
                 <Input
-                  id="support-email"
+                  id="edit-support-email"
                   type="email"
-                  value={form.supportEmail}
-                  onChange={handleChange("supportEmail")}
+                  value={editForm.supportEmail}
+                  onChange={handleEditChange("supportEmail")}
                   placeholder="support@example.com"
                 />
               </div>
             </div>
-
-            {/* Brand Gradient */}
-            <div className="space-y-2">
-              <Label htmlFor="gradient">Brand Gradient</Label>
-              <Select value={form.gradient} onValueChange={handleGradientChange}>
-                <SelectTrigger id="gradient" className="w-full sm:w-64">
-                  <SelectValue placeholder="Select a gradient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {gradientOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="size-4 rounded-full"
-                          style={{ background: brandGradients[option.value].css }}
-                        />
-                        {option.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                This gradient is used for your avatar and brand accents.
-              </p>
-            </div>
-
-            {/* Save Button */}
-            <div className="flex justify-end pt-4 border-t border-border/60">
-              <Button onClick={handleSave} disabled={saving} className="gap-2">
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveProfile} disabled={saving} className="gap-2">
                 {saving ? (
                   "Saving..."
                 ) : (
@@ -230,86 +284,73 @@ export default function OrganizerSettingsPage() {
                   </>
                 )}
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-        {/* Contact Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Contact Information</CardTitle>
-            <CardDescription>
-              How clubs and participants can reach you.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Primary Contact</span>
-                <span className="font-medium">{form.email || "Not set"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Support</span>
-                <span className="font-medium">{form.supportEmail || "Not set"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground">Region</span>
-                <span className="font-medium">{form.region || "Not set"}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Brand Gradient Section */}
+        <Section
+          title="Brand Gradient"
+          description="This gradient is used for your avatar and brand accents."
+        >
+          <Select value={form.gradient} onValueChange={handleGradientChange}>
+            <SelectTrigger id="gradient" className="w-full sm:w-64">
+              <SelectValue placeholder="Select a gradient" />
+            </SelectTrigger>
+            <SelectContent>
+              {gradientOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="size-4 rounded-full"
+                      style={{ background: brandGradients[option.value].css }}
+                    />
+                    {option.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Section>
 
-        {/* Billing & Subscription Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCardIcon className="size-4" />
-                  Billing & Subscription
-                </CardTitle>
-                <CardDescription>
-                  Manage your subscription plan and billing details.
-                </CardDescription>
-              </div>
+        {/* Billing & Subscription Section */}
+        <Section
+          title="Billing & Subscription"
+          description="Manage your subscription plan and billing details."
+        >
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center justify-between py-2 border-b border-border/40">
+              <span className="text-muted-foreground">Current Plan</span>
               <Badge variant={plan.id === 'pro' ? 'default' : 'secondary'}>
                 {plan.id === 'pro' && <SparklesIcon className="mr-1 size-3" />}
                 {plan.name}
               </Badge>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Current Plan</span>
-                <span className="font-medium">{plan.name}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Price</span>
-                <span className="font-medium">{formatPlanPrice(plan)}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Active Events</span>
-                <span className="font-medium">
-                  {activeEventCount} / {plan.activeEventLimit}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground">Platform Fee</span>
-                <span className="font-medium">3% per registration</span>
-              </div>
+            <div className="flex items-center justify-between py-2 border-b border-border/40">
+              <span className="text-muted-foreground">Price</span>
+              <span className="font-medium">{formatPlanPrice(plan)}</span>
             </div>
-            <div className="flex justify-end pt-4 border-t border-border/60 mt-4">
-              <Button asChild variant="outline" className="gap-2">
-                <Link href="/organizer/settings/subscription">
-                  <CreditCardIcon className="size-4" />
-                  Manage Subscription
-                </Link>
-              </Button>
+            <div className="flex items-center justify-between py-2 border-b border-border/40">
+              <span className="text-muted-foreground">Active Events</span>
+              <span className="font-medium">
+                {activeEventCount} / {plan.activeEventLimit}
+              </span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-muted-foreground">Platform Fee</span>
+              <span className="font-medium">3% per registration</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/organizer/settings/subscription">
+                <CreditCardIcon className="size-4" />
+                Manage Subscription
+              </Link>
+            </Button>
+          </div>
+        </Section>
       </div>
     </section>
   );

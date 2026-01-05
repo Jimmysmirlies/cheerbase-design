@@ -7,35 +7,62 @@ import { cn } from '@workspace/ui/lib/utils'
 
 import { brandGradients, noiseTexture, type BrandGradient } from '@/lib/gradients'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
 type BreadcrumbItem = {
   label: string
   href?: string
 }
 
-type EventInfoProps = {
-  organizer?: string
-  location?: string
-  date?: string
+type CountdownConfig = {
+  targetDate: string | Date
+  label?: string // Default: "Registration Closes"
+}
+
+type MetadataItem = {
+  label: string
+  value: ReactNode
 }
 
 type PageHeaderProps = {
+  // Core
   title: string
+  gradient?: BrandGradient
+
+  // Slots - clear naming for where content appears
+  /** Content in top-right corner (e.g., layout toggle, back link) */
+  topRightAction?: ReactNode
+  /** Action button(s) inline with title (e.g., "Edit Event" button) */
+  titleAction?: ReactNode
+  /** Badge displayed next to title (e.g., "Beta", "Draft") */
+  titleBadge?: ReactNode
+
+  // Eyebrow area (above title) - use ONE of these
+  /** Formatted date displayed above title */
+  dateLabel?: string | Date
+  /** Breadcrumb navigation above title */
+  breadcrumbs?: BreadcrumbItem[]
+  /** Custom eyebrow content (use when dateLabel/breadcrumbs don't fit) */
+  eyebrow?: ReactNode
+
+  // Optional sections
   subtitle?: string
-  action?: ReactNode
-  hideSubtitle?: boolean
-  hideSubtitleDivider?: boolean
-  hideTitle?: boolean
-  hideBorder?: boolean
-  hideCountdown?: boolean
-  eventStartDate?: string | Date
-  breadcrumbs?: ReactNode
-  breadcrumbItems?: BreadcrumbItem[]
-  metadataItems?: { label: string; value: ReactNode }[]
+  /** Key-value metadata displayed below title */
+  metadata?: MetadataItem[]
   metadataColumns?: number
-  gradientVariant?: GradientVariant
-  showEventDateAsBreadcrumb?: boolean
-  eventInfo?: EventInfoProps
+
+  // Countdown timer
+  countdown?: CountdownConfig
+
+  // Visual options
+  hideBorder?: boolean
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 const SECOND_IN_MS = 1000
 const MINUTE_IN_MS = 60 * SECOND_IN_MS
@@ -45,21 +72,17 @@ const DAY_IN_MS = 24 * HOUR_IN_MS
 type CountdownDisplay =
   | {
       state: 'future'
-      segments: {
-        days: number
-        hours: number
-        seconds: number
-      }
+      segments: { days: number; hours: number; seconds: number }
     }
   | { state: 'past' }
 
-function getEventCountdown(eventStartDate?: string | Date): CountdownDisplay | null {
-  if (!eventStartDate) return null
-  const start = new Date(eventStartDate)
-  if (Number.isNaN(start.getTime())) return null
+function getCountdown(targetDate?: string | Date): CountdownDisplay | null {
+  if (!targetDate) return null
+  const target = new Date(targetDate)
+  if (Number.isNaN(target.getTime())) return null
 
   const now = new Date()
-  const diffMs = start.getTime() - now.getTime()
+  const diffMs = target.getTime() - now.getTime()
   if (diffMs <= 0) return { state: 'past' }
 
   const days = Math.floor(diffMs / DAY_IN_MS)
@@ -68,19 +91,21 @@ function getEventCountdown(eventStartDate?: string | Date): CountdownDisplay | n
   const remainingAfterHours = remainingAfterDays % HOUR_IN_MS
   const seconds = Math.floor((remainingAfterHours % MINUTE_IN_MS) / SECOND_IN_MS)
 
-  return {
-    state: 'future',
-    segments: {
-      days,
-      hours,
-      seconds,
-    },
-  }
+  return { state: 'future', segments: { days, hours, seconds } }
 }
 
-export type GradientVariant = BrandGradient
+function formatDateLabel(date: string | Date): string {
+  const dateObj = new Date(date)
+  if (Number.isNaN(dateObj.getTime())) return ''
+  return dateObj.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
-function createGradientStyle(variant: GradientVariant = 'primary'): CSSProperties {
+function createGradientStyle(variant: BrandGradient = 'primary'): CSSProperties {
   const gradient = brandGradients[variant]
   return {
     backgroundColor: 'hsla(0,0%,100%,1)',
@@ -91,132 +116,119 @@ function createGradientStyle(variant: GradientVariant = 'primary'): CSSPropertie
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function PageHeader({
   title,
-  subtitle,
-  action,
-  hideSubtitle,
-  hideSubtitleDivider,
-  hideTitle,
-  hideBorder,
-  hideCountdown,
-  eventStartDate,
+  gradient = 'teal',
+  topRightAction,
+  titleAction,
+  titleBadge,
+  dateLabel,
   breadcrumbs,
-  breadcrumbItems,
-  metadataItems,
+  eyebrow,
+  subtitle,
+  metadata,
   metadataColumns = 3,
-  gradientVariant = 'primary',
-  showEventDateAsBreadcrumb = false,
-  eventInfo,
+  countdown,
+  hideBorder,
 }: PageHeaderProps) {
-  // Initialize as null to avoid hydration mismatch (Date.now() differs between server and client)
-  const [eventCountdown, setEventCountdown] = useState<CountdownDisplay | null>(null)
-  const [formattedEventDate, setFormattedEventDate] = useState<string>('')
+  // Countdown state (client-only to avoid hydration mismatch)
+  const [countdownDisplay, setCountdownDisplay] = useState<CountdownDisplay | null>(null)
 
   useEffect(() => {
-    // Calculate countdown only on client to avoid hydration issues
-    setEventCountdown(getEventCountdown(eventStartDate))
-    if (!eventStartDate) return
+    if (!countdown?.targetDate) return
 
+    setCountdownDisplay(getCountdown(countdown.targetDate))
     const interval = window.setInterval(() => {
-      setEventCountdown(getEventCountdown(eventStartDate))
+      setCountdownDisplay(getCountdown(countdown.targetDate))
     }, 1000)
 
-    return () => {
-      window.clearInterval(interval)
-    }
-  }, [eventStartDate])
+    return () => window.clearInterval(interval)
+  }, [countdown?.targetDate])
 
-  useEffect(() => {
-    if (showEventDateAsBreadcrumb && eventStartDate) {
-      const eventDateObj = new Date(eventStartDate)
-      if (!Number.isNaN(eventDateObj.getTime())) {
-        const formatted = eventDateObj.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          month: 'long', 
-          day: 'numeric',
-          year: 'numeric'
-        })
-        setFormattedEventDate(formatted)
-      }
-    }
-  }, [showEventDateAsBreadcrumb, eventStartDate])
+  // Determine eyebrow content (priority: eyebrow > dateLabel > breadcrumbs)
+  const eyebrowContent = eyebrow ? (
+    eyebrow
+  ) : dateLabel ? (
+    <div>{formatDateLabel(dateLabel)}</div>
+  ) : breadcrumbs?.length ? (
+    <nav className="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
+      {breadcrumbs.map((item, idx) => (
+        <div key={`${item.label}-${idx}`} className="flex items-center gap-2">
+          {item.href ? (
+            <Link
+              href={item.href}
+              className="text-white/90 underline-offset-4 hover:text-white hover:underline"
+            >
+              {item.label}
+            </Link>
+          ) : (
+            <span>{item.label}</span>
+          )}
+          {idx < breadcrumbs.length - 1 && <span className="text-white/60">/</span>}
+        </div>
+      ))}
+    </nav>
+  ) : null
 
+  // Countdown segments
   const countdownSegments =
-    eventCountdown && eventCountdown.state === 'future'
+    countdownDisplay?.state === 'future'
       ? [
-          { label: 'Days', value: eventCountdown.segments.days },
-          { label: 'Hours', value: eventCountdown.segments.hours },
-          { label: 'Secs', value: eventCountdown.segments.seconds },
+          { label: 'Days', value: countdownDisplay.segments.days },
+          { label: 'Hours', value: countdownDisplay.segments.hours },
+          { label: 'Secs', value: countdownDisplay.segments.seconds },
         ]
       : null
-  const hasBreadcrumbItems = (breadcrumbItems?.length ?? 0) > 0
-  const hasEventInfo = eventInfo && (eventInfo.organizer || eventInfo.location || eventInfo.date)
-  const showBreadcrumbArea = hasEventInfo || showEventDateAsBreadcrumb ? formattedEventDate : (hasBreadcrumbItems || breadcrumbs)
+
+  const showCountdown = countdown && countdownDisplay
+  const countdownLabel = countdown?.label ?? 'Registration Closes'
 
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden backdrop-blur-sm",
-        !hideBorder && "border-b border-border/70"
+        'relative w-full overflow-hidden backdrop-blur-sm',
+        !hideBorder && 'border-b border-border/70'
       )}
-      style={createGradientStyle(gradientVariant)}
+      style={createGradientStyle(gradient)}
     >
       <header className="flex min-h-[240px] w-full max-w-full flex-col justify-between px-4 pb-8 pt-4 lg:mx-auto lg:max-w-7xl lg:px-8">
         {/* Top row: action aligned right */}
-        <div className="flex justify-end">{action ?? <div />}</div>
+        <div className="flex justify-end">{topRightAction ?? <div />}</div>
+
+        {/* Main content area */}
         <div className="flex flex-col justify-end gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col gap-2">
-              {(showBreadcrumbArea || hasEventInfo) ? (
+            {/* Left: eyebrow + title */}
+            <div className="flex flex-1 flex-col gap-2">
+              {eyebrowContent && (
                 <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/80">
-                  {hasEventInfo ? (
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      {eventInfo.organizer && <span>{eventInfo.organizer}</span>}
-                      {eventInfo.organizer && (eventInfo.location || eventInfo.date) && <span className="text-white/50">·</span>}
-                      {eventInfo.location && <span>{eventInfo.location}</span>}
-                      {eventInfo.location && eventInfo.date && <span className="text-white/50">·</span>}
-                      {eventInfo.date && <span>{eventInfo.date}</span>}
-                    </div>
-                  ) : showEventDateAsBreadcrumb && formattedEventDate ? (
-                    <div>{formattedEventDate}</div>
-                  ) : hasBreadcrumbItems ? (
-                    <nav className="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
-                      {breadcrumbItems?.map((item, idx) => (
-                        <div key={`${item.label}-${idx}`} className="flex items-center gap-2">
-                          {item.href ? (
-                            <Link
-                              href={item.href}
-                              className="text-white/90 underline-offset-4 hover:text-white hover:underline"
-                            >
-                              {item.label}
-                            </Link>
-                          ) : (
-                            <span>{item.label}</span>
-                          )}
-                          {idx < (breadcrumbItems?.length ?? 0) - 1 ? (
-                            <span className="text-white/60">/</span>
-                          ) : null}
-                        </div>
-                      ))}
-                    </nav>
-                  ) : (
-                    breadcrumbs
-                  )}
+                  {eyebrowContent}
                 </div>
-              ) : null}
-              {!hideTitle ? <h1 className="heading-2 text-white">{title}</h1> : null}
+              )}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <h1 className="heading-2 text-white">{title}</h1>
+                  {titleBadge}
+                </div>
+                {titleAction}
+              </div>
             </div>
-            {eventCountdown && !hideCountdown ? (
+
+            {/* Right: countdown */}
+            {showCountdown && (
               <div className="flex w-full flex-col items-end gap-4 sm:flex-row sm:items-end sm:justify-end sm:gap-6 lg:w-auto lg:flex-col">
-                {eventCountdown.state === 'past' ? (
+                {countdownDisplay.state === 'past' ? (
                   <div className="text-right text-sm font-semibold uppercase tracking-[0.2em] text-white">
                     Event Passed
                   </div>
                 ) : countdownSegments ? (
                   <div className="flex flex-col items-end gap-2 text-white">
                     <span className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
-                      Registration Closes
+                      {countdownLabel}
                     </span>
                     <div className="grid grid-flow-col items-start gap-4">
                       {countdownSegments.map((segment) => (
@@ -233,15 +245,19 @@ export function PageHeader({
                   </div>
                 ) : null}
               </div>
-            ) : null}
+            )}
           </div>
-          {subtitle && !hideSubtitle ? <p className="text-base text-white/85">{subtitle}</p> : null}
-          {((subtitle && !hideSubtitle && !hideSubtitleDivider) || metadataItems?.length) ? (
-            <div className="h-px w-full bg-white/30" />
-          ) : null}
-          {metadataItems?.length ? (
+
+          {/* Subtitle */}
+          {subtitle && <p className="text-base text-white/85">{subtitle}</p>}
+
+          {/* Divider before metadata */}
+          {(subtitle || metadata?.length) && <div className="h-px w-full bg-white/30" />}
+
+          {/* Metadata grid */}
+          {metadata?.length ? (
             <div className={`grid gap-8 text-sm text-white sm:grid-cols-${metadataColumns}`}>
-              {metadataItems.map((item, idx) => (
+              {metadata.map((item, idx) => (
                 <div key={`${item.label}-${idx}`} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-white/80">{item.label}</span>

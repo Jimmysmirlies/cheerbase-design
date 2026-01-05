@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RegistrationNoticeBar } from "@/components/features/events/RegistrationNoticeBar";
-import { type BrandGradient } from "@/lib/gradients";
+import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 export default function RegistrationNoticeBarPage() {
   const gradients: BrandGradient[] = [
@@ -20,8 +20,7 @@ export default function RegistrationNoticeBarPage() {
       <PageHeader
         title="Registration Notice Bar"
         subtitle="Displays the current registration phase status with gradient branding for event organizers."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}
@@ -102,7 +101,7 @@ export default function RegistrationNoticeBarPage() {
             <div className="grid gap-4">
               {gradients.map((gradient) => (
                 <div key={gradient} className="space-y-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground capitalize">{gradient}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{brandGradients[gradient].name}</p>
                   <RegistrationNoticeBar
                     title="Registration Open"
                     subtitle="Open for 48 days 22 hrs 52 mins"

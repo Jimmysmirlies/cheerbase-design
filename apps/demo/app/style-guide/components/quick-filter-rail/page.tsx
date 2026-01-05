@@ -7,8 +7,7 @@ export default function QuickFilterRailComponentPage() {
       <PageHeader
         title="Quick Filter Rail"
         subtitle="Pill-based filter controls for top-of-page filtering or dashboard subsets. Handles active styling internally."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}

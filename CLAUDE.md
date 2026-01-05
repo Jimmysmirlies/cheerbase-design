@@ -39,17 +39,19 @@ pnpm build
 - `(marketing)` - Landing page
 - `(events)` - Event browsing and registration flows
 - `(club)` - Club management (teams, registrations, settings)
+- `(organizer)` - Organizer dashboard and event management
 - Style guide pages under `/style-guide`
 
 **Key Directories:**
 - `app/` - Next.js app router pages
 - `components/` - React components organized by feature
-  - `components/features/` - Feature-specific components (registration, clubs, etc.)
-  - `components/ui/` - Reusable UI primitives
-  - `components/layout/` - Layout components (NavBar, etc.)
+  - `components/features/` - Feature-specific components (registration, clubs, events, auth)
+  - `components/ui/` - Reusable UI primitives (cards, avatars, controls, tables)
+  - `components/layout/` - Layout components (NavBar, PageHeader, Sidebar)
 - `data/` - Static mock data (clubs, teams, events, divisions)
 - `types/` - TypeScript type definitions
 - `utils/` - Utility functions
+- `hooks/` - Custom React hooks
 
 ### Data Layer
 
@@ -121,8 +123,9 @@ Teams use a row-based layout similar to registration flows:
 **Framework:** Tailwind CSS v4 + shadcn/ui components
 
 **Typography classes** (defined in `globals.css`):
-- `heading-1` through `heading-6` - Semantic heading styles
-- `body-large`, `body-base`, `body-small` - Body text variants
+- `heading-1` through `heading-4` - Semantic heading styles
+- `body-large`, `body-text`, `body-small` - Body text variants
+- `label` - Uppercase label style
 - All use CSS variables for consistent theming
 
 **Important rules:**
@@ -136,6 +139,13 @@ Teams use a row-based layout similar to registration flows:
 - Badges: `Badge` with `variant="secondary"` for divisions
 - Icons: lucide-react, typically `size-4` or `size-5`
 - Toasts: `toast` from `@workspace/ui/shadcn/sonner`
+
+**Design aesthetic:**
+- Minimal, black-on-white surfaces with thin, light borders
+- Use typography for hierarchy (bold for primary, muted for secondary)
+- Generous spacing and air
+- Inline meta rows with subtle dividers
+- Smooth scroll/Lenis only on marketing pages; native scroll in app areas
 
 ### Payment & Invoice System
 
@@ -179,7 +189,7 @@ Teams use a row-based layout similar to registration flows:
 ### Adding a New Page
 
 1. Create route folder: `apps/demo/app/(group)/path/page.tsx`
-2. Use appropriate route group: `(marketing)`, `(events)`, or `(club)`
+2. Use appropriate route group: `(marketing)`, `(events)`, `(club)`, or `(organizer)`
 3. Import components from `@workspace/ui`
 4. Add mock data to `apps/demo/data/` if needed
 

@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 import { FALLBACK_EVENT_IMAGE } from '@/data/events/fallbacks'
 
-type RegistrationStatus = 'OPEN' | 'CLOSING SOON' | 'CLOSED' | 'FULL'
+type RegistrationStatus = 'OPEN' | 'CLOSING SOON' | 'CLOSED' | 'FULL' | 'DRAFT'
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant']
 
@@ -18,6 +18,7 @@ const statusBadgeVariants: Record<RegistrationStatus, BadgeVariant> = {
   'CLOSING SOON': 'amber',
   CLOSED: 'secondary',
   FULL: 'red',
+  DRAFT: 'secondary',
 }
 
 export type OrganizerEventCardProps = {
@@ -29,8 +30,8 @@ export type OrganizerEventCardProps = {
   teamsFilled: number
   teamsCapacity: number
   statusLabel: RegistrationStatus
-  fee?: string
   disabled?: boolean
+  status?: 'draft' | 'published'
 }
 
 /**
@@ -84,12 +85,13 @@ export function OrganizerEventCard({
   teamsFilled,
   teamsCapacity,
   statusLabel,
-  fee,
   disabled = false,
+  status,
 }: OrganizerEventCardProps) {
   const heroImage = image || FALLBACK_EVENT_IMAGE
   const heroStyle = { backgroundImage: `url(${heroImage})` }
-  const badgeVariant = statusBadgeVariants[statusLabel] ?? 'secondary'
+  const displayStatus = status === 'draft' ? 'DRAFT' : statusLabel
+  const badgeVariant = statusBadgeVariants[displayStatus] ?? 'secondary'
   const linkLabel = `View event: ${title}`
   const cardHoverState = disabled
     ? 'opacity-65'
@@ -114,7 +116,7 @@ export function OrganizerEventCard({
             variant={badgeVariant}
             className="pointer-events-none absolute left-4 top-4 rounded-full px-3 py-1 text-[0.65rem] uppercase tracking-wide leading-none text-center"
           >
-            {statusLabel}
+            {displayStatus}
           </Badge>
         </div>
         {/* BODY STACK — Event details */}
@@ -122,7 +124,6 @@ export function OrganizerEventCard({
           {/* TITLE BLOCK */}
           <div className="space-y-1">
             <h3 className="heading-4 text-foreground">{title}</h3>
-            {fee ? <p className="body-text text-primary font-semibold">{fee}</p> : null}
           </div>
           {/* META GRID — Quick Facts */}
           <div className="body-small text-muted-foreground space-y-2.5">
@@ -144,4 +145,6 @@ export function OrganizerEventCard({
     </Link>
   )
 }
+
+
 

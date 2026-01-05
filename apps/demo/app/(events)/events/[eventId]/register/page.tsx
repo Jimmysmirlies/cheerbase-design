@@ -35,7 +35,7 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
 
   // Get organizer data for gradient
   const organizer = findOrganizerByName(eventDetails.organizer)
-  const gradientVariant = organizer?.gradient ?? 'primary'
+  const gradient = organizer?.gradient ?? 'teal'
 
   // Calculate registration deadline (day before event)
   const eventDate = new Date(eventDetails.date)
@@ -50,10 +50,9 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
     <section className="flex flex-1 flex-col">
       <PageHeader
         title={eventDetails.name}
-        hideSubtitle
         hideBorder
-        gradientVariant={gradientVariant}
-        breadcrumbItems={[
+        gradient={gradient}
+        breadcrumbs={[
           { label: 'Events', href: '/events/search' },
           { label: eventDetails.name, href: `/events/${encodeURIComponent(eventId)}` },
           { label: 'Register' },
@@ -64,7 +63,7 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
         eventId={eventId}
         eventName={eventDetails.name}
         organizer={eventDetails.organizer}
-        organizerGradient={gradientVariant}
+        organizerGradient={gradient}
         eventDate={eventDetails.date}
         location={eventDetails.location}
         divisionPricing={divisionPricing}

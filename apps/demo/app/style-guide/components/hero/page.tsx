@@ -39,8 +39,7 @@ export default function HeroComponentPage() {
       <PageHeader
         title="Hero"
         subtitle="Split hero layout pairing long-form messaging with a feature visual. Supports carousel slides out of the box."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}

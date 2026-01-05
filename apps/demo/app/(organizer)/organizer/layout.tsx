@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { BarChart3Icon, ClipboardListIcon, HomeIcon, LayoutGridIcon, SettingsIcon } from 'lucide-react'
 
+import { ScrollArea } from '@workspace/ui/shadcn/scroll-area'
+
 import { Sidebar } from '@/components/layout/Sidebar'
 import { NavBar } from '@/components/layout/NavBar'
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -16,7 +18,7 @@ const organizerNavSections = [
       { key: 'dashboard', label: 'Dashboard', icon: <HomeIcon className="size-4" />, href: '/organizer' },
       { key: 'events', label: 'Events', icon: <LayoutGridIcon className="size-4" />, href: '/organizer/events' },
       { key: 'registrations', label: 'Registrations', icon: <ClipboardListIcon className="size-4" />, href: '/organizer/registrations' },
-      { key: 'analytics', label: 'Analytics', icon: <BarChart3Icon className="size-4" />, href: '/organizer/analytics' },
+      { key: 'invoices', label: 'Invoices', icon: <BarChart3Icon className="size-4" />, href: '/organizer/invoices' },
       { key: 'settings', label: 'Settings', icon: <SettingsIcon className="size-4" />, href: '/organizer/settings' },
     ],
   },
@@ -35,7 +37,7 @@ export default function OrganizerLayout({ children }: { children: ReactNode }) {
     if (!pathname) return 'dashboard'
     if (pathname.includes('/events')) return 'events'
     if (pathname.includes('/registrations')) return 'registrations'
-    if (pathname.includes('/analytics')) return 'analytics'
+    if (pathname.includes('/invoices')) return 'invoices'
     if (pathname.includes('/settings')) return 'settings'
     return 'dashboard'
   }, [pathname])
@@ -95,7 +97,7 @@ export default function OrganizerLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div ref={navWrapperRef} className="fixed inset-x-0 top-0 z-40">
+      <div ref={navWrapperRef} className="sticky top-0 z-40">
         <NavBar
           variant="organizer"
           showSidebarToggle={isMobile}
@@ -103,9 +105,12 @@ export default function OrganizerLayout({ children }: { children: ReactNode }) {
           onSidebarToggle={() => setIsSidebarOpen(prev => !prev)}
         />
       </div>
-      <Sidebar active={active} navSections={organizerNavSections} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)}>
-        {status === 'loading' ? null : children}
-      </Sidebar>
+      <div className="flex w-full">
+        <Sidebar active={active} navSections={organizerNavSections} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)} />
+        <ScrollArea className="flex-1" style={{ height: `calc(100vh - ${navHeight}px)` }}>
+          <main>{status === 'loading' ? null : children}</main>
+        </ScrollArea>
+      </div>
     </div>
   )
 }

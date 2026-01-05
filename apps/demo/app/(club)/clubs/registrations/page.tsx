@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge } from '@workspace/ui/shadcn/badge'
+import { TagTabs } from '@/components/ui/controls/TagTabs'
 import { Button } from '@workspace/ui/shadcn/button'
 import { TextSelect } from '@workspace/ui/components/text-select'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@workspace/ui/shadcn/tooltip'
@@ -12,6 +12,7 @@ import { motion } from 'framer-motion'
 import { EventRegisteredCard, type EventRegisteredCardProps } from '@/components/ui/cards/EventRegisteredCard'
 import { CardSkeleton } from '@/components/ui'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { type BrandGradient } from '@/lib/gradients'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useClubData } from '@/hooks/useClubData'
@@ -24,6 +25,41 @@ export default function ClubRegistrationsPage() {
   const { user, status } = useAuth()
   const router = useRouter()
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(defaultSeasonId)
+  const [clubGradient, setClubGradient] = useState<BrandGradient | undefined>(undefined)
+
+  // Load club gradient settings
+  useEffect(() => {
+    const loadGradient = () => {
+      if (user?.id) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-club-settings-${user.id}`)
+          if (stored) {
+            const settings = JSON.parse(stored)
+            if (settings.gradient) {
+              setClubGradient(settings.gradient)
+              return
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      setClubGradient(undefined)
+    }
+
+    loadGradient()
+
+    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setClubGradient(event.detail.gradient as BrandGradient)
+      }
+    }
+
+    window.addEventListener('club-settings-changed', handleSettingsChange as EventListener)
+    return () => {
+      window.removeEventListener('club-settings-changed', handleSettingsChange as EventListener)
+    }
+  }, [user?.id])
 
   // ACCESS CONTROL — "Gatekeeper": keep non-club-owners out of the registrations experience
   useEffect(() => {
@@ -49,9 +85,8 @@ export default function ClubRegistrationsPage() {
     <section className="flex flex-1 flex-col">
       <PageHeader
         title="Registrations"
-        subtitle="Review submissions, update rosters, and keep an eye on payment deadlines."
-        hideSubtitle
-        breadcrumbItems={[
+        gradient={clubGradient}
+        breadcrumbs={[
           { label: 'Clubs', href: '/clubs' },
           { label: 'Registrations', href: '/clubs/registrations' },
         ]}
@@ -147,7 +182,7 @@ function RegistrationsContent({
     [rows, season],
   )
   const sections = useMemo(() => buildMonthSections(filteredRows, season), [filteredRows, season])
-  const [viewMode, setViewMode] = useState<ViewMode>('month')
+  const [viewMode, setViewMode] = useState<ViewMode>('all')
   const [allEventsBucket, setAllEventsBucket] = useState<'upcoming' | 'past'>('upcoming')
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const bucketedSeasonRows = useMemo(() => {
@@ -254,26 +289,10 @@ function RegistrationsContent({
               <div className="relative inline-flex items-center rounded-md border border-border/70 bg-muted/40 p-1 shrink-0 ml-auto">
                 <div
                   className={`absolute top-1 left-1 h-9 w-9 rounded-md bg-card shadow transition-transform duration-200 ease-out ${
-                    viewMode === 'all' ? 'translate-x-9' : ''
+                    viewMode === 'month' ? 'translate-x-9' : ''
                   }`}
                   aria-hidden
                 />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="size-9 rounded-md relative z-10"
-                      aria-label="Month view"
-                      aria-pressed={viewMode === 'month'}
-                      onClick={() => setViewMode('month')}
-                    >
-                      <CalendarRangeIcon className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Month view</TooltipContent>
-                </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -290,6 +309,22 @@ function RegistrationsContent({
                   </TooltipTrigger>
                   <TooltipContent side="bottom">All events</TooltipContent>
                 </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="size-9 rounded-md relative z-10"
+                      aria-label="Month view"
+                      aria-pressed={viewMode === 'month'}
+                      onClick={() => setViewMode('month')}
+                    >
+                      <CalendarRangeIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Month view</TooltipContent>
+                </Tooltip>
               </div>
             </TooltipProvider>
           </div>
@@ -303,40 +338,14 @@ function RegistrationsContent({
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <div className="flex items-center gap-2">
-            <Badge
-              role="button"
-              tabIndex={0}
-              variant={allEventsBucket === 'upcoming' ? 'default' : 'outline'}
-              className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-              aria-pressed={allEventsBucket === 'upcoming'}
-              onClick={() => setAllEventsBucket('upcoming')}
-              onKeyDown={event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  setAllEventsBucket('upcoming')
-                }
-              }}
-            >
-              Upcoming
-            </Badge>
-            <Badge
-              role="button"
-              tabIndex={0}
-              variant={allEventsBucket === 'past' ? 'default' : 'outline'}
-              className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-              aria-pressed={allEventsBucket === 'past'}
-              onClick={() => setAllEventsBucket('past')}
-              onKeyDown={event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  setAllEventsBucket('past')
-                }
-              }}
-            >
-              Past
-            </Badge>
-          </div>
+          <TagTabs
+            tabs={[
+              { id: 'upcoming', label: 'Upcoming' },
+              { id: 'past', label: 'Past' },
+            ]}
+            value={allEventsBucket}
+            onValueChange={(value) => setAllEventsBucket(value as 'upcoming' | 'past')}
+          />
         </motion.div>
       ) : null}
       {readOnly ? (
@@ -397,8 +406,8 @@ function RegistrationsContent({
                   </div>
                   {!collapsed[section.key] ? (
                     section.items.length ? (
-                      <motion.div 
-                        className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      <motion.div
+                        className="grid grid-cols-1 gap-4 pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                         variants={staggerContainer}
                         initial="hidden"
                         whileInView="visible"
@@ -434,12 +443,12 @@ function RegistrationsContent({
         >
           <div className="space-y-4">
             {listRows.length ? (
-              <motion.div 
-                className="grid grid-cols-1 gap-4 justify-items-start pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              <motion.div
+                key={`all-events-${allEventsBucket}`}
+                className="grid grid-cols-1 gap-4 pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 variants={staggerContainer}
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+                animate="visible"
               >
                 {listRows.map((row) => (
                   <motion.div key={row.id} variants={fadeInUp} className="h-full w-full">

@@ -28,6 +28,12 @@ import {
 } from '@workspace/ui/shadcn/dropdown-menu'
 import { Input } from '@workspace/ui/shadcn/input'
 import { Switch } from '@workspace/ui/shadcn/switch'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@workspace/ui/shadcn/tooltip'
 import { cn } from '@workspace/ui/lib/utils'
 
 import Link from 'next/link'
@@ -36,18 +42,21 @@ import { useRouter } from 'next/navigation'
 import { AuthSignUp } from '@/components/features/auth/AuthSignUp'
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useOrganizer } from '@/hooks/useOrganizer'
 import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
 import { eventCategories } from '@/data/events/categories'
+import { brandGradients, type BrandGradient } from '@/lib/gradients'
 import { 
   SearchIcon, 
   XIcon, 
   SunIcon, 
   MoonIcon, 
-  BuildingIcon, 
+  UsersIcon, 
   ClipboardListIcon, 
   LogOutIcon, 
   LayoutDashboardIcon, 
-  CalendarIcon 
+  CalendarIcon,
+  PaletteIcon
 } from 'lucide-react'
 
 type SearchItem = {
@@ -72,6 +81,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
   void showNavLinks
   const router = useRouter()
   const { user, signOut, signInAsRole } = useAuth()
+  const { organizer } = useOrganizer()
   const role = user?.role ?? null
   const [isDark, setIsDark] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
@@ -80,7 +90,79 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
   const [searchOpen, setSearchOpen] = useState(false)
   const [isNarrow, setIsNarrow] = useState(false)
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false)
+  const [organizerGradient, setOrganizerGradient] = useState<string | undefined>(undefined)
+  const [clubGradient, setClubGradient] = useState<string | undefined>(undefined)
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Load organizer settings if applicable
+  useEffect(() => {
+    const loadGradient = () => {
+      if (role === 'organizer' && user?.organizerId) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-organizer-settings-${user.organizerId}`)
+          if (stored) {
+            const settings = JSON.parse(stored)
+            if (settings.gradient) {
+              setOrganizerGradient(settings.gradient)
+              return
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      setOrganizerGradient(undefined)
+    }
+
+    loadGradient()
+
+    // Listen for settings changes from other components
+    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setOrganizerGradient(event.detail.gradient)
+      }
+    }
+
+    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    return () => {
+      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    }
+  }, [role, user?.organizerId])
+
+  // Load club settings if applicable
+  useEffect(() => {
+    const loadGradient = () => {
+      if (role === 'club_owner' && user?.id) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-club-settings-${user.id}`)
+          if (stored) {
+            const settings = JSON.parse(stored)
+            if (settings.gradient) {
+              setClubGradient(settings.gradient)
+              return
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      setClubGradient(undefined)
+    }
+
+    loadGradient()
+
+    // Listen for settings changes from other components
+    const handleClubSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setClubGradient(event.detail.gradient)
+      }
+    }
+
+    window.addEventListener('club-settings-changed', handleClubSettingsChange as EventListener)
+    return () => {
+      window.removeEventListener('club-settings-changed', handleClubSettingsChange as EventListener)
+    }
+  }, [role, user?.id])
 
   // Build event-only search list
   const eventSearchItems: SearchItem[] = useMemo(() => {
@@ -163,7 +245,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
       : [
           ...(role === 'club_owner'
             ? [
-                { label: 'My Club', icon: BuildingIcon, onClick: () => router.push('/clubs') },
+                { label: 'Teams', icon: UsersIcon, onClick: () => router.push('/clubs') },
                 { label: 'Registrations', icon: ClipboardListIcon, onClick: () => router.push('/clubs/registrations') },
               ]
             : [
@@ -199,7 +281,23 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                   <span
                     className="heading-3 bg-clip-text text-transparent"
                     style={{
-                      backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
+                      backgroundImage: (() => {
+                        // Use role-specific gradient if available
+                        if (role === 'organizer' && organizerGradient) {
+                          const gradient = brandGradients[organizerGradient as BrandGradient]
+                          if (gradient) return gradient.css
+                        }
+                        if (role === 'organizer' && organizer?.gradient) {
+                          const gradient = brandGradients[organizer.gradient as BrandGradient]
+                          if (gradient) return gradient.css
+                        }
+                        if (role === 'club_owner' && clubGradient) {
+                          const gradient = brandGradients[clubGradient as BrandGradient]
+                          if (gradient) return gradient.css
+                        }
+                        // Default teal gradient
+                        return brandGradients.teal.css
+                      })(),
                     }}
                   >
                     cheerbase
@@ -291,6 +389,28 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                     )}
                   </Button>
                 )}
+                
+                {/* Style Guide button with tooltip */}
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="mr-2"
+                        asChild
+                      >
+                        <Link href="/style-guide" aria-label="Open the style guide">
+                          <PaletteIcon className="size-5" />
+                        </Link>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Style Guide</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
                 {role ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -298,6 +418,7 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                         <GradientAvatar 
                           name={user?.name || (role === 'club_owner' ? 'Club Owner' : 'Organizer')} 
                           size="sm"
+                          gradient={role === 'club_owner' ? clubGradient : (organizerGradient || organizer?.gradient)}
                         />
                       </Button>
                     </DropdownMenuTrigger>

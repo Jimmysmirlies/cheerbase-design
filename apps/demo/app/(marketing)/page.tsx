@@ -164,7 +164,7 @@ export default function HomePage() {
             <span
               className="text-lg font-semibold bg-clip-text text-transparent"
               style={{
-                backgroundImage: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)",
+                backgroundImage: "linear-gradient(160deg, #0D9488 0%, #0891B2 50.22%, #06B6D4 100%)",
               }}
             >
               cheerbase

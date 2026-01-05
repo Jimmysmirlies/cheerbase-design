@@ -7,8 +7,7 @@ export default function OrganizerCardComponentPage() {
       <PageHeader
         title="Organizer Card"
         subtitle="Compact card for organizer rails and recommendations. Initials auto-generate from organizer name."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}

@@ -5,7 +5,7 @@ import { Skeleton } from '@workspace/ui/shadcn/skeleton'
 
 import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
 import { OrganizerFollowButton } from '@/components/features/clubs/OrganizerFollowButton'
-import type { BrandGradient } from '@/lib/gradients'
+import { brandGradients, type BrandGradient } from '@/lib/gradients'
 
 type OrganizerCardProps = {
   /** Organizer display name */
@@ -38,7 +38,7 @@ type OrganizerCardProps = {
  */
 export function OrganizerCard({
   name,
-  gradient = 'primary',
+  gradient = 'teal',
   followers,
   eventsCount,
   hostingDuration,
@@ -49,6 +49,11 @@ export function OrganizerCard({
   const formattedFollowers = typeof followers === 'number' 
     ? followers.toLocaleString() 
     : followers
+
+  // Get gradient styling
+  const gradientConfig = brandGradients[gradient]
+  const gradientCss = gradientConfig.css
+  const firstGradientColor = gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? '#0D9488'
 
   // Loading skeleton
   if (isLoading) {
@@ -87,8 +92,22 @@ export function OrganizerCard({
   }
 
   return (
-    <div className="rounded-md border border-border/70 bg-card/60 p-5 transition-all hover:border-primary/20">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+    <div 
+      className="relative rounded-md border p-5 transition-all overflow-hidden"
+      style={{
+        borderColor: `${firstGradientColor}50`,
+      }}
+    >
+      {/* Gradient background overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: gradientCss,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4 sm:items-center">
           <GradientAvatar name={name} size="lg" gradient={gradient} />
           <div className="flex flex-col gap-1.5">

@@ -66,8 +66,7 @@ export default function TypographyPage() {
       <PageHeader
         title="Typography"
         subtitle="The type scale is built on Inter. Pair these sizes with consistent spacing to keep hierarchy predictable."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

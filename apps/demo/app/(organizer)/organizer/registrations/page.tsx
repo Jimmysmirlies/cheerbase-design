@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/shadcn/card";
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { CalendarIcon, UsersIcon, DollarSignIcon, CheckCircleIcon, ClockIcon } from "lucide-react";
@@ -8,9 +8,48 @@ import { CalendarIcon, UsersIcon, DollarSignIcon, CheckCircleIcon, ClockIcon } f
 import { useOrganizer } from "@/hooks/useOrganizer";
 import { getRegistrationsByOrganizerId, getRegistrationsByEventForOrganizer } from "@/data/events/selectors";
 import type { Registration } from "@/types/club";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { type BrandGradient } from "@/lib/gradients";
 
 export default function OrganizerRegistrationsPage() {
   const { organizer, organizerId, isLoading } = useOrganizer();
+  const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
+
+  // Load organizer gradient from settings or default
+  useEffect(() => {
+    const loadGradient = () => {
+      if (organizerId) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-organizer-settings-${organizerId}`)
+          if (stored) {
+            const settings = JSON.parse(stored)
+            if (settings.gradient) {
+              setOrganizerGradient(settings.gradient)
+              return
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      // Fall back to organizer's default gradient
+      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined)
+    }
+
+    loadGradient()
+
+    // Listen for settings changes
+    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setOrganizerGradient(event.detail.gradient as BrandGradient)
+      }
+    }
+
+    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    return () => {
+      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    }
+  }, [organizerId, organizer?.gradient])
 
   const registrations = useMemo(
     () => (organizerId ? getRegistrationsByOrganizerId(organizerId) : []),
@@ -46,7 +85,11 @@ export default function OrganizerRegistrationsPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
+        <PageHeader
+          title="Registrations"
+          gradient={organizerGradient || organizer?.gradient}
+        />
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
@@ -65,15 +108,11 @@ export default function OrganizerRegistrationsPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Registrations</h1>
-          <p className="text-sm text-muted-foreground">
-            {organizer?.name
-              ? `Review club submissions for ${organizer.name} events.`
-              : "Review club submissions and confirm payments."}
-          </p>
-        </div>
+      <PageHeader
+        title="Registrations"
+        gradient={organizerGradient || organizer?.gradient}
+      />
+      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
 
         {/* Summary Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

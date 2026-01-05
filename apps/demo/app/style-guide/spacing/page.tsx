@@ -15,8 +15,7 @@ export default function SpacingPage() {
       <PageHeader
         title="Spacing & Radii"
         subtitle="A 4px base grid keeps layouts tidy. Radii scale with interaction density—larger for touch-first cards and pill-shaped controls."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

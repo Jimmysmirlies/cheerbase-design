@@ -195,6 +195,31 @@
   [data-clickable='true'] {
     cursor: pointer;
   }
+
+  /* ScrollArea - Elegant hover behavior */
+  [data-slot="scroll-area-scrollbar"] {
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  [data-slot="scroll-area"]:hover [data-slot="scroll-area-scrollbar"],
+  [data-slot="scroll-area-scrollbar"][data-state="visible"] {
+    opacity: 1;
+  }
+
+  [data-slot="scroll-area-thumb"] {
+    transition: background-color 150ms ease;
+  }
+
+  [data-slot="scroll-area-scrollbar"]:hover [data-slot="scroll-area-thumb"] {
+    background-color: var(--muted-foreground);
+  }
+
+  /* ScrollArea - max-height support (viewport uses auto height with any max-h-* class) */
+  [data-slot="scroll-area"][class*="max-h-"] [data-slot="scroll-area-viewport"] {
+    height: auto !important;
+    max-height: 100%;
+  }
 }
 
 @layer utilities {

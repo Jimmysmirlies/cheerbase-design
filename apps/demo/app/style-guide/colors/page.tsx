@@ -148,8 +148,7 @@ export default function ColorsPage() {
       <PageHeader
         title="Color Roles"
         subtitle="Core palette mapped to semantic roles. Default to these tokens across surfaces and activate extended brand colors only for illustrations or analytics."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

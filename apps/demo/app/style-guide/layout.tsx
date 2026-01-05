@@ -3,7 +3,9 @@
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
-import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon, BoxIcon, CalendarIcon, UsersIcon, FilterIcon, LayoutGridIcon, ListIcon, BellIcon } from "lucide-react"
+import { BookOpenIcon, BracesIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, ScanIcon, TypeIcon, BoxIcon, CalendarIcon, UsersIcon, FilterIcon, LayoutGridIcon, ListIcon, BellIcon, PlusSquareIcon } from "lucide-react"
+
+import { ScrollArea } from "@workspace/ui/shadcn/scroll-area"
 
 import { Sidebar } from "@/components/layout/Sidebar"
 import { NavBar } from "@/components/layout/NavBar"
@@ -27,6 +29,7 @@ const guideNavSections = [
     nickname: "components-shell",
     items: [
       { key: "components", label: "Overview", icon: <PuzzleIcon className="size-4" />, href: "/style-guide/components", nickname: "guide-components" },
+      { key: "empty-state-button", label: "Empty State Button", icon: <PlusSquareIcon className="size-4" />, href: "/style-guide/components/empty-state-button", nickname: "guide-empty-state-button" },
       { key: "event-card", label: "Event Card", icon: <CalendarIcon className="size-4" />, href: "/style-guide/components/event-card", nickname: "guide-event-card" },
       { key: "event-categories-section", label: "Event Categories", icon: <ListIcon className="size-4" />, href: "/style-guide/components/event-categories-section", nickname: "guide-event-categories-section" },
       { key: "hero", label: "Hero", icon: <BoxIcon className="size-4" />, href: "/style-guide/components/hero", nickname: "guide-hero" },
@@ -60,6 +63,7 @@ export default function StyleGuideLayout({ children }: { children: ReactNode }) 
     if (pathname === "/style-guide/components/registration-notice-bar") return "registration-notice-bar"
     if (pathname === "/style-guide/components/organizers-section") return "organizers-section"
     if (pathname === "/style-guide/components/event-categories-section") return "event-categories-section"
+    if (pathname === "/style-guide/components/empty-state-button") return "empty-state-button"
     if (pathname === "/style-guide/components") return "components"
     return "overview"
   }, [pathname])
@@ -115,18 +119,23 @@ export default function StyleGuideLayout({ children }: { children: ReactNode }) 
       <div ref={navWrapperRef} className="fixed inset-x-0 top-0 z-40">
         <NavBar showSidebarToggle={isMobile} sidebarOpen={isSidebarOpen} onSidebarToggle={() => setIsSidebarOpen(prev => !prev)} />
       </div>
-      <Sidebar
-        active={active}
-        navSections={guideNavSections}
-        navOffset={navHeight}
-        isOpen={isSidebarOpen}
-        isMobile={isMobile}
-        onClose={() => setIsSidebarOpen(false)}
-        supportTitle="Design System"
-        supportText="Working on the guide? Ping the design systems team or email support@cheerbase.test."
-      >
-        {children}
-      </Sidebar>
+      <div className="flex" style={{ paddingTop: `${navHeight}px` }}>
+        <Sidebar
+          active={active}
+          navSections={guideNavSections}
+          navOffset={navHeight}
+          isOpen={isSidebarOpen}
+          isMobile={isMobile}
+          onClose={() => setIsSidebarOpen(false)}
+          supportTitle="Design System"
+          supportText="Working on the guide? Ping the design systems team or email support@cheerbase.test."
+        />
+        <ScrollArea className="flex-1" style={{ height: `calc(100vh - ${navHeight}px)` }}>
+          <main>
+            {children}
+          </main>
+        </ScrollArea>
+      </div>
     </div>
   )
 }

@@ -8,6 +8,14 @@ import { Button } from '@workspace/ui/shadcn/button'
 import { Badge } from '@workspace/ui/shadcn/badge'
 import { Skeleton } from '@workspace/ui/shadcn/skeleton'
 import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+} from '@/components/ui/tables'
 import { formatFriendlyDate, formatPhoneNumber } from '@/utils/format'
 
 // Unified member type that handles both formats
@@ -245,36 +253,34 @@ export function TeamCard({ team, isEditMode = false, onEdit, isLoading = false }
           )}
         >
           {prioritizedRoster.length ? (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto text-left text-sm">
-                <thead className="bg-muted/40 text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-3 font-medium sm:px-4">Name</th>
-                    <th className="px-3 py-3 font-medium sm:px-4">DOB</th>
-                    <th className="hidden px-3 py-3 font-medium md:table-cell md:px-5">Email</th>
-                    <th className="hidden px-3 py-3 font-medium sm:table-cell sm:px-5">Phone</th>
-                    <th className="px-3 py-3 text-right font-medium sm:px-4">Role</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {prioritizedRoster.map((member, index) => (
-                    <tr
-                      key={member.id ?? `${team.id}-member-${index}`}
-                      className={cn('border-t', expanded && 'dropdown-fade-in')}
-                      style={expanded ? { animationDelay: `${index * 60}ms` } : undefined}
-                    >
-                      <td className="px-3 py-3 text-foreground sm:px-4">{formatMemberName(member)}</td>
-                      <td className="px-3 py-3 sm:px-4">{formatFriendlyDate(member.dob ?? undefined)}</td>
-                      <td className="hidden px-3 py-3 md:table-cell md:px-5">{member.email ?? '—'}</td>
-                      <td className="hidden px-3 py-3 sm:table-cell sm:px-5">{formatPhoneNumber(member.phone ?? undefined)}</td>
-                      <td className="px-3 py-3 text-right sm:px-4">
-                        <RoleBadge role={getMemberRole(member)} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable variant="minimal">
+              <DataTableHeader>
+                <tr>
+                  <DataTableHead>Name</DataTableHead>
+                  <DataTableHead>DOB</DataTableHead>
+                  <DataTableHead className="hidden md:table-cell md:px-5">Email</DataTableHead>
+                  <DataTableHead className="hidden sm:table-cell sm:px-5">Phone</DataTableHead>
+                  <DataTableHead className="text-right">Role</DataTableHead>
+                </tr>
+              </DataTableHeader>
+              <DataTableBody>
+                {prioritizedRoster.map((member, index) => (
+                  <DataTableRow
+                    key={member.id ?? `${team.id}-member-${index}`}
+                    animated={expanded}
+                    animationDelay={index * 60}
+                  >
+                    <DataTableCell className="text-foreground">{formatMemberName(member)}</DataTableCell>
+                    <DataTableCell>{formatFriendlyDate(member.dob ?? undefined)}</DataTableCell>
+                    <DataTableCell className="hidden md:table-cell md:px-5">{member.email ?? '—'}</DataTableCell>
+                    <DataTableCell className="hidden sm:table-cell sm:px-5">{formatPhoneNumber(member.phone ?? undefined)}</DataTableCell>
+                    <DataTableCell className="text-right">
+                      <RoleBadge role={getMemberRole(member)} />
+                    </DataTableCell>
+                  </DataTableRow>
+                ))}
+              </DataTableBody>
+            </DataTable>
           ) : (
             <div className="px-5 py-6 text-center">
               <p className="text-sm text-muted-foreground">No members added yet. Edit roster to add members.</p>

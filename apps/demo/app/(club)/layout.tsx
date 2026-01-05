@@ -93,17 +93,18 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div ref={navWrapperRef} className="fixed inset-x-0 top-0 z-40">
-      <NavBar
-        mode="clubs"
-        showSidebarToggle={isMobile}
-        sidebarOpen={isSidebarOpen}
-        onSidebarToggle={() => setIsSidebarOpen(prev => !prev)}
-      />
+      <div ref={navWrapperRef} className="sticky top-0 z-40">
+        <NavBar
+          mode="clubs"
+          showSidebarToggle={isMobile}
+          sidebarOpen={isSidebarOpen}
+          onSidebarToggle={() => setIsSidebarOpen(prev => !prev)}
+        />
+      </div>
+      <div className="flex w-full">
+        <Sidebar active={active} navSections={clubNavSections} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)} />
+        <div className="flex-1">{children}</div>
+      </div>
     </div>
-    <Sidebar active={active} navSections={clubNavSections} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)}>
-      {children}
-    </Sidebar>
-  </div>
-)
+  )
 }

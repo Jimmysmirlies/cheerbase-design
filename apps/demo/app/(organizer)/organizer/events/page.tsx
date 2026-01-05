@@ -2,11 +2,23 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { Button } from "@workspace/ui/shadcn/button";
-import { TextSelect } from "@workspace/ui/components/text-select";
+import { Input } from "@workspace/ui/shadcn/input";
+import { Label } from "@workspace/ui/shadcn/label";
+import { GlassSelect } from "@workspace/ui/components/glass-select";
+import { TagTabs } from "@/components/ui/controls/TagTabs";
 import { Alert, AlertDescription } from "@workspace/ui/shadcn/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/shadcn/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +38,8 @@ import { motion } from "framer-motion";
 
 import { useOrganizer } from "@/hooks/useOrganizer";
 import { useOrganizerSubscription } from "@/hooks/useOrganizerSubscription";
+import { useOrganizerEventDrafts } from "@/hooks/useOrganizerEventDrafts";
+import type { Event } from "@/types/events";
 import {
   getEventsByOrganizerId,
   getActiveEventCount,
@@ -33,6 +47,8 @@ import {
   isEventInSeason,
 } from "@/data/events/selectors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ActionBar } from "@/components/layout/ActionBar";
+import { type BrandGradient } from "@/lib/gradients";
 import { CardSkeleton } from "@/components/ui";
 import {
   OrganizerEventCard,
@@ -40,7 +56,6 @@ import {
   type OrganizerEventCardProps,
 } from "@/components/ui/cards/OrganizerEventCard";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
-import type { Event } from "@/types/events";
 
 type EventRow = OrganizerEventCardProps & { eventDate: Date }
 type MonthSection = {
@@ -81,16 +96,20 @@ const seasonOptions: SeasonOption[] = [
   },
 ]
 
+const ALL_SEASONS_ID = "all"
+
 const defaultSeason =
   seasonOptions.find((season) => season.type === "current") ?? seasonOptions[0]!
 const defaultSeasonId = defaultSeason.id
 
-function resolveSeasonById(seasonId: string): SeasonOption {
+function resolveSeasonById(seasonId: string): SeasonOption | null {
+  if (seasonId === ALL_SEASONS_ID) return null
   return seasonOptions.find((season) => season.id === seasonId) ?? defaultSeason
 }
 
 export default function OrganizerEventsPage() {
-  const { organizerId, isLoading } = useOrganizer();
+  const router = useRouter();
+  const { organizer, organizerId, isLoading } = useOrganizer();
   const {
     plan,
     canAddActiveEvent,
@@ -98,25 +117,139 @@ export default function OrganizerEventsPage() {
   } = useOrganizerSubscription();
   const [selectedSeasonId, setSelectedSeasonId] =
     useState<string>(defaultSeasonId);
+  const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
 
-  const events = organizerId ? getEventsByOrganizerId(organizerId) : [];
+  // New event modal state
+  const [showNewEventModal, setShowNewEventModal] = useState(false);
+  const [newEventName, setNewEventName] = useState("");
+  const [newEventType, setNewEventType] = useState<"Championship" | "Friendly Competition">("Championship");
+  const [newEventCapacity, setNewEventCapacity] = useState<string>("");
+
+  // Load organizer gradient from settings or default
+  useEffect(() => {
+    const loadGradient = () => {
+      if (organizerId) {
+        try {
+          const stored = localStorage.getItem(`cheerbase-organizer-settings-${organizerId}`)
+          if (stored) {
+            const settings = JSON.parse(stored)
+            if (settings.gradient) {
+              setOrganizerGradient(settings.gradient)
+              return
+            }
+          }
+        } catch {
+          // Ignore storage errors
+        }
+      }
+      // Fall back to organizer's default gradient
+      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined)
+    }
+
+    loadGradient()
+
+    // Listen for settings changes
+    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
+      if (event.detail?.gradient) {
+        setOrganizerGradient(event.detail.gradient as BrandGradient)
+      }
+    }
+
+    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    return () => {
+      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    }
+  }, [organizerId, organizer?.gradient])
+
+  const organizerIdOrUndefined = organizerId ?? undefined;
+  const { drafts, saveDraft } = useOrganizerEventDrafts(organizerIdOrUndefined);
+  // Memoize base events so downstream memoized selectors stay stable between renders
+  const baseEvents = useMemo(
+    () => (organizerId ? getEventsByOrganizerId(organizerId) : []),
+    [organizerId]
+  );
+  
+  // Merge drafts with base events (drafts override by id)
+  const allEvents = useMemo(() => {
+    const eventMap = new Map(baseEvents.map(e => [e.id, e]));
+    drafts.forEach(draft => {
+      eventMap.set(draft.id, draft);
+    });
+    return Array.from(eventMap.values());
+  }, [baseEvents, drafts]);
+  
   const activeEventCount = organizerId ? getActiveEventCount(organizerId) : 0;
   const canCreateEvent = canAddActiveEvent(activeEventCount);
   const atLimit = !canCreateEvent;
 
   const selectedSeason = resolveSeasonById(selectedSeasonId);
 
+  const seasonSelectOptions = useMemo(() => {
+    // All seasons in descending order (newest first)
+    const allSeasonsSorted = [...seasonOptions].sort((a, b) => {
+      // Sort by start date descending
+      return b.start.getTime() - a.start.getTime();
+    }).map((option) => ({ value: option.id, label: option.label }));
+    
+    return [
+      { value: ALL_SEASONS_ID, label: "All Seasons" },
+      { type: "separator" as const },
+      ...allSeasonsSorted,
+    ];
+  }, []);
+
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
+  const [allEventsBucket, setAllEventsBucket] = useState<"upcoming" | "past" | "drafts">(
+    "upcoming"
+  );
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  // Handler to create new event - saves draft immediately
+  const handleNewEventContinue = () => {
+    if (!organizerId) return;
+
+    // Generate ID now so it's in drafts immediately
+    const eventId = `event-${Date.now()}`;
+    const capacity = newEventCapacity ? Number(newEventCapacity) : 0;
+
+    // Save draft immediately
+    const draftEvent: Event = {
+      id: eventId,
+      name: newEventName,
+      type: newEventType,
+      slots: { filled: 0, capacity },
+      status: 'draft',
+      organizer: organizer?.name || '',
+      date: '',
+      location: '',
+      description: '',
+      image: '',
+      teams: capacity > 0 ? `0 / ${capacity} teams` : '0 / 0 teams',
+      updatedAt: new Date().toISOString(),
+    };
+    saveDraft(draftEvent);
+
+    // Navigate to edit page (draft already exists)
+    router.push(`/organizer/events/${eventId}/edit`);
+    setShowNewEventModal(false);
+
+    // Reset form
+    setNewEventName("");
+    setNewEventType("Championship");
+    setNewEventCapacity("");
+  };
+
   if (isLoading || subscriptionLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <PageHeader
-          title="Events"
-          subtitle="Create, manage, and track your competitions."
-          hideSubtitle
-          breadcrumbItems={[
-            { label: "Organizer", href: "/organizer" },
-            { label: "Events", href: "/organizer/events" },
-          ]}
+        <PageHeader title="Events" gradient={organizerGradient} />
+        <ActionBar
+          actions={
+            <Button size="sm" disabled>
+              <PlusIcon className="size-4 mr-2" />
+              New Event
+            </Button>
+          }
         />
         <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:px-8">
           <div className="space-y-4">
@@ -133,33 +266,102 @@ export default function OrganizerEventsPage() {
     <section className="flex flex-1 flex-col">
       <PageHeader
         title="Events"
-        subtitle="Create, manage, and track your competitions."
-        hideSubtitle
-        breadcrumbItems={[
-          { label: "Organizer", href: "/organizer" },
-          { label: "Events", href: "/organizer/events" },
-        ]}
-        action={
-          <TooltipProvider delayDuration={120}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  className="inline-flex items-center gap-2"
-                  disabled={atLimit}
-                >
-                  <PlusIcon className="size-4" />
-                  New Event
-                </Button>
-              </TooltipTrigger>
-              {atLimit && (
-                <TooltipContent side="bottom">
-                  You&apos;ve reached your active event limit (
-                  {plan.activeEventLimit})
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
+        gradient={organizerGradient}
+      />
+
+      <ActionBar
+        leftContent={
+          <GlassSelect
+            value={selectedSeasonId}
+            onValueChange={(val) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7242/ingest/0539df34-fe7d-4aed-8499-019797bffb2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H2',location:'organizer/events/page.tsx:ActionBarSelect',message:'season select change',data:{nextVal:val},timestamp:Date.now()})}).catch(()=>{});
+              // #endregion
+              setSelectedSeasonId(val);
+            }}
+            options={seasonSelectOptions}
+          />
+        }
+        actions={
+          <div className="flex items-center gap-3">
+            {/* New Event button */}
+            <TooltipProvider delayDuration={120}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    disabled={atLimit}
+                    onClick={() => setShowNewEventModal(true)}
+                  >
+                    <PlusIcon className="size-4 mr-2" />
+                    New Event
+                  </Button>
+                </TooltipTrigger>
+                {atLimit && (
+                  <TooltipContent side="bottom">
+                    You&apos;ve reached your active event limit (
+                    {plan.activeEventLimit})
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Vertical divider */}
+            <div className="h-6 w-px bg-border" />
+
+            {/* View mode toggle */}
+            <TooltipProvider delayDuration={120}>
+              <div className="relative inline-flex shrink-0 items-center rounded-md border border-border/70 bg-muted/40 p-1">
+                <div
+                  className={`absolute left-1 top-1 h-9 w-9 rounded-md bg-card shadow transition-transform duration-200 ease-out ${
+                    viewMode === "month" ? "translate-x-9" : ""
+                  }`}
+                  aria-hidden
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="relative z-10 size-9 rounded-md"
+                      aria-label="All events"
+                      aria-pressed={viewMode === "all"}
+                    onClick={() => {
+                      // #region agent log
+                      fetch('http://127.0.0.1:7242/ingest/0539df34-fe7d-4aed-8499-019797bffb2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H3',location:'organizer/events/page.tsx:ActionBarToggle',message:'set viewMode all',data:{from:viewMode},timestamp:Date.now()})}).catch(()=>{});
+                      // #endregion
+                      setViewMode("all");
+                    }}
+                    >
+                      <ListIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">All events</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="relative z-10 size-9 rounded-md"
+                      aria-label="Month view"
+                      aria-pressed={viewMode === "month"}
+                    onClick={() => {
+                      // #region agent log
+                      fetch('http://127.0.0.1:7242/ingest/0539df34-fe7d-4aed-8499-019797bffb2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H3',location:'organizer/events/page.tsx:ActionBarToggle',message:'set viewMode month',data:{from:viewMode},timestamp:Date.now()})}).catch(()=>{});
+                      // #endregion
+                      setViewMode("month");
+                    }}
+                    >
+                      <CalendarRangeIcon className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Month view</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+          </div>
         }
       />
 
@@ -172,16 +374,76 @@ export default function OrganizerEventsPage() {
           viewport={{ once: true }}
         >
           <EventsContent
-            events={events}
+            events={allEvents}
             season={selectedSeason}
             selectedSeasonId={selectedSeasonId}
-            onSelectSeason={setSelectedSeasonId}
             activeEventCount={activeEventCount}
             plan={plan}
             atLimit={atLimit}
+            viewMode={viewMode}
+            allEventsBucket={allEventsBucket}
+            setAllEventsBucket={setAllEventsBucket}
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
           />
         </motion.div>
       </div>
+
+      {/* New Event Setup Modal */}
+      <Dialog open={showNewEventModal} onOpenChange={setShowNewEventModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Event</DialogTitle>
+            <DialogDescription>
+              Set up your event basics to get started.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-event-name">Event Name *</Label>
+              <Input
+                id="new-event-name"
+                value={newEventName}
+                onChange={(e) => setNewEventName(e.target.value)}
+                placeholder="e.g., National Cheerleading Championship"
+              />
+            </div>
+            <div className="space-y-2">
+              <GlassSelect
+                label="Event Type"
+                value={newEventType}
+                onValueChange={(value) => setNewEventType(value as "Championship" | "Friendly Competition")}
+                options={[
+                  { value: "Championship", label: "Championship" },
+                  { value: "Friendly Competition", label: "Friendly Competition" },
+                ]}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-event-capacity">Team Capacity</Label>
+              <Input
+                id="new-event-capacity"
+                type="number"
+                min="0"
+                value={newEventCapacity}
+                onChange={(e) => setNewEventCapacity(e.target.value)}
+                placeholder="Leave empty for unlimited"
+              />
+              <p className="text-xs text-muted-foreground">
+                Set a team slot limit to restrict the number of registrants.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewEventModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleNewEventContinue} disabled={!newEventName.trim()}>
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -190,24 +452,36 @@ function EventsContent({
   events,
   season,
   selectedSeasonId,
-  onSelectSeason,
   activeEventCount,
   plan,
   atLimit,
+  viewMode,
+  allEventsBucket,
+  setAllEventsBucket,
+  collapsed,
+  setCollapsed,
 }: {
   events: Event[]
-  season: SeasonOption
+  season: SeasonOption | null
   selectedSeasonId: string
-  onSelectSeason: (seasonId: string) => void
   activeEventCount: number
   plan: { id: string; name: string; activeEventLimit: number }
   atLimit: boolean
+  viewMode: ViewMode
+  allEventsBucket: "upcoming" | "past" | "drafts"
+  setAllEventsBucket: (bucket: "upcoming" | "past" | "drafts") => void
+  collapsed: Record<string, boolean>
+  setCollapsed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
 }) {
+  const isAllSeasons = selectedSeasonId === ALL_SEASONS_ID;
   // Transform events into card rows with parsed dates
   const rows = useMemo(() => {
     return events.map((event): EventRow => {
       const eventDate = parseEventDate(event.date);
-      const statusLabel = getRegistrationStatus(event);
+      // If event is draft, show DRAFT status, otherwise compute registration status
+      const statusLabel = event.status === 'draft' 
+        ? 'DRAFT' as const
+        : getRegistrationStatus(event);
       return {
         id: event.id,
         image: event.image,
@@ -218,33 +492,50 @@ function EventsContent({
         teamsFilled: event.slots.filled,
         teamsCapacity: event.slots.capacity,
         statusLabel,
-        fee: event.fee,
+        status: event.status,
       };
     });
   }, [events]);
 
   // Filter rows by selected season
   const filteredRows = useMemo(
-    () =>
-      rows.filter((row) =>
+    () => {
+      if (isAllSeasons || !season) {
+        return rows;
+      }
+      return rows.filter((row) =>
         isEventInSeason(row.eventDate, season.start, season.end)
-      ),
-    [rows, season]
+      );
+    },
+    [rows, season, isAllSeasons]
   );
 
   // Build month sections for month view
   const sections = useMemo(
-    () => buildMonthSections(filteredRows, season),
-    [filteredRows, season]
+    () => {
+      if (isAllSeasons || !season) {
+        // For "All Seasons", build sections from all available event dates
+        return buildMonthSectionsFromRows(filteredRows);
+      }
+      return buildMonthSections(filteredRows, season);
+    },
+    [filteredRows, season, isAllSeasons]
   );
 
-  // Split into upcoming/past for all view
+  // Split into upcoming/past/drafts for all view
   const bucketedRows = useMemo(() => {
     const now = new Date();
     const upcoming: EventRow[] = [];
     const past: EventRow[] = [];
+    const drafts: EventRow[] = [];
 
     filteredRows.forEach((row) => {
+      // Draft events go to drafts bucket
+      if (row.status === 'draft') {
+        drafts.push(row);
+        return;
+      }
+
       const bucket: "upcoming" | "past" = Number.isNaN(row.eventDate.getTime())
         ? "upcoming"
         : row.eventDate < now
@@ -257,54 +548,36 @@ function EventsContent({
       }
     });
 
-    return { upcoming, past };
+    return { upcoming, past, drafts };
   }, [filteredRows]);
 
-  const [viewMode, setViewMode] = useState<ViewMode>("month");
-  const [allEventsBucket, setAllEventsBucket] = useState<"upcoming" | "past">(
-    "upcoming"
-  );
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-
   const listRows = useMemo(
-    () =>
-      allEventsBucket === "past" ? bucketedRows.past : bucketedRows.upcoming,
+    () => {
+      if (allEventsBucket === "past") return bucketedRows.past;
+      if (allEventsBucket === "drafts") return bucketedRows.drafts;
+      return bucketedRows.upcoming;
+    },
     [allEventsBucket, bucketedRows]
   );
 
-  const seasonSelectSections = useMemo(() => {
-    const current = seasonOptions
-      .filter((option) => option.type === "current")
-      .map((option) => ({ value: option.id, label: option.label }));
-    const past = seasonOptions
-      .filter((option) => option.type === "past")
-      .map((option) => ({ value: option.id, label: option.label }));
-    const sections: {
-      label: string
-      options: { value: string; label: string }[]
-      showDivider?: boolean
-    }[] = [];
-    if (current.length) {
-      sections.push({ label: "Current Season", options: current });
-    }
-    if (past.length) {
-      sections.push({
-        label: "Past Seasons",
-        options: past,
-        showDivider: current.length > 0,
-      });
-    }
-    return sections;
-  }, []);
-
   // Initialize collapse state for month sections
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/0539df34-fe7d-4aed-8499-019797bffb2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'run1',hypothesisId:'H1',location:'organizer/events/page.tsx:EventsContent useEffect',message:'reset collapsed for sections',data:{sectionCount:sections.length},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    // Only reset collapsed map when the set of section keys changes to avoid re-render loops
     const nextState: Record<string, boolean> = {};
     sections.forEach((section) => {
       nextState[section.key] = false;
     });
+
+    const keysChanged =
+      Object.keys(nextState).length !== Object.keys(collapsed).length ||
+      sections.some((section) => !(section.key in collapsed));
+
+    if (!keysChanged) return;
     setCollapsed(nextState);
-  }, [sections]);
+  }, [sections, collapsed, setCollapsed]);
 
   const toggleSection = (key: string) => {
     setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -344,88 +617,7 @@ function EventsContent({
         </motion.div>
       )}
 
-      {/* Season selector and view mode toggle */}
-      <motion.div
-        className="w-full"
-        variants={fadeInUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        <div className="border-b border-border pb-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <TextSelect
-              value={selectedSeasonId}
-              onValueChange={onSelectSeason}
-              sections={seasonSelectSections}
-              size="large"
-              label="Viewing Season"
-              triggerClassName="justify-between heading-3 text-primary"
-              itemClassName="text-lg font-semibold"
-              contentClassName="min-w-[340px]"
-            />
-            <div className="ml-auto flex items-center gap-3">
-              <p className="text-xs text-muted-foreground">
-                Active:{" "}
-                <span
-                  className={atLimit ? "font-medium text-amber-600" : ""}
-                >
-                  {activeEventCount} / {plan.activeEventLimit}
-                </span>
-                {plan.id === "free" && (
-                  <span className="ml-1 text-muted-foreground/70">
-                    ({plan.name})
-                  </span>
-                )}
-              </p>
-              <TooltipProvider delayDuration={120}>
-                <div className="relative inline-flex shrink-0 items-center rounded-md border border-border/70 bg-muted/40 p-1">
-                  <div
-                    className={`absolute left-1 top-1 h-9 w-9 rounded-md bg-card shadow transition-transform duration-200 ease-out ${
-                      viewMode === "all" ? "translate-x-9" : ""
-                    }`}
-                    aria-hidden
-                  />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="relative z-10 size-9 rounded-md"
-                        aria-label="Month view"
-                        aria-pressed={viewMode === "month"}
-                        onClick={() => setViewMode("month")}
-                      >
-                        <CalendarRangeIcon className="size-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Month view</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="relative z-10 size-9 rounded-md"
-                        aria-label="All events"
-                        aria-pressed={viewMode === "all"}
-                        onClick={() => setViewMode("all")}
-                      >
-                        <ListIcon className="size-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">All events</TooltipContent>
-                  </Tooltip>
-                </div>
-              </TooltipProvider>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Upcoming/Past badges for all view */}
+      {/* Upcoming/Past tabs for all view */}
       {viewMode === "all" ? (
         <motion.div
           className="w-full"
@@ -434,47 +626,22 @@ function EventsContent({
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <div className="flex items-center gap-2">
-            <Badge
-              role="button"
-              tabIndex={0}
-              variant={allEventsBucket === "upcoming" ? "default" : "outline"}
-              className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-              aria-pressed={allEventsBucket === "upcoming"}
-              onClick={() => setAllEventsBucket("upcoming")}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  setAllEventsBucket("upcoming");
-                }
-              }}
-            >
-              Upcoming
-            </Badge>
-            <Badge
-              role="button"
-              tabIndex={0}
-              variant={allEventsBucket === "past" ? "default" : "outline"}
-              className="cursor-pointer rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-              aria-pressed={allEventsBucket === "past"}
-              onClick={() => setAllEventsBucket("past")}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  setAllEventsBucket("past");
-                }
-              }}
-            >
-              Past
-            </Badge>
-          </div>
+          <TagTabs
+            tabs={[
+              { id: "upcoming", label: "Upcoming" },
+              { id: "past", label: "Past" },
+              { id: "drafts", label: `Drafts${bucketedRows.drafts.length > 0 ? ` (${bucketedRows.drafts.length})` : ''}` },
+            ]}
+            value={allEventsBucket}
+            onValueChange={(value) => setAllEventsBucket(value as "upcoming" | "past" | "drafts")}
+          />
         </motion.div>
       ) : null}
 
       {/* Month view */}
       {viewMode === "month" ? (
         <motion.div
-          key={`month-view-${season.id}`}
+          key={`month-view-${selectedSeasonId}`}
           className="w-full"
           variants={fadeInUp}
           initial="hidden"
@@ -543,7 +710,7 @@ function EventsContent({
                         ))}
                       </motion.div>
                     ) : (
-                      <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                      <div className="rounded-md border border-dashed bg-muted/40 p-6 text-center text-sm text-muted-foreground">
                         No events this month.
                       </div>
                     )
@@ -556,12 +723,11 @@ function EventsContent({
       ) : (
         /* All events view */
         <motion.div
-          key={`list-view-${season.id}`}
+          key={`list-view-${selectedSeasonId}-${allEventsBucket}`}
           className="w-full"
           variants={fadeInUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate="visible"
         >
           <div className="space-y-4">
             {listRows.length ? (
@@ -569,8 +735,7 @@ function EventsContent({
                 className="grid grid-cols-1 justify-items-start gap-4 pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 variants={staggerContainer}
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+                animate="visible"
               >
                 {listRows.map((row) => (
                   <motion.div
@@ -583,10 +748,12 @@ function EventsContent({
                 ))}
               </motion.div>
             ) : (
-              <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+              <div className="rounded-md border border-dashed bg-muted/40 p-6 text-center text-sm text-muted-foreground">
                 {allEventsBucket === "past"
                   ? "No past events in this season."
-                  : "No upcoming events in this season."}
+                  : allEventsBucket === "drafts"
+                    ? "No draft events. Click 'New Event' to start creating one."
+                    : "No upcoming events in this season."}
               </div>
             )}
           </div>
@@ -622,6 +789,41 @@ function buildMonthSections(
     months.push({ key, label, items });
     cursor.setMonth(cursor.getMonth() + 1);
   }
+
+  return months;
+}
+
+function buildMonthSectionsFromRows(rows: EventRow[]): MonthSection[] {
+  // Build sections from all unique months in the rows
+  const monthMap = new Map<string, EventRow[]>();
+  
+  rows.forEach((row) => {
+    const d = row.eventDate;
+    if (Number.isNaN(d.getTime())) return; // Skip invalid dates
+    
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    const existing = monthMap.get(key) ?? [];
+    existing.push(row);
+    monthMap.set(key, existing);
+  });
+
+  // Convert to sections and sort by date
+  const months: MonthSection[] = Array.from(monthMap.entries())
+    .map(([key, items]) => {
+      const [year = 0, month = 0] = key.split('-').map((value) => Number.isFinite(Number(value)) ? Number(value) : 0);
+      const date = new Date(year, month, 1);
+      const label = date.toLocaleString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+      return { key, label, items };
+    })
+    .sort((a, b) => {
+      const [yearA = 0, monthA = 0] = a.key.split('-').map((value) => Number.isFinite(Number(value)) ? Number(value) : 0);
+      const [yearB = 0, monthB = 0] = b.key.split('-').map((value) => Number.isFinite(Number(value)) ? Number(value) : 0);
+      if (yearA !== yearB) return yearA - yearB;
+      return monthA - monthB;
+    });
 
   return months;
 }

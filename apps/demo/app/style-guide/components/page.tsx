@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { BoxIcon, LayoutGridIcon, UsersIcon, CalendarIcon, FilterIcon, ListIcon } from "lucide-react";
+import { BoxIcon, LayoutGridIcon, UsersIcon, CalendarIcon, FilterIcon, ListIcon, PlusSquareIcon } from "lucide-react";
 
 const components = [
   {
@@ -39,6 +39,12 @@ const components = [
     href: "/style-guide/components/event-categories-section",
     icon: <ListIcon className="size-5" />,
   },
+  {
+    name: "Empty State Button",
+    description: "Dashed-border button for empty states that prompts users to add content.",
+    href: "/style-guide/components/empty-state-button",
+    icon: <PlusSquareIcon className="size-5" />,
+  },
 ];
 
 export default function ComponentsPage() {
@@ -47,8 +53,7 @@ export default function ComponentsPage() {
       <PageHeader
         title="Component Library"
         subtitle="Reusable building blocks shared across Cheerbase surfaces. Select a component below to view examples, props, and token usage."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
         ]}
       />

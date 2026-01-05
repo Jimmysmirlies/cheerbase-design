@@ -56,7 +56,7 @@ function buildLocalStorageInvoice(
   // Build divisionPricing array from event data
   type DivisionPricingItem = {
     name: string
-    earlyBird?: { price: number; deadline: string }
+    earlyBird?: { price: number; deadline?: string }
     regular: { price: number }
   }
   

@@ -10,10 +10,8 @@ type EventSummary = {
   date: string;
   location: string;
   teams: string;
-  fee: string;
   image: string;
   description: string;
-  pricePerParticipant?: string;
   tags?: string[];
   registrationDeadline?: string;
 };
@@ -27,10 +25,8 @@ const allEvents: EventSummary[] = eventCategories.flatMap((category: EventCatego
     date: event.date,
     location: event.location,
     teams: event.teams,
-    fee: event.fee,
     image: event.image,
     description: event.description,
-    pricePerParticipant: event.pricePerParticipant,
     tags: event.tags,
     registrationDeadline: event.registrationDeadline,
   })),

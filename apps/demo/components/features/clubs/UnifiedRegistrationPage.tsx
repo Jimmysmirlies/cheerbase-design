@@ -25,7 +25,7 @@ import {
   convertInvoiceTeamsToRegistrationEntries,
 } from '@/lib/invoices'
 import type { RegisteredMemberDTO } from '@/lib/club-data'
-import type { GradientVariant } from '@/components/layout/PageHeader'
+import type { BrandGradient } from '@/lib/gradients'
 import type { TeamMember, TeamData } from '@/components/features/clubs/TeamCard'
 
 type UnifiedRegistrationPageProps = {
@@ -218,9 +218,9 @@ export function UnifiedRegistrationPage({ registrationId }: UnifiedRegistrationP
   // Organizer info
   const organizerName = registration.organizer ?? event?.organizer ?? 'Event organizer'
   const organizerData = organizers.find(org => org.name === organizerName)
-  const organizerGradientVariant: GradientVariant = localStorageReg
-    ? (localStorageReg.organizerGradient ?? organizerData?.gradient ?? 'primary') as GradientVariant
-    : (organizerData?.gradient ?? 'primary') as GradientVariant
+  const organizerGradientVariant: BrandGradient = localStorageReg
+    ? (localStorageReg.organizerGradient ?? organizerData?.gradient ?? 'teal') as BrandGradient
+    : (organizerData?.gradient ?? 'teal') as BrandGradient
   const organizerEvents = listEvents().filter(evt => evt.organizer === organizerName)
   const organizerEventsCount = organizerEvents.length || 1
   const organizerFollowers = organizerName

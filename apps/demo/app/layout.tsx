@@ -4,7 +4,6 @@ import '@workspace/ui/globals.css'
 
 import type { Metadata } from 'next'
 import './globals.css'
-import { StyleGuideButton } from '@/components/layout/StyleGuideButton'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { Toaster } from '@workspace/ui/shadcn/sonner'
 
@@ -19,7 +18,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-background text-foreground">
         <AuthProvider>
           {children}
-          <StyleGuideButton />
           <Toaster
               position="bottom-center"
               toastOptions={{

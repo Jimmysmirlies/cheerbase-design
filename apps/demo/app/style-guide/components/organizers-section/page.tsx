@@ -9,8 +9,7 @@ export default function OrganizersSectionComponentPage() {
       <PageHeader
         title="Organizers Section"
         subtitle="Reusable section that renders a horizontal organizer rail with CTA and copy."
-        hideSubtitleDivider
-        breadcrumbItems={[
+        breadcrumbs={[
           { label: "Brand Guidelines", href: "/style-guide" },
           { label: "Components", href: "/style-guide/components" },
         ]}

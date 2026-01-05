@@ -30,6 +30,7 @@ export type Registration = {
   registrationDeadline?: string; // ISO string in demo
   status?: "pending" | "paid";
   paidAt?: string;
+  submittedAt?: string; // ISO string - when registration was submitted
   snapshotTakenAt?: string;
   snapshotSourceTeamId?: string;
   snapshotRosterHash?: string;

@@ -2,17 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { cn } from '@workspace/ui/lib/utils'
 import { Card, CardContent } from '@workspace/ui/shadcn/card'
 import { Button } from '@workspace/ui/shadcn/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@workspace/ui/shadcn/tooltip'
 
 import { PricingScrollButton } from '@/components/features/events/PricingScrollButton'
 import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
 import { AuthSignUp } from '@/components/features/auth/AuthSignUp'
 import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
-
-import Link from 'next/link'
 
 type RegistrationSummaryCardProps = {
   eventId: string
@@ -44,6 +49,7 @@ export function RegistrationSummaryCard({
   const router = useRouter()
   const { user, status, signInAsRole } = useAuth()
   const isAuthenticated = status === 'authenticated' && user !== null
+  const isOrganizer = isAuthenticated && user?.role === 'organizer'
   const [loginOpen, setLoginOpen] = useState(false)
   
   const [eventDateParts, setEventDateParts] = useState<{ month: string; day: string; weekday: string; fullDate: string } | null>(null)
@@ -106,6 +112,19 @@ export function RegistrationSummaryCard({
                     <Button className="w-full" disabled>
                       Registration Closed
                     </Button>
+                  ) : isOrganizer ? (
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button className="w-full" disabled>
+                            {registerButtonLabel}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          Log in as a Club Owner account to register for this event
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   ) : isAuthenticated ? (
                     <Button asChild className="w-full">
                       <Link href={`/events/${encodeURIComponent(eventId)}/register`}>{registerButtonLabel}</Link>
