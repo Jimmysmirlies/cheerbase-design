@@ -50,7 +50,9 @@ import {
 } from "@/data/events/selectors";
 import { ActionBar } from "@/components/layout/ActionBar";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { Section } from "@/components/layout/Section";
+import { useLayoutContextSafe } from "@/components/providers/LayoutProvider";
 import { type BrandGradient } from "@/lib/gradients";
 import { GlassSelect } from "@workspace/ui/components/glass-select";
 import { fadeInUp } from "@/lib/animations";
@@ -120,6 +122,7 @@ function getStatusBadgeVariant(status: RegistrationStatus) {
 }
 
 export default function OrganizerInvoicesPage() {
+  const { layout } = useLayoutContextSafe();
   const { organizer, organizerId, isLoading } = useOrganizer();
   const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(defaultSeasonId);
@@ -392,7 +395,13 @@ export default function OrganizerInvoicesPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <PageHeader title="Invoices" gradient={gradientValue} />
+        {layout === 'A' ? (
+          <PageHeader title="Invoices" gradient={gradientValue} />
+        ) : (
+          <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+            <PageTitle title="Invoices" gradient={gradientValue} />
+          </div>
+        )}
         <ActionBar
           leftContent={<div className="h-10 w-48 animate-pulse rounded bg-muted" />}
         />
@@ -410,7 +419,13 @@ export default function OrganizerInvoicesPage() {
   if (!overview) {
     return (
       <section className="flex flex-1 flex-col">
-        <PageHeader title="Invoices" gradient={gradientValue} />
+        {layout === 'A' ? (
+          <PageHeader title="Invoices" gradient={gradientValue} />
+        ) : (
+          <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+            <PageTitle title="Invoices" gradient={gradientValue} />
+          </div>
+        )}
         <ActionBar
           leftContent={
             <GlassSelect
@@ -438,7 +453,13 @@ export default function OrganizerInvoicesPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <PageHeader title="Invoices" gradient={gradientValue} />
+      {layout === 'A' ? (
+        <PageHeader title="Invoices" gradient={gradientValue} />
+      ) : (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+          <PageTitle title="Invoices" gradient={gradientValue} />
+        </div>
+      )}
 
       <ActionBar
         leftContent={

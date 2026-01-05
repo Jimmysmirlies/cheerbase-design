@@ -22,8 +22,15 @@ import { type BrandGradient } from "@/lib/gradients";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { SearchIcon, UserPlusIcon } from "lucide-react";
-import { CreateTeamModal, type CreateTeamData } from "@/components/features/clubs/CreateTeamModal";
-import { TeamCard, type TeamData, type TeamMember } from "@/components/features/clubs/TeamCard";
+import {
+  CreateTeamModal,
+  type CreateTeamData,
+} from "@/components/features/clubs/CreateTeamModal";
+import {
+  TeamCard,
+  type TeamData,
+  type TeamMember,
+} from "@/components/features/clubs/TeamCard";
 import type { RegistrationMember } from "@/components/features/registration/flow/types";
 import { DEFAULT_ROLE } from "@/components/features/registration/flow/types";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
@@ -41,14 +48,18 @@ function ClubsPageInner() {
   const searchParams = useSearchParams();
   const selectedTeamId = searchParams.get("teamId");
   const { data } = useClubData(user?.id);
-  const [clubGradient, setClubGradient] = useState<BrandGradient | undefined>(undefined);
+  const [clubGradient, setClubGradient] = useState<BrandGradient | undefined>(
+    undefined,
+  );
 
   // Load club gradient settings
   useEffect(() => {
     const loadGradient = () => {
       if (user?.id) {
         try {
-          const stored = localStorage.getItem(`cheerbase-club-settings-${user.id}`);
+          const stored = localStorage.getItem(
+            `cheerbase-club-settings-${user.id}`,
+          );
           if (stored) {
             const settings = JSON.parse(stored);
             if (settings.gradient) {
@@ -71,22 +82,31 @@ function ClubsPageInner() {
       }
     };
 
-    window.addEventListener('club-settings-changed', handleSettingsChange as EventListener);
+    window.addEventListener(
+      "club-settings-changed",
+      handleSettingsChange as EventListener,
+    );
     return () => {
-      window.removeEventListener('club-settings-changed', handleSettingsChange as EventListener);
+      window.removeEventListener(
+        "club-settings-changed",
+        handleSettingsChange as EventListener,
+      );
     };
   }, [user?.id]);
 
   const selectedTeam = useMemo(
-    () => data?.teams.find(team => team.id === selectedTeamId),
-    [data?.teams, selectedTeamId]
+    () => data?.teams.find((team) => team.id === selectedTeamId),
+    [data?.teams, selectedTeamId],
   );
   const selectedRoster = useMemo(
-    () => data?.rosters.find(roster => roster.teamId === selectedTeamId),
-    [data?.rosters, selectedTeamId]
+    () => data?.rosters.find((roster) => roster.teamId === selectedTeamId),
+    [data?.rosters, selectedTeamId],
   );
   const { divisionLabel, levelLabel } = useMemo(() => {
-    const parts = (selectedTeam?.division ?? "").split("-").map(p => p.trim()).filter(Boolean);
+    const parts = (selectedTeam?.division ?? "")
+      .split("-")
+      .map((p) => p.trim())
+      .filter(Boolean);
     if (!parts.length) return { divisionLabel: "—", levelLabel: "—" };
     if (parts.length === 1) return { divisionLabel: parts[0], levelLabel: "—" };
     const level = parts.pop() ?? "—";
@@ -109,11 +129,8 @@ function ClubsPageInner() {
             { label: "Teams", href: "/clubs" },
             { label: selectedTeam.name },
           ]
-        : [
-            { label: "Clubs", href: "/clubs" },
-            { label: "Teams" },
-          ],
-    [selectedTeam]
+        : [{ label: "Clubs", href: "/clubs" }, { label: "Teams" }],
+    [selectedTeam],
   );
 
   useEffect(() => {
@@ -152,7 +169,7 @@ function ClubsPageInner() {
         }
       />
       <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8 min-w-0">
-        <motion.div 
+        <motion.div
           className="w-full min-w-0"
           variants={fadeInUp}
           initial="hidden"
@@ -163,7 +180,9 @@ function ClubsPageInner() {
             <TeamDetails
               teamId={selectedTeamId}
               onNavigateToTeams={() => {
-                const params = new URLSearchParams(Array.from(searchParams.entries()));
+                const params = new URLSearchParams(
+                  Array.from(searchParams.entries()),
+                );
                 params.delete("teamId");
                 router.replace(`${pathname}?${params.toString()}`);
               }}
@@ -184,13 +203,16 @@ function TeamsContent({ userId }: { userId?: string }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [rosterEditorOpen, setRosterEditorOpen] = useState(false);
-  const [selectedTeamForEdit, setSelectedTeamForEdit] = useState<TeamData | null>(null);
+  const [selectedTeamForEdit, setSelectedTeamForEdit] =
+    useState<TeamData | null>(null);
 
   // Hydrate teams from data whenever data changes
   useEffect(() => {
     if (!data) return;
-    const rosterMap = new Map<string, TeamRoster>(data.rosters.map(roster => [roster.teamId, roster]));
-    const hydrated = data.teams.map(team => ({
+    const rosterMap = new Map<string, TeamRoster>(
+      data.rosters.map((roster) => [roster.teamId, roster]),
+    );
+    const hydrated = data.teams.map((team) => ({
       id: team.id,
       name: team.name,
       division: team.division,
@@ -218,7 +240,7 @@ function TeamsContent({ userId }: { userId?: string }) {
         ...teamData,
         members: [],
       };
-      setTeams(prev => [...prev, newTeam]);
+      setTeams((prev) => [...prev, newTeam]);
       toast.success(`${teamData.name} created successfully`);
     }
   };
@@ -228,12 +250,12 @@ function TeamsContent({ userId }: { userId?: string }) {
     () =>
       sanitizedSearch
         ? teams.filter(
-            team =>
+            (team) =>
               team.name.toLowerCase().includes(sanitizedSearch) ||
-              team.division.toLowerCase().includes(sanitizedSearch)
+              team.division.toLowerCase().includes(sanitizedSearch),
           )
         : teams,
-    [sanitizedSearch, teams]
+    [sanitizedSearch, teams],
   );
 
   // Group teams by division
@@ -245,7 +267,9 @@ function TeamsContent({ userId }: { userId?: string }) {
       grouped.set(division, [...existing, team]);
     }
     // Sort divisions alphabetically
-    const sortedDivisions = Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b));
+    const sortedDivisions = Array.from(grouped.keys()).sort((a, b) =>
+      a.localeCompare(b),
+    );
     return { teamsByDivision: grouped, allDivisions: sortedDivisions };
   }, [filteredTeams]);
 
@@ -256,33 +280,37 @@ function TeamsContent({ userId }: { userId?: string }) {
 
   const handleSaveRoster = (members: RegistrationMember[]) => {
     if (!selectedTeamForEdit) return;
-    
+
     // Convert RegistrationMember[] back to TeamMember[] for storage
-    const teamMembers: TeamMember[] = members.map(m => ({
+    const teamMembers: TeamMember[] = members.map((m) => ({
       name: m.name,
       role: m.type,
       dob: m.dob,
       email: m.email,
       phone: m.phone,
     }));
-    
+
     // Update local state with new members
-    setTeams(prev =>
-      prev.map(t =>
-        t.id === selectedTeamForEdit.id ? { ...t, members: teamMembers } : t
-      )
+    setTeams((prev) =>
+      prev.map((t) =>
+        t.id === selectedTeamForEdit.id ? { ...t, members: teamMembers } : t,
+      ),
     );
-    
+
     setRosterEditorOpen(false);
     setSelectedTeamForEdit(null);
     toast.success(`Roster updated for ${selectedTeamForEdit.name}`);
   };
-  
+
   // Convert TeamMember[] to RegistrationMember[] for the editor dialog
   const selectedTeamMembers: RegistrationMember[] = useMemo(() => {
     if (!selectedTeamForEdit?.members) return [];
-    return selectedTeamForEdit.members.map(m => ({
-      name: m.name ?? (m.firstName && m.lastName ? `${m.firstName} ${m.lastName}` : 'Team member'),
+    return selectedTeamForEdit.members.map((m) => ({
+      name:
+        m.name ??
+        (m.firstName && m.lastName
+          ? `${m.firstName} ${m.lastName}`
+          : "Team member"),
       type: m.role ?? m.type ?? DEFAULT_ROLE,
       dob: m.dob ?? undefined,
       email: m.email ?? undefined,
@@ -292,7 +320,7 @@ function TeamsContent({ userId }: { userId?: string }) {
 
   return (
     <section className="space-y-6">
-      <motion.div 
+      <motion.div
         className="w-full hidden"
         variants={fadeInUp}
         initial="hidden"
@@ -305,7 +333,7 @@ function TeamsContent({ userId }: { userId?: string }) {
             <Input
               type="search"
               value={searchTerm}
-              onChange={event => setSearchTerm(event.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search teams or divisions"
               className="w-full pl-9"
             />
@@ -327,7 +355,7 @@ function TeamsContent({ userId }: { userId?: string }) {
       </motion.div>
 
       {loading ? (
-        <motion.div 
+        <motion.div
           className="w-full"
           variants={fadeInUp}
           initial="hidden"
@@ -339,7 +367,7 @@ function TeamsContent({ userId }: { userId?: string }) {
           </div>
         </motion.div>
       ) : error ? (
-        <motion.div 
+        <motion.div
           className="w-full"
           variants={fadeInUp}
           initial="hidden"
@@ -352,7 +380,7 @@ function TeamsContent({ userId }: { userId?: string }) {
         </motion.div>
       ) : null}
 
-      <motion.div 
+      <motion.div
         className="w-full"
         variants={fadeInUp}
         initial="hidden"
@@ -362,13 +390,15 @@ function TeamsContent({ userId }: { userId?: string }) {
         <div className="flex flex-col gap-4 px-1 min-w-0">
           {allDivisions.length > 0 ? (
             <div className="flex flex-col gap-6 min-w-0">
-              {allDivisions.map(division => {
+              {allDivisions.map((division) => {
                 const teamsInDivision = teamsByDivision.get(division) ?? [];
                 return (
                   <div key={division} className="flex flex-col gap-3 min-w-0">
-                    <p className="label text-muted-foreground">{division.toUpperCase()}</p>
+                    <p className="label text-muted-foreground">
+                      {division.toUpperCase()}
+                    </p>
                     <div className="flex flex-col gap-3 min-w-0">
-                      {teamsInDivision.map(team => (
+                      {teamsInDivision.map((team) => (
                         <TeamCard
                           key={team.id}
                           team={team}
@@ -393,10 +423,14 @@ function TeamsContent({ userId }: { userId?: string }) {
         </div>
       </motion.div>
 
-      <CreateTeamModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} onSubmit={handleCreateTeam} />
+      <CreateTeamModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onSubmit={handleCreateTeam}
+      />
       <RosterEditorDialog
         open={rosterEditorOpen}
-        onOpenChange={open => {
+        onOpenChange={(open) => {
           setRosterEditorOpen(open);
           if (!open) setSelectedTeamForEdit(null);
         }}
@@ -411,8 +445,14 @@ function TeamsContent({ userId }: { userId?: string }) {
 function rosterToMembers(roster?: TeamRoster): RegistrationMember[] {
   if (!roster) return [];
   const toMember = (
-    person: { firstName: string; lastName: string; dob?: string; email?: string; phone?: string },
-    type: string
+    person: {
+      firstName: string;
+      lastName: string;
+      dob?: string;
+      email?: string;
+      phone?: string;
+    },
+    type: string,
   ): RegistrationMember => ({
     name: `${person.firstName} ${person.lastName}`,
     type,
@@ -421,10 +461,10 @@ function rosterToMembers(roster?: TeamRoster): RegistrationMember[] {
     phone: person.phone,
   });
   return [
-    ...(roster.coaches ?? []).map(person => toMember(person, "Coach")),
-    ...(roster.athletes ?? []).map(person => toMember(person, "Athlete")),
-    ...(roster.reservists ?? []).map(person => toMember(person, "Reservist")),
-    ...(roster.chaperones ?? []).map(person => toMember(person, "Chaperone")),
+    ...(roster.coaches ?? []).map((person) => toMember(person, "Coach")),
+    ...(roster.athletes ?? []).map((person) => toMember(person, "Athlete")),
+    ...(roster.reservists ?? []).map((person) => toMember(person, "Reservist")),
+    ...(roster.chaperones ?? []).map((person) => toMember(person, "Chaperone")),
   ];
 }
 

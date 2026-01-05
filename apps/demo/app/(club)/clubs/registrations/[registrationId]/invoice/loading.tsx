@@ -1,5 +1,5 @@
-import { InvoicePageSkeleton } from '@/components/ui/skeletons'
+import { InvoicePageSkeleton } from "@/components/ui/skeletons";
 
 export default function InvoiceLoading() {
-  return <InvoicePageSkeleton />
+  return <InvoicePageSkeleton />;
 }

@@ -24,9 +24,12 @@ import {
   type SubscriptionPlanId,
 } from "@/lib/platform-pricing";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
+import { useLayoutContextSafe } from "@/components/providers/LayoutProvider";
 import { type BrandGradient } from "@/lib/gradients";
 
 export default function SubscriptionPage() {
+  const { layout } = useLayoutContextSafe();
   const { organizer, organizerId, isLoading: organizerLoading } = useOrganizer();
   const {
     plan: currentPlan,
@@ -103,10 +106,19 @@ export default function SubscriptionPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <PageHeader
-          title="Manage Subscription"
-          gradient={organizerGradient || organizer?.gradient}
-        />
+        {layout === 'A' ? (
+          <PageHeader
+            title="Manage Subscription"
+            gradient={organizerGradient || organizer?.gradient}
+          />
+        ) : (
+          <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+            <PageTitle
+              title="Manage Subscription"
+              gradient={organizerGradient || organizer?.gradient}
+            />
+          </div>
+        )}
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="grid gap-6 md:grid-cols-2">
@@ -122,19 +134,37 @@ export default function SubscriptionPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <PageHeader
-        title="Manage Subscription"
-        gradient={organizerGradient || organizer?.gradient}
-        topRightAction={
-          <Link
-            href="/organizer/settings"
-            className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors"
-          >
-            <ArrowLeftIcon className="size-4" />
-            Back to Settings
-          </Link>
-        }
-      />
+      {layout === 'A' ? (
+        <PageHeader
+          title="Manage Subscription"
+          gradient={organizerGradient || organizer?.gradient}
+          topRightAction={
+            <Link
+              href="/organizer/settings"
+              className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors"
+            >
+              <ArrowLeftIcon className="size-4" />
+              Back to Settings
+            </Link>
+          }
+        />
+      ) : (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+          <div className="mb-6">
+            <Link
+              href="/organizer/settings"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeftIcon className="size-4" />
+              Back to Settings
+            </Link>
+          </div>
+          <PageTitle
+            title="Manage Subscription"
+            gradient={organizerGradient || organizer?.gradient}
+          />
+        </div>
+      )}
       <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 lg:px-8">
 
         {/* Current usage */}

@@ -101,13 +101,13 @@ export function LayoutToggle<T extends string>({
           className={cn(
             'relative inline-flex items-center rounded-md border p-1 transition-all duration-300',
             tutorialVisible
-              ? 'border-white bg-white/20 ring-2 ring-white/50 ring-offset-2 ring-offset-transparent'
-              : 'border-white/30 bg-white/10'
+              ? 'border-ring ring-2 ring-ring/50 ring-offset-2 ring-offset-background'
+              : 'border-input bg-transparent'
           )}
         >
           {/* Sliding background indicator */}
           <div
-            className="absolute top-1 left-1 h-7 w-7 rounded-md bg-white/20 shadow-sm transition-transform duration-200 ease-out"
+            className="absolute top-1 left-1 h-7 w-7 rounded-md bg-accent shadow-sm transition-transform duration-200 ease-out"
             style={{ transform: `translateX(${selectedIndex * 28}px)` }}
             aria-hidden
           />
@@ -121,7 +121,9 @@ export function LayoutToggle<T extends string>({
               }}
               className={cn(
                 'relative z-10 flex size-7 items-center justify-center rounded-md text-xs font-semibold transition-colors',
-                value === v ? 'text-white' : 'text-white/50 hover:text-white/70'
+                value === v
+                  ? 'text-accent-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
               aria-label={`Layout ${v}`}
               aria-pressed={value === v}

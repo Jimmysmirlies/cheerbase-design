@@ -10,6 +10,8 @@ import { ScrollArea } from '@workspace/ui/shadcn/scroll-area'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { NavBar } from '@/components/layout/NavBar'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { LayoutProvider } from '@/components/providers/LayoutProvider'
+import { useOrganizerLayout } from '@/hooks/useOrganizerLayout'
 
 const organizerNavSections = [
   {
@@ -32,6 +34,7 @@ export default function OrganizerLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const { user, status } = useAuth()
+  const { layout, setLayout } = useOrganizerLayout()
 
   const active = useMemo(() => {
     if (!pathname) return 'dashboard'
@@ -103,14 +106,58 @@ export default function OrganizerLayout({ children }: { children: ReactNode }) {
           showSidebarToggle={isMobile}
           sidebarOpen={isSidebarOpen}
           onSidebarToggle={() => setIsSidebarOpen(prev => !prev)}
+          showLayoutToggle={!isMobile}
+          layoutVariant={layout}
+          onLayoutChange={setLayout}
         />
       </div>
-      <div className="flex w-full">
-        <Sidebar active={active} navSections={organizerNavSections} navOffset={navHeight} isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)} />
-        <ScrollArea className="flex-1" style={{ height: `calc(100vh - ${navHeight}px)` }}>
-          <main>{status === 'loading' ? null : children}</main>
-        </ScrollArea>
-      </div>
+      {/* Layout A: Full-width sidebar from screen edge */}
+      {layout === 'A' && (
+        <div className="flex w-full">
+          <Sidebar
+            active={active}
+            navSections={organizerNavSections}
+            navOffset={navHeight}
+            isOpen={isSidebarOpen}
+            isMobile={isMobile}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+          <ScrollArea className="flex-1" style={{ height: `calc(100vh - ${navHeight}px)` }}>
+            <main>
+              <LayoutProvider layout={layout}>
+                {status === 'loading' ? null : children}
+              </LayoutProvider>
+            </main>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Layout B: Centered content with sidebar aligned to content edge */}
+      {layout === 'B' && (
+        <div className="w-full">
+          <div
+            className="mx-auto flex max-w-7xl"
+            style={{ minHeight: `calc(100vh - ${navHeight}px)` }}
+          >
+            <Sidebar
+              active={active}
+              navSections={organizerNavSections}
+              navOffset={navHeight}
+              isOpen={isSidebarOpen}
+              isMobile={isMobile}
+              onClose={() => setIsSidebarOpen(false)}
+              positionMode="static"
+            />
+            <ScrollArea className="flex-1" style={{ height: `calc(100vh - ${navHeight}px)` }}>
+              <main>
+                <LayoutProvider layout={layout}>
+                  {status === 'loading' ? null : children}
+                </LayoutProvider>
+              </main>
+            </ScrollArea>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

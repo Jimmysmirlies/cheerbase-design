@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '@workspace/ui/lib/utils'
 import { TagTabs, type TagTab } from '@/components/ui/controls/TagTabs'
+import { useLayoutContextSafe } from '@/components/providers/LayoutProvider'
 
 type ActionBarProps = {
   /** Tabs to display on the left side */
@@ -36,6 +37,9 @@ export function ActionBar({
   className,
   maxWidth = 'default',
 }: ActionBarProps) {
+  const { layout } = useLayoutContextSafe()
+  const isLayoutB = layout === 'B'
+
   const hasTabs = tabs && tabs.length > 0
   const hasLeftContent = hasTabs || leftContent
   const hasRightContent = actions || status
@@ -48,7 +52,8 @@ export function ActionBar({
   return (
     <div
       className={cn(
-        'z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+        'z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+        !isLayoutB && 'border-b border-border',
         sticky && 'sticky top-0',
         className
       )}

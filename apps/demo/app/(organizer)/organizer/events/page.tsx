@@ -47,7 +47,9 @@ import {
   isEventInSeason,
 } from "@/data/events/selectors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { ActionBar } from "@/components/layout/ActionBar";
+import { useLayoutContextSafe } from "@/components/providers/LayoutProvider";
 import { type BrandGradient } from "@/lib/gradients";
 import { CardSkeleton } from "@/components/ui";
 import {
@@ -109,6 +111,7 @@ function resolveSeasonById(seasonId: string): SeasonOption | null {
 
 export default function OrganizerEventsPage() {
   const router = useRouter();
+  const { layout } = useLayoutContextSafe();
   const { organizer, organizerId, isLoading } = useOrganizer();
   const {
     plan,
@@ -242,7 +245,13 @@ export default function OrganizerEventsPage() {
   if (isLoading || subscriptionLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <PageHeader title="Events" gradient={organizerGradient} />
+        {layout === 'A' ? (
+          <PageHeader title="Events" gradient={organizerGradient} />
+        ) : (
+          <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+            <PageTitle title="Events" gradient={organizerGradient} />
+          </div>
+        )}
         <ActionBar
           actions={
             <Button size="sm" disabled>
@@ -264,10 +273,13 @@ export default function OrganizerEventsPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <PageHeader
-        title="Events"
-        gradient={organizerGradient}
-      />
+      {layout === 'A' ? (
+        <PageHeader title="Events" gradient={organizerGradient} />
+      ) : (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+          <PageTitle title="Events" gradient={organizerGradient} />
+        </div>
+      )}
 
       <ActionBar
         leftContent={

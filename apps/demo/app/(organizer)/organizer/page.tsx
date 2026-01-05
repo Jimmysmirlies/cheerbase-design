@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import { Card, CardContent, CardHeader } from "@workspace/ui/shadcn/card";
 import { Badge } from "@workspace/ui/shadcn/badge";
@@ -16,15 +17,6 @@ import {
   AlertTriangleIcon,
   ArrowRightIcon,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
 
 import { useOrganizer } from "@/hooks/useOrganizer";
 import { getOrganizerStats } from "@/data/events/selectors";
@@ -32,12 +24,12 @@ import {
   getPaymentHealth,
   getEventPerformance,
   getRegistrationTableData,
-  getRegistrationTrend,
   formatCurrency,
   type RegistrationStatus,
 } from "@/data/events/analytics";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
 import { Section } from "@/components/layout/Section";
+import { fadeInUp, staggerSections } from "@/lib/animations";
 import {
   DataTable,
   DataTableHeader,
@@ -128,11 +120,6 @@ export default function OrganizerHomePage() {
     [organizerId]
   );
 
-  const revenueTrend = useMemo(() =>
-    organizerId ? getRegistrationTrend(organizerId).slice(-6) : [],
-    [organizerId]
-  );
-
   // Check if there are attention items
   const hasAttentionItems = paymentHealth && paymentHealth.overdueCount > 0;
   const lowFillEvents = eventPerformance.filter(e => e.fillRate < 25);
@@ -213,10 +200,15 @@ export default function OrganizerHomePage() {
           </div>
         )}
       </div>
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
+      <motion.div
+        className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8"
+        variants={staggerSections}
+        initial="hidden"
+        animate="visible"
+      >
 
         {/* Stats Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div variants={fadeInUp} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Active Events"
             value={String(stats?.activeEvents ?? 0)}
@@ -237,10 +229,11 @@ export default function OrganizerHomePage() {
             value={formatCurrency(stats?.totalRevenue ?? 0)}
             icon={<DollarSignIcon className="size-4 text-green-500" />}
           />
-        </div>
+        </motion.div>
 
         {/* Active Events Section */}
         {eventPerformance.length > 0 && (
+          <motion.div variants={fadeInUp}>
           <Section title="Active Events">
             <div className="space-y-4">
               {eventPerformance.map((event) => (
@@ -272,10 +265,12 @@ export default function OrganizerHomePage() {
               ))}
             </div>
           </Section>
+          </motion.div>
         )}
 
         {/* Recent Registrations Section */}
         {recentRegistrations.length > 0 && (
+          <motion.div variants={fadeInUp}>
           <Section
             title="Recent Registrations"
             titleRight={
@@ -321,48 +316,12 @@ export default function OrganizerHomePage() {
               </DataTableBody>
             </DataTable>
           </Section>
-        )}
-
-        {/* Revenue Trend Section */}
-        {revenueTrend.length > 0 && (
-          <Section title="Revenue Trend">
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueTrend} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [formatCurrency(value), 'Revenue']}
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  />
-                  <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
-                    {revenueTrend.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Section>
+          </motion.div>
         )}
 
         {/* Empty State */}
         {!stats?.activeEvents && (
+          <motion.div variants={fadeInUp}>
           <Section title="Get Started" showDivider={eventPerformance.length === 0}>
             <Card className="border-border/70 border-dashed">
               <CardContent className="py-8 text-center">
@@ -378,8 +337,9 @@ export default function OrganizerHomePage() {
               </CardContent>
             </Card>
           </Section>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </section>
   );
 }

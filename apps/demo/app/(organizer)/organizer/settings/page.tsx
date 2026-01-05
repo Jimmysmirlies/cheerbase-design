@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -25,6 +26,7 @@ import { formatPlanPrice } from "@/lib/platform-pricing";
 import { brandGradients, getGradientOptions, type BrandGradient } from "@/lib/gradients";
 import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
 import { Section } from "@/components/layout/Section";
+import { fadeInUp, staggerSections } from "@/lib/animations";
 
 type OrganizerSettings = {
   name: string;
@@ -175,9 +177,15 @@ export default function OrganizerSettingsPage() {
           Settings
         </h1>
       </div>
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
+      <motion.div
+        className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8"
+        variants={staggerSections}
+        initial="hidden"
+        animate="visible"
+      >
 
         {/* Organization Profile Section */}
+        <motion.div variants={fadeInUp}>
         <Section
           title="Organization Profile"
           description="Your organization's public profile information."
@@ -287,8 +295,10 @@ export default function OrganizerSettingsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </motion.div>
 
         {/* Brand Gradient Section */}
+        <motion.div variants={fadeInUp}>
         <Section
           title="Brand Gradient"
           description="This gradient is used for your avatar and brand accents."
@@ -312,8 +322,10 @@ export default function OrganizerSettingsPage() {
             </SelectContent>
           </Select>
         </Section>
+        </motion.div>
 
         {/* Billing & Subscription Section */}
+        <motion.div variants={fadeInUp}>
         <Section
           title="Billing & Subscription"
           description="Manage your subscription plan and billing details."
@@ -351,7 +363,8 @@ export default function OrganizerSettingsPage() {
             </Button>
           </div>
         </Section>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

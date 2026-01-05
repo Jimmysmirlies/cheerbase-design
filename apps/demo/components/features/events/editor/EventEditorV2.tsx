@@ -376,7 +376,6 @@ export function EventEditorV2({ mode, eventId, initialEvent, initialData }: Even
                 { value: 'Championship', label: 'Championship' },
                 { value: 'Friendly Competition', label: 'Friendly Competition' },
               ]}
-              placeholder="Select event type"
             />
           </div>
 

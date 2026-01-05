@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { CheckCircle2Icon, CreditCardIcon } from 'lucide-react'
-import { Button } from '@workspace/ui/shadcn/button'
-import { Card } from '@workspace/ui/shadcn/card'
-import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
-import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
+import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2Icon, CreditCardIcon } from "lucide-react";
+import { Button } from "@workspace/ui/shadcn/button";
+import { Card } from "@workspace/ui/shadcn/card";
+import { PaymentMethodsDialog } from "@/components/features/registration/PaymentMethods";
+import { WalkthroughSpotlight } from "@/components/ui/RegistrationWalkthrough";
 
 export default function RegistrationConfirmationPage() {
-  const searchParams = useSearchParams()
-  const registrationId = searchParams.get('registrationId') ?? 'reg_001'
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const searchParams = useSearchParams();
+  const registrationId = searchParams.get("registrationId") ?? "reg_001";
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-6 py-10">
@@ -26,17 +26,27 @@ export default function RegistrationConfirmationPage() {
         <h1 className="heading-1 mb-4">Registration Complete!</h1>
 
         <p className="body-large text-muted-foreground mb-8">
-          You have officially registered for this event. An invoice has been generated and sent to your email.
+          You have officially registered for this event. An invoice has been
+          generated and sent to your email.
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <WalkthroughSpotlight step="view-registration" side="bottom" align="center" advanceOnClick>
+          <WalkthroughSpotlight
+            step="view-registration"
+            side="bottom"
+            align="center"
+            advanceOnClick
+          >
             <Button asChild>
-              <Link href={`/clubs/registrations/${registrationId}`}>View Registration</Link>
+              <Link href={`/clubs/registrations/${registrationId}`}>
+                View Registration
+              </Link>
             </Button>
           </WalkthroughSpotlight>
           <Button variant="outline" asChild>
-            <Link href={`/clubs/registrations/${registrationId}/invoice`}>View Invoice</Link>
+            <Link href={`/clubs/registrations/${registrationId}/invoice`}>
+              View Invoice
+            </Link>
           </Button>
           <Button variant="outline" onClick={() => setPaymentDialogOpen(true)}>
             <CreditCardIcon className="mr-2 h-4 w-4" />
@@ -45,7 +55,10 @@ export default function RegistrationConfirmationPage() {
         </div>
       </Card>
 
-      <PaymentMethodsDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} />
+      <PaymentMethodsDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+      />
     </div>
-  )
+  );
 }

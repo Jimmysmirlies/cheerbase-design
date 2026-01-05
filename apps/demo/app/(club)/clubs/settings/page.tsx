@@ -2,17 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/shadcn/card";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Button } from "@workspace/ui/shadcn/button";
 import { toast } from "@workspace/ui/shadcn/sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/shadcn/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/shadcn/select";
 import { CheckIcon } from "lucide-react";
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { brandGradients, getGradientOptions, type BrandGradient } from "@/lib/gradients";
+import {
+  brandGradients,
+  getGradientOptions,
+  type BrandGradient,
+} from "@/lib/gradients";
 import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
 
 type ClubSettings = {
@@ -39,7 +55,10 @@ function loadSavedSettings(userId: string): Partial<ClubSettings> | null {
 
 function saveSettings(userId: string, settings: ClubSettings) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(`${SETTINGS_STORAGE_KEY}-${userId}`, JSON.stringify(settings));
+  localStorage.setItem(
+    `${SETTINGS_STORAGE_KEY}-${userId}`,
+    JSON.stringify(settings),
+  );
 }
 
 export default function ClubSettingsPage() {
@@ -87,11 +106,11 @@ export default function ClubSettingsPage() {
     }
   }, [user]);
 
-  const handleChange = (field: keyof ClubSettings) => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }));
-  };
+  const handleChange =
+    (field: keyof ClubSettings) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   const handleGradientChange = (value: string) => {
     setForm((prev) => ({ ...prev, gradient: value as BrandGradient }));
@@ -107,9 +126,11 @@ export default function ClubSettingsPage() {
     saveSettings(user.id, form);
 
     // Dispatch custom event to notify other components of settings change
-    window.dispatchEvent(new CustomEvent('club-settings-changed', {
-      detail: { gradient: form.gradient }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("club-settings-changed", {
+        detail: { gradient: form.gradient },
+      }),
+    );
 
     setSaving(false);
     toast.success("Settings saved successfully", {
@@ -163,10 +184,16 @@ export default function ClubSettingsPage() {
           <CardContent className="space-y-6">
             {/* Preview */}
             <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 border border-border/60">
-              <GradientAvatar name={form.name || "Club"} gradient={form.gradient} size="lg" />
+              <GradientAvatar
+                name={form.name || "Club"}
+                gradient={form.gradient}
+                size="lg"
+              />
               <div>
                 <p className="font-semibold">{form.name || "Club Name"}</p>
-                <p className="text-sm text-muted-foreground">{form.region || "Region"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {form.region || "Region"}
+                </p>
               </div>
             </div>
 
@@ -205,7 +232,10 @@ export default function ClubSettingsPage() {
             {/* Brand Gradient */}
             <div className="space-y-2">
               <Label htmlFor="gradient">Brand Gradient</Label>
-              <Select value={form.gradient} onValueChange={handleGradientChange}>
+              <Select
+                value={form.gradient}
+                onValueChange={handleGradientChange}
+              >
                 <SelectTrigger id="gradient" className="w-full sm:w-64">
                   <SelectValue placeholder="Select a gradient" />
                 </SelectTrigger>
@@ -215,7 +245,9 @@ export default function ClubSettingsPage() {
                       <div className="flex items-center gap-2">
                         <div
                           className="size-4 rounded-full"
-                          style={{ background: brandGradients[option.value].css }}
+                          style={{
+                            background: brandGradients[option.value].css,
+                          }}
                         />
                         {option.label}
                       </div>

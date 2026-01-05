@@ -24,6 +24,8 @@ pnpm build
 
 **Prerequisites:** Node 20+, pnpm 10
 
+**Dev Server:** Always use `localhost:3000`. Before starting the dev server, kill any existing processes on port 3000 to avoid port conflicts. We use LocalStack for local development.
+
 ## Architecture
 
 ### Monorepo Structure

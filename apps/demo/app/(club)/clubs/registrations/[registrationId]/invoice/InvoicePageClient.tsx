@@ -1,67 +1,83 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { PrinterIcon, ArrowLeftIcon } from 'lucide-react'
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { PrinterIcon, ArrowLeftIcon } from "lucide-react";
 
-import { Button } from '@workspace/ui/shadcn/button'
-import { ToggleGroup, ToggleGroupItem } from '@workspace/ui/shadcn/toggle-group'
-import { InvoiceView, type InvoiceData, type InvoiceChangeInfo, type InvoiceSelectOption, type InvoiceHistoryItem } from '@/components/features/registration/invoice/InvoiceView'
-import { PaymentMethodsDialog } from '@/components/features/registration/PaymentMethods'
-import { MarkAsPaidDialog } from '@/components/features/registration/invoice/MarkAsPaidDialog'
-import { toast } from '@workspace/ui/shadcn/sonner'
-import { WalkthroughSpotlight } from '@/components/ui/RegistrationWalkthrough'
-import { fadeInUp } from '@/lib/animations'
-import { formatFriendlyDate } from '@/utils/format'
-import { useRegistrationStorage } from '@/hooks/useRegistrationStorage'
-import { getEntryMemberCount } from '@/utils/registration-stats'
-import { resolveDivisionPricing } from '@/utils/pricing'
-import type { RegistrationEntry } from '@/components/features/registration/flow/types'
+import { Button } from "@workspace/ui/shadcn/button";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/shadcn/toggle-group";
+import {
+  InvoiceView,
+  type InvoiceData,
+  type InvoiceChangeInfo,
+  type InvoiceSelectOption,
+  type InvoiceHistoryItem,
+} from "@/components/features/registration/invoice/InvoiceView";
+import { PaymentMethodsDialog } from "@/components/features/registration/PaymentMethods";
+import { MarkAsPaidDialog } from "@/components/features/registration/invoice/MarkAsPaidDialog";
+import { toast } from "@workspace/ui/shadcn/sonner";
+import { WalkthroughSpotlight } from "@/components/ui/RegistrationWalkthrough";
+import { fadeInUp } from "@/lib/animations";
+import { formatFriendlyDate } from "@/utils/format";
+import { useRegistrationStorage } from "@/hooks/useRegistrationStorage";
+import { getEntryMemberCount } from "@/utils/registration-stats";
+import { resolveDivisionPricing } from "@/utils/pricing";
+import type { RegistrationEntry } from "@/components/features/registration/flow/types";
 
 // Calculate invoice total from invoice data
 function calculateInvoiceTotal(invoice: InvoiceData): number {
-  const gstRate = invoice.gstRate ?? 0.05
-  const qstRate = invoice.qstRate ?? 0.09975
-  const referenceDate = invoice.issuedDate || new Date()
+  const gstRate = invoice.gstRate ?? 0.05;
+  const qstRate = invoice.qstRate ?? 0.09975;
+  const referenceDate = invoice.issuedDate || new Date();
 
-  const pricingByDivision = invoice.divisionPricing.reduce<Record<string, (typeof invoice.divisionPricing)[0]>>((acc, option) => {
-    acc[option.name] = option
-    return acc
-  }, {})
+  const pricingByDivision = invoice.divisionPricing.reduce<
+    Record<string, (typeof invoice.divisionPricing)[0]>
+  >((acc, option) => {
+    acc[option.name] = option;
+    return acc;
+  }, {});
 
-  let subtotal = 0
-  for (const [divisionName, entries] of Object.entries(invoice.entriesByDivision)) {
-    const qty = entries.reduce((sum, entry) => sum + getEntryMemberCount(entry), 0)
-    const pricing = pricingByDivision[divisionName]
+  let subtotal = 0;
+  for (const [divisionName, entries] of Object.entries(
+    invoice.entriesByDivision,
+  )) {
+    const qty = entries.reduce(
+      (sum, entry) => sum + getEntryMemberCount(entry),
+      0,
+    );
+    const pricing = pricingByDivision[divisionName];
     if (pricing) {
-      const activeTier = resolveDivisionPricing(pricing, referenceDate)
-      subtotal += qty * activeTier.price
+      const activeTier = resolveDivisionPricing(pricing, referenceDate);
+      subtotal += qty * activeTier.price;
     }
   }
 
-  const totalTax = subtotal * (gstRate + qstRate)
-  return subtotal + totalTax
+  const totalTax = subtotal * (gstRate + qstRate);
+  return subtotal + totalTax;
 }
 
-type LayoutVariant = 'A' | 'B'
+type LayoutVariant = "A" | "B";
 
 function LayoutToggle({
   variant,
   onChange,
 }: {
-  variant: LayoutVariant
-  onChange: (variant: LayoutVariant) => void
+  variant: LayoutVariant;
+  onChange: (variant: LayoutVariant) => void;
 }) {
   return (
     <div className="relative inline-flex items-center rounded-md border p-1 transition-all duration-300 border-border/70 bg-muted/40">
       <ToggleGroup
         type="single"
         value={variant}
-        onValueChange={v => v && onChange(v as LayoutVariant)}
+        onValueChange={(v) => v && onChange(v as LayoutVariant)}
         className="gap-0"
       >
-        {(['A', 'B'] as const).map(v => (
+        {(["A", "B"] as const).map((v) => (
           <ToggleGroupItem
             key={v}
             value={v}
@@ -73,7 +89,7 @@ function LayoutToggle({
         ))}
       </ToggleGroup>
     </div>
-  )
+  );
 }
 
 const printStyles = `
@@ -95,16 +111,16 @@ const printStyles = `
       display: none !important;
     }
   }
-`
+`;
 
 type InvoicePageClientProps = {
-  invoices: InvoiceData[]
-  registrationHref: string
-  registrationId: string
-  originalPaymentStatus: 'paid' | 'unpaid'
+  invoices: InvoiceData[];
+  registrationHref: string;
+  registrationId: string;
+  originalPaymentStatus: "paid" | "unpaid";
   /** When true, shows organizer-specific actions like "Mark as Paid" */
-  isOrganizer?: boolean
-}
+  isOrganizer?: boolean;
+};
 
 export function InvoicePageClient({
   invoices,
@@ -114,101 +130,119 @@ export function InvoicePageClient({
   isOrganizer = false,
 }: InvoicePageClientProps) {
   // Get saved changes from localStorage to check for past invoices
-  const { savedChanges, hasStoredChanges } = useRegistrationStorage(registrationId)
+  const { savedChanges, hasStoredChanges } =
+    useRegistrationStorage(registrationId);
 
   // Build the full list of invoices including past invoices from saved changes
   const allInvoices = useMemo(() => {
-    const baseInvoice = invoices[0]
-    if (!baseInvoice) return []
+    const baseInvoice = invoices[0];
+    if (!baseInvoice) return [];
 
     // If there are saved changes with original invoice info, create both invoices
-    if (hasStoredChanges && savedChanges?.originalInvoice && savedChanges?.newInvoice) {
-      const removedTeamIds = new Set(savedChanges.removedTeamIds)
-      
+    if (
+      hasStoredChanges &&
+      savedChanges?.originalInvoice &&
+      savedChanges?.newInvoice
+    ) {
+      const removedTeamIds = new Set(savedChanges.removedTeamIds);
+
       // Past invoice entries = base entries (the original registration before changes)
       // These are the entries from the server/database
-      const pastEntriesByDivision: Record<string, RegistrationEntry[]> = {}
-      for (const [division, entries] of Object.entries(baseInvoice.entriesByDivision)) {
-        pastEntriesByDivision[division] = [...entries]
+      const pastEntriesByDivision: Record<string, RegistrationEntry[]> = {};
+      for (const [division, entries] of Object.entries(
+        baseInvoice.entriesByDivision,
+      )) {
+        pastEntriesByDivision[division] = [...entries];
       }
 
       // Current invoice entries = base entries + added teams - removed teams + modified rosters
-      const currentEntriesByDivision: Record<string, RegistrationEntry[]> = {}
-      
+      const currentEntriesByDivision: Record<string, RegistrationEntry[]> = {};
+
       // Start with base entries, excluding removed teams and applying roster modifications
-      for (const [division, entries] of Object.entries(baseInvoice.entriesByDivision)) {
+      for (const [division, entries] of Object.entries(
+        baseInvoice.entriesByDivision,
+      )) {
         const remainingEntries = entries
-          .filter(entry => !removedTeamIds.has(entry.id))
-          .map(entry => {
+          .filter((entry) => !removedTeamIds.has(entry.id))
+          .map((entry) => {
             // Check if this entry's roster was modified
-            const modifiedRoster = savedChanges.modifiedRosters?.[entry.id] || savedChanges.modifiedRosters?.[entry.teamId ?? '']
+            const modifiedRoster =
+              savedChanges.modifiedRosters?.[entry.id] ||
+              savedChanges.modifiedRosters?.[entry.teamId ?? ""];
             if (modifiedRoster) {
               // Update the entry with new member count from modified roster
               return {
                 ...entry,
                 teamSize: modifiedRoster.length,
-                members: modifiedRoster.map(m => ({
+                members: modifiedRoster.map((m) => ({
                   name: m.name ?? `${m.firstName} ${m.lastName}`.trim(),
-                  type: m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : 'Athlete',
+                  type: m.role
+                    ? m.role.charAt(0).toUpperCase() + m.role.slice(1)
+                    : "Athlete",
                   dob: m.dob ?? undefined,
                   email: m.email ?? undefined,
                   phone: m.phone ?? undefined,
                 })),
-              }
+              };
             }
-            return entry
-          })
+            return entry;
+          });
         if (remainingEntries.length > 0) {
-          currentEntriesByDivision[division] = [...remainingEntries]
+          currentEntriesByDivision[division] = [...remainingEntries];
         }
       }
-      
+
       // Track which divisions have changes
-      const newDivisions = new Set<string>()
-      const modifiedDivisions = new Set<string>()
-      const removedDivisionsSet = new Set<string>()
+      const newDivisions = new Set<string>();
+      const modifiedDivisions = new Set<string>();
+      const removedDivisionsSet = new Set<string>();
 
       // Add new teams from savedChanges
       for (const addedTeam of savedChanges.addedTeams) {
-        const division = addedTeam.division
+        const division = addedTeam.division;
         const newEntry: RegistrationEntry = {
           id: addedTeam.id,
           division: addedTeam.division,
-          mode: 'existing',
+          mode: "existing",
           teamId: addedTeam.id,
           teamName: addedTeam.name,
           teamSize: addedTeam.members?.length ?? 0,
-          members: addedTeam.members?.map(m => ({
+          members: addedTeam.members?.map((m) => ({
             name: `${m.firstName} ${m.lastName}`.trim(),
-            type: m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : 'Athlete',
+            type: m.role
+              ? m.role.charAt(0).toUpperCase() + m.role.slice(1)
+              : "Athlete",
             dob: m.dob ?? undefined,
             email: m.email ?? undefined,
             phone: m.phone ?? undefined,
           })),
-        }
-        
+        };
+
         // Check if this division already exists (then it's modified) or is entirely new
         if (currentEntriesByDivision[division]) {
-          modifiedDivisions.add(division)
+          modifiedDivisions.add(division);
         } else {
-          newDivisions.add(division)
-          currentEntriesByDivision[division] = []
+          newDivisions.add(division);
+          currentEntriesByDivision[division] = [];
         }
-        currentEntriesByDivision[division].push(newEntry)
+        currentEntriesByDivision[division].push(newEntry);
       }
 
       // Check for removed teams - mark their divisions as modified or removed
       for (const removedId of removedTeamIds) {
         // Find which division this removed team belonged to
-        for (const [division, entries] of Object.entries(baseInvoice.entriesByDivision)) {
-          const hadTeam = entries.some(e => e.id === removedId)
+        for (const [division, entries] of Object.entries(
+          baseInvoice.entriesByDivision,
+        )) {
+          const hadTeam = entries.some((e) => e.id === removedId);
           if (hadTeam) {
             // Check if the division still has entries after removal
-            const remainingInDivision = currentEntriesByDivision[division]?.length ?? 0
+            const remainingInDivision =
+              currentEntriesByDivision[division]?.length ?? 0;
             if (remainingInDivision === 0) {
-              removedDivisionsSet.add(division)
+              removedDivisionsSet.add(division);
             } else {
-              modifiedDivisions.add(division)
+              modifiedDivisions.add(division);
             }
           }
         }
@@ -216,12 +250,18 @@ export function InvoicePageClient({
 
       // Check for modified rosters - mark their divisions as modified
       if (savedChanges.modifiedRosters) {
-        for (const modifiedTeamId of Object.keys(savedChanges.modifiedRosters)) {
+        for (const modifiedTeamId of Object.keys(
+          savedChanges.modifiedRosters,
+        )) {
           // Find which division this modified team belongs to
-          for (const [division, entries] of Object.entries(baseInvoice.entriesByDivision)) {
-            const hasTeam = entries.some(e => e.id === modifiedTeamId || e.teamId === modifiedTeamId)
+          for (const [division, entries] of Object.entries(
+            baseInvoice.entriesByDivision,
+          )) {
+            const hasTeam = entries.some(
+              (e) => e.id === modifiedTeamId || e.teamId === modifiedTeamId,
+            );
             if (hasTeam && !removedDivisionsSet.has(division)) {
-              modifiedDivisions.add(division)
+              modifiedDivisions.add(division);
             }
           }
         }
@@ -232,11 +272,11 @@ export function InvoicePageClient({
         newDivisions,
         modifiedDivisions,
         removedDivisions: removedDivisionsSet,
-      }
+      };
 
       // Calculate version number based on history
-      const pastInvoicesCount = savedChanges.pastInvoices?.length ?? 0
-      const currentVersion = pastInvoicesCount + 2 // +1 for original, +1 for current
+      const pastInvoicesCount = savedChanges.pastInvoices?.length ?? 0;
+      const currentVersion = pastInvoicesCount + 2; // +1 for original, +1 for current
 
       // Current invoice (new version after changes) - includes added teams
       const currentInvoice: InvoiceData = {
@@ -245,10 +285,10 @@ export function InvoicePageClient({
         invoiceNumber: savedChanges.newInvoice.invoiceNumber,
         orderVersion: currentVersion,
         issuedDate: new Date(savedChanges.newInvoice.invoiceDate),
-        status: 'unpaid', // New invoice is unpaid
+        status: "unpaid", // New invoice is unpaid
         changeInfo,
         originalEntriesByDivision: pastEntriesByDivision, // For showing "was X" on modified items
-      }
+      };
 
       // Original invoice (first version before any changes)
       // If original was unpaid, mark as 'void' since it's superseded
@@ -259,131 +299,155 @@ export function InvoicePageClient({
         invoiceNumber: savedChanges.originalInvoice.invoiceNumber,
         orderVersion: 1,
         issuedDate: new Date(savedChanges.originalInvoice.invoiceDate),
-        status: originalPaymentStatus === 'paid' ? 'paid' : 'void',
-        payments: originalPaymentStatus === 'paid' ? [{
-          amount: savedChanges.originalInvoice.total,
-          method: 'Visa',
-          lastFour: '4242',
-          date: new Date(savedChanges.originalInvoice.invoiceDate),
-        }] : [],
-      }
+        status: originalPaymentStatus === "paid" ? "paid" : "void",
+        payments:
+          originalPaymentStatus === "paid"
+            ? [
+                {
+                  amount: savedChanges.originalInvoice.total,
+                  method: "Visa",
+                  lastFour: "4242",
+                  date: new Date(savedChanges.originalInvoice.invoiceDate),
+                },
+              ]
+            : [],
+      };
 
       // Build intermediate invoices from pastInvoices array
-      const intermediateInvoices: InvoiceData[] = (savedChanges.pastInvoices ?? []).map((pastInv, idx) => ({
+      const intermediateInvoices: InvoiceData[] = (
+        savedChanges.pastInvoices ?? []
+      ).map((pastInv, idx) => ({
         ...baseInvoice,
         invoiceNumber: pastInv.invoiceNumber,
         orderVersion: idx + 2, // Version 2, 3, 4, etc.
         issuedDate: new Date(pastInv.invoiceDate),
-        status: pastInv.status ?? 'void', // Past invoices are typically void
+        status: pastInv.status ?? "void", // Past invoices are typically void
         payments: [],
         // Note: We don't have the exact entriesByDivision for intermediate invoices
         // They would need to be reconstructed from the change snapshots if needed
-      }))
+      }));
 
-      return [currentInvoice, ...intermediateInvoices, originalInvoice]
+      return [currentInvoice, ...intermediateInvoices, originalInvoice];
     }
 
     // No changes - just return the base invoice
-    return [baseInvoice]
-  }, [invoices, hasStoredChanges, savedChanges, originalPaymentStatus])
+    return [baseInvoice];
+  }, [invoices, hasStoredChanges, savedChanges, originalPaymentStatus]);
 
   const normalizedInvoices = useMemo(
     () =>
-      allInvoices.map(invoice => ({
+      allInvoices.map((invoice) => ({
         ...invoice,
         issuedDate: new Date(invoice.issuedDate),
-        payments: invoice.payments?.map(payment => ({ ...payment, date: new Date(payment.date) })) ?? [],
+        payments:
+          invoice.payments?.map((payment) => ({
+            ...payment,
+            date: new Date(payment.date),
+          })) ?? [],
       })),
-    [allInvoices]
-  )
+    [allInvoices],
+  );
 
   // Sort by version number (higher version = current), not by date
   const sortedInvoicesBase = useMemo(
-    () => [...normalizedInvoices].sort((a, b) => b.orderVersion - a.orderVersion),
-    [normalizedInvoices]
-  )
+    () =>
+      [...normalizedInvoices].sort((a, b) => b.orderVersion - a.orderVersion),
+    [normalizedInvoices],
+  );
 
   // Track manual payments recorded by organizer (keyed by invoice number)
   // Must be declared before sortedInvoices memo which depends on it
   const [manualPayments, setManualPayments] = useState<
-    Record<string, { amount: number; method: string; date: Date; notes: string }>
-  >({})
+    Record<
+      string,
+      { amount: number; method: string; date: Date; notes: string }
+    >
+  >({});
 
   // Apply manual payments to invoices - update status and payments array
   const sortedInvoices = useMemo(() => {
-    return sortedInvoicesBase.map(invoice => {
-      const manualPayment = manualPayments[invoice.invoiceNumber]
-      if (!manualPayment) return invoice
+    return sortedInvoicesBase.map((invoice) => {
+      const manualPayment = manualPayments[invoice.invoiceNumber];
+      if (!manualPayment) return invoice;
 
       // Calculate total from line items (we need this for the payment amount)
       // For simplicity, we'll use the payment amount that covers the full invoice
-      const existingPayments = invoice.payments ?? []
+      const existingPayments = invoice.payments ?? [];
       const newPayment = {
         amount: manualPayment.amount,
         method: manualPayment.method,
-        lastFour: '', // Manual payments don't have card details
+        lastFour: "", // Manual payments don't have card details
         date: manualPayment.date,
-      }
+      };
 
-      const allPayments = [...existingPayments, newPayment]
+      const allPayments = [...existingPayments, newPayment];
 
       // Determine new status based on payment
       // We assume full payment since the dialog records the full invoice amount
-      const newStatus: 'paid' | 'partial' | 'unpaid' = 'paid'
+      const newStatus: "paid" | "partial" | "unpaid" = "paid";
 
       return {
         ...invoice,
         payments: allPayments,
         status: newStatus,
-      }
-    })
-  }, [sortedInvoicesBase, manualPayments])
-  
+      };
+    });
+  }, [sortedInvoicesBase, manualPayments]);
+
   // Current invoice is the one with highest version number
-  const currentInvoice = sortedInvoices[0] ?? null
-  const currentInvoiceNumber = currentInvoice?.invoiceNumber ?? ''
-  const pastInvoices = sortedInvoices.slice(1)
-  
-  const [selectedInvoiceNumber, setSelectedInvoiceNumber] = useState(currentInvoiceNumber)
-  const [isPrinting, setIsPrinting] = useState(false)
-  
+  const currentInvoice = sortedInvoices[0] ?? null;
+  const currentInvoiceNumber = currentInvoice?.invoiceNumber ?? "";
+  const pastInvoices = sortedInvoices.slice(1);
+
+  const [selectedInvoiceNumber, setSelectedInvoiceNumber] =
+    useState(currentInvoiceNumber);
+  const [isPrinting, setIsPrinting] = useState(false);
+
   // Track the previous current invoice to detect when the invoice list changes
-  const [prevCurrentInvoiceNumber, setPrevCurrentInvoiceNumber] = useState(currentInvoiceNumber)
+  const [prevCurrentInvoiceNumber, setPrevCurrentInvoiceNumber] =
+    useState(currentInvoiceNumber);
 
   // Sync selected invoice to current invoice when the invoice list changes (e.g., after storage loads)
   useEffect(() => {
     // If current invoice number changed (e.g., storage loaded with new invoices),
     // update selected to the new current invoice
-    if (currentInvoiceNumber && currentInvoiceNumber !== prevCurrentInvoiceNumber) {
-      setSelectedInvoiceNumber(currentInvoiceNumber)
-      setPrevCurrentInvoiceNumber(currentInvoiceNumber)
+    if (
+      currentInvoiceNumber &&
+      currentInvoiceNumber !== prevCurrentInvoiceNumber
+    ) {
+      setSelectedInvoiceNumber(currentInvoiceNumber);
+      setPrevCurrentInvoiceNumber(currentInvoiceNumber);
     }
-  }, [currentInvoiceNumber, prevCurrentInvoiceNumber])
-  const [showPaymentMethods, setShowPaymentMethods] = useState(false)
-  const [showMarkAsPaid, setShowMarkAsPaid] = useState(false)
-  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>('A')
+  }, [currentInvoiceNumber, prevCurrentInvoiceNumber]);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [showMarkAsPaid, setShowMarkAsPaid] = useState(false);
+  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>("A");
 
   const selectedInvoice =
-    sortedInvoices.find(inv => inv.invoiceNumber === selectedInvoiceNumber) ?? currentInvoice
+    sortedInvoices.find((inv) => inv.invoiceNumber === selectedInvoiceNumber) ??
+    currentInvoice;
 
   const handlePrint = () => {
-    setIsPrinting(true)
+    setIsPrinting(true);
     setTimeout(() => {
-      window.print()
-      setIsPrinting(false)
-    }, 100)
-  }
+      window.print();
+      setIsPrinting(false);
+    }, 100);
+  };
 
   // Determine if invoice is payable (not paid or void)
-  const isPayable = selectedInvoice?.status !== 'paid' && selectedInvoice?.status !== 'void'
+  const isPayable =
+    selectedInvoice?.status !== "paid" && selectedInvoice?.status !== "void";
 
   // Build invoice options for the selector
-  const invoiceOptions: InvoiceSelectOption[] = sortedInvoices.map((invoice, idx) => ({
-    invoiceNumber: invoice.invoiceNumber,
-    label: `#${invoice.invoiceNumber}`,
-    isCurrent: idx === 0,
-    status: invoice.status,
-  }))
+  const invoiceOptions: InvoiceSelectOption[] = sortedInvoices.map(
+    (invoice, idx) => ({
+      invoiceNumber: invoice.invoiceNumber,
+      label: `#${invoice.invoiceNumber}`,
+      isCurrent: idx === 0,
+      status: invoice.status,
+    }),
+  );
 
   // Build invoice history for activity timeline (sorted oldest to newest)
   const invoiceHistory: InvoiceHistoryItem[] = sortedInvoices
@@ -392,19 +456,22 @@ export function InvoicePageClient({
       issuedDate: invoice.issuedDate,
       isCurrent: idx === 0,
     }))
-    .sort((a, b) => new Date(a.issuedDate).getTime() - new Date(b.issuedDate).getTime())
+    .sort(
+      (a, b) =>
+        new Date(a.issuedDate).getTime() - new Date(b.issuedDate).getTime(),
+    );
 
   // Handle marking invoice as paid (for organizers)
   const handleMarkAsPaid = (data: {
-    paymentDate: Date
-    paymentMethod: string
-    notes: string
-    invoiceTotal: number
+    paymentDate: Date;
+    paymentMethod: string;
+    notes: string;
+    invoiceTotal: number;
   }) => {
-    if (!selectedInvoice) return
+    if (!selectedInvoice) return;
 
     // Record the manual payment
-    setManualPayments(prev => ({
+    setManualPayments((prev) => ({
       ...prev,
       [selectedInvoice.invoiceNumber]: {
         amount: data.invoiceTotal,
@@ -412,12 +479,12 @@ export function InvoicePageClient({
         date: data.paymentDate,
         notes: data.notes,
       },
-    }))
+    }));
 
-    toast.success('Invoice marked as paid', {
+    toast.success("Invoice marked as paid", {
       description: `Payment of $${data.invoiceTotal.toLocaleString()} recorded for invoice #${selectedInvoice.invoiceNumber}`,
-    })
-  }
+    });
+  };
 
   // Shared actions for InvoiceView
   const invoiceActions = (
@@ -439,11 +506,11 @@ export function InvoicePageClient({
         </WalkthroughSpotlight>
       )}
     </>
-  )
+  );
 
   // Sidebar component for Layout A
   const Sidebar = (
-    <motion.div 
+    <motion.div
       className="hidden lg:block border-l border-border"
       variants={fadeInUp}
       initial="hidden"
@@ -452,15 +519,17 @@ export function InvoicePageClient({
     >
       <aside className="sticky top-8 w-full pl-4">
         <div className="space-y-3 text-sm">
-          <div className="text-muted-foreground text-xs uppercase tracking-wide">Current Invoice</div>
+          <div className="text-muted-foreground text-xs uppercase tracking-wide">
+            Current Invoice
+          </div>
           {currentInvoice && (
             <div className="border-b border-border pb-3">
               <button
                 type="button"
                 className={`flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm transition ${
-                  selectedInvoiceNumber === currentInvoiceNumber 
-                    ? 'bg-primary/10 text-primary' 
-                    : 'text-foreground hover:bg-muted hover:text-primary'
+                  selectedInvoiceNumber === currentInvoiceNumber
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-muted hover:text-primary"
                 }`}
                 aria-label="Current invoice"
                 onClick={() => setSelectedInvoiceNumber(currentInvoiceNumber)}
@@ -472,28 +541,34 @@ export function InvoicePageClient({
               </button>
             </div>
           )}
-          <div className="text-muted-foreground text-xs uppercase tracking-wide pt-2">Past Invoices</div>
+          <div className="text-muted-foreground text-xs uppercase tracking-wide pt-2">
+            Past Invoices
+          </div>
           {pastInvoices.length > 0 ? (
             <div className="flex flex-col gap-1">
-              {pastInvoices.map(invoice => (
+              {pastInvoices.map((invoice) => (
                 <button
                   key={invoice.invoiceNumber}
                   type="button"
-                  onClick={() => setSelectedInvoiceNumber(invoice.invoiceNumber)}
+                  onClick={() =>
+                    setSelectedInvoiceNumber(invoice.invoiceNumber)
+                  }
                   className={`flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm transition ${
                     invoice.invoiceNumber === selectedInvoiceNumber
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-foreground hover:bg-muted hover:text-primary'
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground hover:bg-muted hover:text-primary"
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">#{invoice.invoiceNumber}</span>
-                    {invoice.status === 'paid' && (
+                    <span className="font-medium">
+                      #{invoice.invoiceNumber}
+                    </span>
+                    {invoice.status === "paid" && (
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
                         Paid
                       </span>
                     )}
-                    {invoice.status === 'void' && (
+                    {invoice.status === "void" && (
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         Void
                       </span>
@@ -513,8 +588,7 @@ export function InvoicePageClient({
         </div>
       </aside>
     </motion.div>
-  )
-
+  );
 
   return (
     <>
@@ -523,7 +597,7 @@ export function InvoicePageClient({
       <section className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
           {/* Header with back button and layout toggle */}
-          <motion.div 
+          <motion.div
             className="no-print mb-6"
             variants={fadeInUp}
             initial="hidden"
@@ -531,43 +605,51 @@ export function InvoicePageClient({
             viewport={{ once: true }}
           >
             <div className="flex items-center justify-between">
-              <Button asChild variant="ghost" size="icon" className="-ml-2 h-10 w-10">
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="-ml-2 h-10 w-10"
+              >
                 <Link href={registrationHref} aria-label="Back to registration">
                   <ArrowLeftIcon className="size-5" />
                 </Link>
               </Button>
-              <LayoutToggle variant={layoutVariant} onChange={setLayoutVariant} />
+              <LayoutToggle
+                variant={layoutVariant}
+                onChange={setLayoutVariant}
+              />
             </div>
           </motion.div>
 
-          {layoutVariant === 'A' ? (
+          {layoutVariant === "A" ? (
             // LAYOUT A: Two-column with sidebar, plain text title
             <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-                <motion.div 
-                  className="flex flex-col gap-6"
-                  variants={fadeInUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                >
-                  {selectedInvoice ? (
-                    <InvoiceView 
-                      invoice={selectedInvoice} 
-                      variant={isPrinting ? 'print' : 'web'}
-                      actions={invoiceActions}
-                      invoiceHistory={invoiceHistory}
-                    />
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-border/60 p-6 text-center text-muted-foreground">
-                      No invoices available for this registration yet.
-                    </div>
-                  )}
-                </motion.div>
-                {Sidebar}
-              </div>
+              <motion.div
+                className="flex flex-col gap-6"
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                {selectedInvoice ? (
+                  <InvoiceView
+                    invoice={selectedInvoice}
+                    variant={isPrinting ? "print" : "web"}
+                    actions={invoiceActions}
+                    invoiceHistory={invoiceHistory}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-border/60 p-6 text-center text-muted-foreground">
+                    No invoices available for this registration yet.
+                  </div>
+                )}
+              </motion.div>
+              {Sidebar}
+            </div>
           ) : (
             // LAYOUT B: Single column, TextSelect dropdown for invoice selection
-            <motion.div 
+            <motion.div
               className="flex flex-col gap-6"
               variants={fadeInUp}
               initial="hidden"
@@ -575,9 +657,9 @@ export function InvoicePageClient({
               viewport={{ once: true }}
             >
               {selectedInvoice ? (
-                <InvoiceView 
-                  invoice={selectedInvoice} 
-                  variant={isPrinting ? 'print' : 'web'}
+                <InvoiceView
+                  invoice={selectedInvoice}
+                  variant={isPrinting ? "print" : "web"}
                   invoiceOptions={invoiceOptions}
                   onInvoiceSelect={setSelectedInvoiceNumber}
                   actions={invoiceActions}
@@ -601,10 +683,12 @@ export function InvoicePageClient({
       <MarkAsPaidDialog
         open={showMarkAsPaid}
         onOpenChange={setShowMarkAsPaid}
-        invoiceNumber={selectedInvoice?.invoiceNumber ?? ''}
-        invoiceTotal={selectedInvoice ? calculateInvoiceTotal(selectedInvoice) : 0}
+        invoiceNumber={selectedInvoice?.invoiceNumber ?? ""}
+        invoiceTotal={
+          selectedInvoice ? calculateInvoiceTotal(selectedInvoice) : 0
+        }
         onConfirm={handleMarkAsPaid}
       />
     </>
-  )
+  );
 }

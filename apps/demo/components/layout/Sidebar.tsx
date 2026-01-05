@@ -40,6 +40,7 @@ type SidebarProps = {
   onClose?: () => void
   supportTitle?: string
   supportText?: string
+  positionMode?: 'sticky' | 'static'
 }
 
 export function Sidebar({
@@ -52,6 +53,7 @@ export function Sidebar({
   onClose,
   supportTitle = 'Support',
   supportText = 'Need help? Reach out to your CSM or email support@cheerbase.test',
+  positionMode = 'sticky',
 }: SidebarProps) {
   const { signOut } = useAuth()
   const router = useRouter()
@@ -63,11 +65,17 @@ export function Sidebar({
     <>
       <aside
         className={cn(
-          'sticky flex w-72 flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300 lg:translate-x-0',
+          'flex w-72 flex-col transition-transform duration-300 lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
-          isMobile ? 'fixed left-0 z-30 shadow-lg' : ''
+          isMobile ? 'fixed left-0 z-30 shadow-lg border-r border-sidebar-border bg-sidebar' : '',
+          !isMobile && positionMode === 'sticky' ? 'sticky border-r border-sidebar-border bg-sidebar' : '',
+          !isMobile && positionMode === 'static' ? 'bg-transparent' : ''
         )}
-        style={{ top: offsetPx, height: availableHeight }}
+        style={
+          !isMobile && positionMode === 'static'
+            ? { height: availableHeight }
+            : { top: offsetPx, height: availableHeight }
+        }
       >
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-4 pt-5">
           {navSections.map((section, index) => (
@@ -125,7 +133,7 @@ export function Sidebar({
           ))}
         </nav>
 
-        <div className="border-t border-border/70 px-3 py-4">
+        <div className={cn('px-3 py-4', positionMode === 'sticky' && 'border-t border-border/70')}>
           <div className="rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
             <p className="text-sm font-semibold text-foreground">{supportTitle}</p>
             <p>{supportText}</p>

@@ -9,9 +9,12 @@ import { useOrganizer } from "@/hooks/useOrganizer";
 import { getRegistrationsByOrganizerId, getRegistrationsByEventForOrganizer } from "@/data/events/selectors";
 import type { Registration } from "@/types/club";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
+import { useLayoutContextSafe } from "@/components/providers/LayoutProvider";
 import { type BrandGradient } from "@/lib/gradients";
 
 export default function OrganizerRegistrationsPage() {
+  const { layout } = useLayoutContextSafe();
   const { organizer, organizerId, isLoading } = useOrganizer();
   const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
 
@@ -85,10 +88,19 @@ export default function OrganizerRegistrationsPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <PageHeader
-          title="Registrations"
-          gradient={organizerGradient || organizer?.gradient}
-        />
+        {layout === 'A' ? (
+          <PageHeader
+            title="Registrations"
+            gradient={organizerGradient || organizer?.gradient}
+          />
+        ) : (
+          <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+            <PageTitle
+              title="Registrations"
+              gradient={organizerGradient || organizer?.gradient}
+            />
+          </div>
+        )}
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -108,10 +120,19 @@ export default function OrganizerRegistrationsPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      <PageHeader
-        title="Registrations"
-        gradient={organizerGradient || organizer?.gradient}
-      />
+      {layout === 'A' ? (
+        <PageHeader
+          title="Registrations"
+          gradient={organizerGradient || organizer?.gradient}
+        />
+      ) : (
+        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+          <PageTitle
+            title="Registrations"
+            gradient={organizerGradient || organizer?.gradient}
+          />
+        </div>
+      )}
       <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
 
         {/* Summary Stats */}

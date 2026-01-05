@@ -1,16 +1,16 @@
-import { UnifiedRegistrationPage } from '@/components/features/clubs/UnifiedRegistrationPage'
+import { UnifiedRegistrationPage } from "@/components/features/clubs/UnifiedRegistrationPage";
 
 type PageParams = {
-  registrationId: string
-}
+  registrationId: string;
+};
 
 type PageProps = {
-  params?: Promise<PageParams>
-}
+  params?: Promise<PageParams>;
+};
 
 export default async function RegistrationPage({ params }: PageProps) {
-  const resolvedParams = params ? await params : { registrationId: '' }
-  const registrationId = decodeURIComponent(resolvedParams.registrationId)
+  const resolvedParams = params ? await params : { registrationId: "" };
+  const registrationId = decodeURIComponent(resolvedParams.registrationId);
 
-  return <UnifiedRegistrationPage registrationId={registrationId} />
+  return <UnifiedRegistrationPage registrationId={registrationId} />;
 }

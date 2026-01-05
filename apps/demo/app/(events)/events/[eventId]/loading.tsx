@@ -1,5 +1,5 @@
-import { EventDetailSkeleton } from '@/components/ui'
+import { EventDetailSkeleton } from "@/components/ui";
 
 export default function EventDetailLoading() {
-  return <EventDetailSkeleton />
+  return <EventDetailSkeleton />;
 }

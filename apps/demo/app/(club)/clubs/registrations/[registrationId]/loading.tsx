@@ -1,5 +1,5 @@
-import { RegistrationDetailSkeleton } from '@/components/ui'
+import { RegistrationDetailSkeleton } from "@/components/ui";
 
 export default function RegistrationDetailLoading() {
-  return <RegistrationDetailSkeleton />
+  return <RegistrationDetailSkeleton />;
 }

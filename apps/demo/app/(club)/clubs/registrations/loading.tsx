@@ -1,4 +1,4 @@
-import { PageHeaderSkeleton, SectionSkeleton } from '@/components/ui'
+import { PageHeaderSkeleton, SectionSkeleton } from "@/components/ui";
 
 export default function RegistrationsLoading() {
   return (
@@ -18,5 +18,5 @@ export default function RegistrationsLoading() {
         <SectionSkeleton showDivider={false} itemCount={5} layout="list" />
       </div>
     </section>
-  )
+  );
 }

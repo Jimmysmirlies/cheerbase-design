@@ -44,6 +44,7 @@ import { AuthDialog } from '@/components/features/auth/AuthDialog'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useOrganizer } from '@/hooks/useOrganizer'
 import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
+import { LayoutToggle } from '@/components/ui/controls/LayoutToggle'
 import { eventCategories } from '@/data/events/categories'
 import { brandGradients, type BrandGradient } from '@/lib/gradients'
 import { 
@@ -73,9 +74,12 @@ type NavBarProps = {
   showSidebarToggle?: boolean
   sidebarOpen?: boolean
   onSidebarToggle?: () => void
+  layoutVariant?: 'A' | 'B'
+  onLayoutChange?: (variant: 'A' | 'B') => void
+  showLayoutToggle?: boolean
 }
 
-export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebarOpen = false, onSidebarToggle }: NavBarProps) {
+export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebarOpen = false, onSidebarToggle, layoutVariant, onLayoutChange, showLayoutToggle }: NavBarProps) {
   void mode
   void variant
   void showNavLinks
@@ -389,7 +393,23 @@ export function NavBar({ mode, variant, showNavLinks, showSidebarToggle, sidebar
                     )}
                   </Button>
                 )}
-                
+
+                {/* Layout toggle for organizer section */}
+                {showLayoutToggle && layoutVariant && onLayoutChange && (
+                  <LayoutToggle
+                    variants={['A', 'B']}
+                    value={layoutVariant}
+                    onChange={onLayoutChange}
+                    storageKey="cheerbase-organizer-layout-tutorial"
+                    tutorialTitle="Layout Options"
+                    tutorialDescription="Try different dashboard layouts to find what works best for you."
+                    tutorialItems={[
+                      { label: 'A', description: 'Full-width sidebar' },
+                      { label: 'B', description: 'Centered content' },
+                    ]}
+                  />
+                )}
+
                 {/* Style Guide button with tooltip */}
                 <TooltipProvider delayDuration={300}>
                   <Tooltip>
