@@ -59,29 +59,49 @@ export default function OrganizerCardComponentPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Prop</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">name</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Organizer name (used for initials)</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Organizer name (used for initials)
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">region</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Geographic region label</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Geographic region label
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">visibility</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Visibility status (Public/Private)</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Visibility status (Public/Private)
+                    </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 font-mono text-xs">accentGradient</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Tailwind gradient classes for avatar</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      accentGradient
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Tailwind gradient classes for avatar
+                    </td>
                   </tr>
                 </tbody>
               </table>

@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { CheckCircle2Icon } from 'lucide-react'
+import { useState } from "react";
+import { CheckCircle2Icon } from "lucide-react";
 
-import { Button } from '@workspace/ui/shadcn/button'
-import { formatCurrency } from '@/utils/format'
+import { Button } from "@workspace/ui/shadcn/button";
+import { formatCurrency } from "@/utils/format";
 import {
   Dialog,
   DialogContent,
@@ -12,32 +12,32 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@workspace/ui/shadcn/dialog'
-import { Label } from '@workspace/ui/shadcn/label'
-import { Textarea } from '@workspace/ui/shadcn/textarea'
+} from "@workspace/ui/shadcn/dialog";
+import { Label } from "@workspace/ui/shadcn/label";
+import { Textarea } from "@workspace/ui/shadcn/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@workspace/ui/shadcn/select'
-import { DatePicker } from '@workspace/ui/shadcn/date-picker'
+} from "@workspace/ui/shadcn/select";
+import { DatePicker } from "@workspace/ui/shadcn/date-picker";
 
-type PaymentMethod = 'e-transfer' | 'cheque' | 'cash' | 'other'
+type PaymentMethod = "e-transfer" | "cheque" | "cash" | "other";
 
 type MarkAsPaidDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  invoiceNumber: string
-  invoiceTotal: number
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  invoiceNumber: string;
+  invoiceTotal: number;
   onConfirm?: (data: {
-    paymentDate: Date
-    paymentMethod: PaymentMethod
-    notes: string
-    invoiceTotal: number
-  }) => void
-}
+    paymentDate: Date;
+    paymentMethod: PaymentMethod;
+    notes: string;
+    invoiceTotal: number;
+  }) => void;
+};
 
 export function MarkAsPaidDialog({
   open,
@@ -46,9 +46,10 @@ export function MarkAsPaidDialog({
   invoiceTotal,
   onConfirm,
 }: MarkAsPaidDialogProps) {
-  const [paymentDate, setPaymentDate] = useState<Date>(new Date())
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('e-transfer')
-  const [notes, setNotes] = useState('')
+  const [paymentDate, setPaymentDate] = useState<Date>(new Date());
+  const [paymentMethod, setPaymentMethod] =
+    useState<PaymentMethod>("e-transfer");
+  const [notes, setNotes] = useState("");
 
   const handleConfirm = () => {
     onConfirm?.({
@@ -56,21 +57,21 @@ export function MarkAsPaidDialog({
       paymentMethod,
       notes,
       invoiceTotal,
-    })
-    onOpenChange(false)
+    });
+    onOpenChange(false);
     // Reset form
-    setPaymentDate(new Date())
-    setPaymentMethod('e-transfer')
-    setNotes('')
-  }
+    setPaymentDate(new Date());
+    setPaymentMethod("e-transfer");
+    setNotes("");
+  };
 
   const handleCancel = () => {
-    onOpenChange(false)
+    onOpenChange(false);
     // Reset form
-    setPaymentDate(new Date())
-    setPaymentMethod('e-transfer')
-    setNotes('')
-  }
+    setPaymentDate(new Date());
+    setPaymentMethod("e-transfer");
+    setNotes("");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,7 +84,12 @@ export function MarkAsPaidDialog({
             <DialogTitle className="text-left">Mark as Paid</DialogTitle>
           </div>
           <DialogDescription className="text-left">
-            Record a payment of <span className="font-medium text-foreground">{formatCurrency(invoiceTotal)}</span> for invoice #{invoiceNumber}. This will update the invoice status to paid.
+            Record a payment of{" "}
+            <span className="font-medium text-foreground">
+              {formatCurrency(invoiceTotal)}
+            </span>{" "}
+            for invoice #{invoiceNumber}. This will update the invoice status to
+            paid.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +108,12 @@ export function MarkAsPaidDialog({
           {/* Payment Method */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="payment-method">Payment Method</Label>
-            <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}>
+            <Select
+              value={paymentMethod}
+              onValueChange={(value) =>
+                setPaymentMethod(value as PaymentMethod)
+              }
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
@@ -136,5 +147,5 @@ export function MarkAsPaidDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

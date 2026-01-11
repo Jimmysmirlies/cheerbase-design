@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { TagTabs } from "@/components/ui/controls/TagTabs";
+import { PageTabs } from "@/components/ui/controls/PageTabs";
 import { Button } from "@workspace/ui/shadcn/button";
 import { TextSelect } from "@workspace/ui/components/text-select";
 import {
@@ -392,7 +392,7 @@ function RegistrationsContent({
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <TagTabs
+          <PageTabs
             tabs={[
               { id: "upcoming", label: "Upcoming" },
               { id: "past", label: "Past" },

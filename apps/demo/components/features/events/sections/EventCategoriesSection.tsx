@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * EventCategoriesSection
@@ -21,13 +21,17 @@ import { fadeInUp, staggerContainer } from "@/lib/animations";
 type EventCategoriesSectionProps = {
   categories: EventCategory[];
   id?: string;
-  cardSize?: 'default' | 'compact';
+  cardSize?: "default" | "compact";
 };
 
-export default function EventCategoriesSection({ categories, id = "categories", cardSize = "default" }: EventCategoriesSectionProps) {
+export default function EventCategoriesSection({
+  categories,
+  id = "categories",
+  cardSize = "default",
+}: EventCategoriesSectionProps) {
   return (
     <section className="bg-background py-16" id={id}>
-      <motion.div 
+      <motion.div
         className="mx-auto max-w-7xl space-y-12 px-6"
         variants={staggerContainer}
         initial="hidden"
@@ -39,8 +43,12 @@ export default function EventCategoriesSection({ categories, id = "categories", 
             <div className="space-y-6">
               {/* Category header: title and supporting subtitle */}
               <header className="space-y-2">
-                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{category.title}</h2>
-                <p className="text-sm text-muted-foreground">{category.subtitle}</p>
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  {category.title}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {category.subtitle}
+                </p>
               </header>
               {/* Category grid: event cards */}
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

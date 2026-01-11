@@ -1,8 +1,8 @@
-import { PageHeaderSkeleton } from './PageHeaderSkeleton'
-import { OrganizerCardSkeleton } from './OrganizerCardSkeleton'
-import { TeamCardSkeleton } from './TeamCardSkeleton'
-import { InvoiceSkeleton } from './InvoiceSkeleton'
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
+import { PageHeaderSkeleton } from "./PageHeaderSkeleton";
+import { OrganizerCardSkeleton } from "./OrganizerCardSkeleton";
+import { TeamCardSkeleton } from "./TeamCardSkeleton";
+import { InvoiceSkeleton } from "./InvoiceSkeleton";
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
 
 /**
  * Full page skeleton for Registration Detail page.
@@ -12,7 +12,7 @@ export function RegistrationDetailSkeleton() {
   return (
     <section className="flex flex-1 flex-col">
       <PageHeaderSkeleton showBreadcrumb showAction />
-      
+
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
           {/* Main content */}
@@ -93,5 +93,5 @@ export function RegistrationDetailSkeleton() {
       </div>
       <div className="h-20 lg:hidden" />
     </section>
-  )
+  );
 }

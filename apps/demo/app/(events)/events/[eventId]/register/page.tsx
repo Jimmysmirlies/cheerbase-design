@@ -1,50 +1,50 @@
-import { notFound } from 'next/navigation'
+import { notFound } from "next/navigation";
 
-import { PageHeader } from '@/components/layout/PageHeader'
-import { NewRegistrationContent } from '@/components/features/registration/flow/NewRegistrationContent'
-import { findEventById } from '@/data/events'
-import { findOrganizerByName } from '@/data/events/organizers'
-import { getClubData } from '@/lib/club-data'
-import { formatFriendlyDate } from '@/utils/format'
-import type { Event as ShowcaseEvent } from '@/types/events'
+import { PageHeader } from "@/components/layout/PageHeader";
+import { NewRegistrationContent } from "@/components/features/registration/flow/NewRegistrationContent";
+import { findEventById } from "@/data/events";
+import { findOrganizerByName } from "@/data/events/organizers";
+import { getClubData } from "@/lib/club-data";
+import { formatFriendlyDate } from "@/utils/format";
+import type { Event as ShowcaseEvent } from "@/types/events";
 
 type RegisterPageParams = {
-  eventId: string
-}
+  eventId: string;
+};
 
 type RegisterPageProps = {
-  params?: Promise<RegisterPageParams>
-}
+  params?: Promise<RegisterPageParams>;
+};
 
 export default async function RegisterEventPage({ params }: RegisterPageProps) {
-  const resolvedParams = params ? await params : null
+  const resolvedParams = params ? await params : null;
   if (!resolvedParams) {
-    notFound()
+    notFound();
   }
 
-  const clubData = await getClubData()
-  const eventId = decodeURIComponent(resolvedParams.eventId)
-  const eventData = findEventById(eventId) as ShowcaseEvent | undefined
+  const clubData = await getClubData();
+  const eventId = decodeURIComponent(resolvedParams.eventId);
+  const eventData = findEventById(eventId) as ShowcaseEvent | undefined;
 
   if (!eventData) {
-    notFound()
+    notFound();
   }
 
-  const eventDetails = eventData
-  const divisionPricing = eventDetails.availableDivisions ?? []
+  const eventDetails = eventData;
+  const divisionPricing = eventDetails.availableDivisions ?? [];
 
   // Get organizer data for gradient
-  const organizer = findOrganizerByName(eventDetails.organizer)
-  const gradient = organizer?.gradient ?? 'teal'
+  const organizer = findOrganizerByName(eventDetails.organizer);
+  const gradient = organizer?.gradient ?? "teal";
 
   // Calculate registration deadline (day before event)
-  const eventDate = new Date(eventDetails.date)
-  const registrationDeadline = new Date(eventDate)
-  registrationDeadline.setDate(registrationDeadline.getDate() - 1)
-  const registrationDeadlineLabel = formatFriendlyDate(registrationDeadline)
+  const eventDate = new Date(eventDetails.date);
+  const registrationDeadline = new Date(eventDate);
+  registrationDeadline.setDate(registrationDeadline.getDate() - 1);
+  const registrationDeadlineLabel = formatFriendlyDate(registrationDeadline);
 
   // Build rosters from club data
-  const rosters = clubData.rosters ?? []
+  const rosters = clubData.rosters ?? [];
 
   return (
     <section className="flex flex-1 flex-col">
@@ -53,9 +53,12 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
         hideBorder
         gradient={gradient}
         breadcrumbs={[
-          { label: 'Events', href: '/events/search' },
-          { label: eventDetails.name, href: `/events/${encodeURIComponent(eventId)}` },
-          { label: 'Register' },
+          { label: "Events", href: "/events/search" },
+          {
+            label: eventDetails.name,
+            href: `/events/${encodeURIComponent(eventId)}`,
+          },
+          { label: "Register" },
         ]}
       />
 
@@ -67,10 +70,15 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
         eventDate={eventDetails.date}
         location={eventDetails.location}
         divisionPricing={divisionPricing}
-        teams={clubData.teams.map(({ id, name, division, size }) => ({ id, name, division, size }))}
+        teams={clubData.teams.map(({ id, name, division, size }) => ({
+          id,
+          name,
+          division,
+          size,
+        }))}
         rosters={rosters}
         registrationDeadline={registrationDeadlineLabel}
       />
     </section>
-  )
+  );
 }

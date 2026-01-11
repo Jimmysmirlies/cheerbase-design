@@ -824,4 +824,4 @@ export const demoRegistrations: Registration[] = [
     snapshotTakenAt: "2026-01-15T10:00:00.000Z",
     snapshotSourceTeamId: "t-u18-small-blaze",
   },
-]
+];

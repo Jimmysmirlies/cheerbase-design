@@ -58,19 +58,23 @@ function getFillRateColor(fillRate: number) {
 
 export default function OrganizerHomePage() {
   const { organizer, organizerId, isLoading } = useOrganizer();
-  const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
+  const [organizerGradient, setOrganizerGradient] = useState<
+    BrandGradient | undefined
+  >(undefined);
 
   // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
       if (organizerId) {
         try {
-          const stored = localStorage.getItem(`cheerbase-organizer-settings-${organizerId}`)
+          const stored = localStorage.getItem(
+            `cheerbase-organizer-settings-${organizerId}`,
+          );
           if (stored) {
-            const settings = JSON.parse(stored)
+            const settings = JSON.parse(stored);
             if (settings.gradient) {
-              setOrganizerGradient(settings.gradient)
-              return
+              setOrganizerGradient(settings.gradient);
+              return;
             }
           }
         } catch {
@@ -78,56 +82,64 @@ export default function OrganizerHomePage() {
         }
       }
       // Fall back to organizer's default gradient
-      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined)
-    }
+      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
+    };
 
-    loadGradient()
+    loadGradient();
 
     // Listen for settings changes
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
-        setOrganizerGradient(event.detail.gradient as BrandGradient)
+        setOrganizerGradient(event.detail.gradient as BrandGradient);
       }
-    }
+    };
 
-    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    window.addEventListener(
+      "organizer-settings-changed",
+      handleSettingsChange as EventListener,
+    );
     return () => {
-      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
-    }
-  }, [organizerId, organizer?.gradient])
+      window.removeEventListener(
+        "organizer-settings-changed",
+        handleSettingsChange as EventListener,
+      );
+    };
+  }, [organizerId, organizer?.gradient]);
 
-  const gradientKey = organizerGradient || organizer?.gradient || 'primary';
-  const gradient = brandGradients[gradientKey as BrandGradient] || brandGradients.primary;
+  const gradientKey = organizerGradient || organizer?.gradient || "primary";
+  const gradient =
+    brandGradients[gradientKey as BrandGradient] || brandGradients.primary;
 
   // Get all analytics data
-  const stats = useMemo(() =>
-    organizerId ? getOrganizerStats(organizerId) : null,
-    [organizerId]
+  const stats = useMemo(
+    () => (organizerId ? getOrganizerStats(organizerId) : null),
+    [organizerId],
   );
 
-  const paymentHealth = useMemo(() =>
-    organizerId ? getPaymentHealth(organizerId) : null,
-    [organizerId]
+  const paymentHealth = useMemo(
+    () => (organizerId ? getPaymentHealth(organizerId) : null),
+    [organizerId],
   );
 
-  const eventPerformance = useMemo(() =>
-    organizerId ? getEventPerformance(organizerId) : [],
-    [organizerId]
+  const eventPerformance = useMemo(
+    () => (organizerId ? getEventPerformance(organizerId) : []),
+    [organizerId],
   );
 
-  const recentRegistrations = useMemo(() =>
-    organizerId ? getRegistrationTableData(organizerId).slice(0, 5) : [],
-    [organizerId]
+  const recentRegistrations = useMemo(
+    () =>
+      organizerId ? getRegistrationTableData(organizerId).slice(0, 5) : [],
+    [organizerId],
   );
 
   // Check if there are attention items
   const hasAttentionItems = paymentHealth && paymentHealth.overdueCount > 0;
-  const lowFillEvents = eventPerformance.filter(e => e.fillRate < 25);
+  const lowFillEvents = eventPerformance.filter((e) => e.fillRate < 25);
 
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 lg:px-8">
           <div className="h-10 w-64 animate-pulse rounded bg-muted" />
           <div className="h-4 w-96 animate-pulse rounded bg-muted" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -154,7 +166,8 @@ export default function OrganizerHomePage() {
             <Badge variant="secondary">Beta</Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            View a snapshot of active events, pending registrations, and revenue overview.
+            View a snapshot of active events, pending registrations, and revenue
+            overview.
           </p>
         </div>
 
@@ -168,10 +181,12 @@ export default function OrganizerHomePage() {
                     <AlertTriangleIcon className="size-5 text-amber-600 dark:text-amber-400" />
                     <div>
                       <p className="font-medium text-amber-800 dark:text-amber-200">
-                        {paymentHealth.overdueCount} payment{paymentHealth.overdueCount !== 1 ? 's' : ''} overdue
+                        {paymentHealth.overdueCount} payment
+                        {paymentHealth.overdueCount !== 1 ? "s" : ""} overdue
                       </p>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        {formatCurrency(paymentHealth.overdueAmount)} total outstanding
+                        {formatCurrency(paymentHealth.overdueAmount)} total
+                        outstanding
                       </p>
                     </div>
                   </div>
@@ -180,7 +195,11 @@ export default function OrganizerHomePage() {
               </Link>
             )}
             {lowFillEvents.map((event) => (
-              <Link key={event.eventId} href={`/organizer/events/${event.eventId}`} className="block">
+              <Link
+                key={event.eventId}
+                href={`/organizer/events/${event.eventId}`}
+                className="block"
+              >
                 <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
                   <div className="flex items-center gap-3">
                     <AlertTriangleIcon className="size-5 text-red-600 dark:text-red-400" />
@@ -189,7 +208,8 @@ export default function OrganizerHomePage() {
                         {event.eventName} has low registration
                       </p>
                       <p className="text-sm text-red-700 dark:text-red-300">
-                        Only {event.fillRate.toFixed(0)}% filled ({event.filledSlots}/{event.totalSlots} teams)
+                        Only {event.fillRate.toFixed(0)}% filled (
+                        {event.filledSlots}/{event.totalSlots} teams)
                       </p>
                     </div>
                   </div>
@@ -201,14 +221,16 @@ export default function OrganizerHomePage() {
         )}
       </div>
       <motion.div
-        className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8"
+        className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 lg:px-8"
         variants={staggerSections}
         initial="hidden"
         animate="visible"
       >
-
         {/* Stats Grid */}
-        <motion.div variants={fadeInUp} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          variants={fadeInUp}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
           <StatCard
             title="Active Events"
             value={String(stats?.activeEvents ?? 0)}
@@ -234,109 +256,120 @@ export default function OrganizerHomePage() {
         {/* Active Events Section */}
         {eventPerformance.length > 0 && (
           <motion.div variants={fadeInUp}>
-          <Section title="Active Events">
-            <div className="space-y-4">
-              {eventPerformance.map((event) => (
-                <Link
-                  key={event.eventId}
-                  href={`/organizer/events/${event.eventId}`}
-                  className="block"
-                >
-                  <div className="flex items-center gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/50">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{event.eventName}</p>
-                      <p className="text-sm text-muted-foreground">{event.eventDate}</p>
-                    </div>
-                    <div className="flex w-48 items-center gap-3">
-                      <div className="flex-1">
-                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                          <div
-                            className={`h-full transition-all ${getFillRateColor(event.fillRate)}`}
-                            style={{ width: `${Math.min(event.fillRate, 100)}%` }}
-                          />
-                        </div>
+            <Section title="Active Events">
+              <div className="space-y-4">
+                {eventPerformance.map((event) => (
+                  <Link
+                    key={event.eventId}
+                    href={`/organizer/events/${event.eventId}`}
+                    className="block"
+                  >
+                    <div className="flex items-center gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/50">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">
+                          {event.eventName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {event.eventDate}
+                        </p>
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                        {event.filledSlots}/{event.totalSlots}
-                      </span>
+                      <div className="flex w-48 items-center gap-3">
+                        <div className="flex-1">
+                          <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className={`h-full transition-all ${getFillRateColor(event.fillRate)}`}
+                              style={{
+                                width: `${Math.min(event.fillRate, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                          {event.filledSlots}/{event.totalSlots}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </Section>
+                  </Link>
+                ))}
+              </div>
+            </Section>
           </motion.div>
         )}
 
         {/* Recent Registrations Section */}
         {recentRegistrations.length > 0 && (
           <motion.div variants={fadeInUp}>
-          <Section
-            title="Recent Registrations"
-            titleRight={
-              <Link
-                href="/organizer/invoices"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                View All
-              </Link>
-            }
-          >
-            <DataTable>
-              <DataTableHeader>
-                <tr>
-                  <DataTableHead>Team</DataTableHead>
-                  <DataTableHead>Event</DataTableHead>
-                  <DataTableHead>Submitted</DataTableHead>
-                  <DataTableHead className="text-right">Status</DataTableHead>
-                </tr>
-              </DataTableHeader>
-              <DataTableBody>
-                {recentRegistrations.map((reg, index) => (
-                  <DataTableRow key={reg.id} animationDelay={index * 40}>
-                    <DataTableCell className="font-medium text-foreground">
-                      {reg.teamName}
-                    </DataTableCell>
-                    <DataTableCell className="text-muted-foreground">
-                      {reg.eventName}
-                    </DataTableCell>
-                    <DataTableCell className="text-muted-foreground">
-                      {reg.submittedAtFormatted}
-                    </DataTableCell>
-                    <DataTableCell className="text-right">
-                      <Badge
-                        variant="outline"
-                        className={getStatusBadgeVariant(reg.status)}
-                      >
-                        {reg.status.charAt(0).toUpperCase() + reg.status.slice(1)}
-                      </Badge>
-                    </DataTableCell>
-                  </DataTableRow>
-                ))}
-              </DataTableBody>
-            </DataTable>
-          </Section>
+            <Section
+              title="Recent Registrations"
+              titleRight={
+                <Link
+                  href="/organizer/invoices"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  View All
+                </Link>
+              }
+            >
+              <DataTable>
+                <DataTableHeader>
+                  <tr>
+                    <DataTableHead>Team</DataTableHead>
+                    <DataTableHead>Event</DataTableHead>
+                    <DataTableHead>Submitted</DataTableHead>
+                    <DataTableHead className="text-right">Status</DataTableHead>
+                  </tr>
+                </DataTableHeader>
+                <DataTableBody>
+                  {recentRegistrations.map((reg, index) => (
+                    <DataTableRow key={reg.id} animationDelay={index * 40}>
+                      <DataTableCell className="font-medium text-foreground">
+                        {reg.teamName}
+                      </DataTableCell>
+                      <DataTableCell className="text-muted-foreground">
+                        {reg.eventName}
+                      </DataTableCell>
+                      <DataTableCell className="text-muted-foreground">
+                        {reg.submittedAtFormatted}
+                      </DataTableCell>
+                      <DataTableCell className="text-right">
+                        <Badge
+                          variant="outline"
+                          className={getStatusBadgeVariant(reg.status)}
+                        >
+                          {reg.status.charAt(0).toUpperCase() +
+                            reg.status.slice(1)}
+                        </Badge>
+                      </DataTableCell>
+                    </DataTableRow>
+                  ))}
+                </DataTableBody>
+              </DataTable>
+            </Section>
           </motion.div>
         )}
 
         {/* Empty State */}
         {!stats?.activeEvents && (
           <motion.div variants={fadeInUp}>
-          <Section title="Get Started" showDivider={eventPerformance.length === 0}>
-            <Card className="border-border/70 border-dashed">
-              <CardContent className="py-8 text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Set up your first event to invite clubs and start receiving registrations.
-                </p>
-                <Button asChild>
-                  <Link href="/organizer/events/new">
-                    <PlusIcon className="mr-2 size-4" />
-                    Create Your First Event
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </Section>
+            <Section
+              title="Get Started"
+              showDivider={eventPerformance.length === 0}
+            >
+              <Card className="border-border/70 border-dashed">
+                <CardContent className="py-8 text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set up your first event to invite clubs and start receiving
+                    registrations.
+                  </p>
+                  <Button asChild>
+                    <Link href="/organizer/events/new">
+                      <PlusIcon className="mr-2 size-4" />
+                      Create Your First Event
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </Section>
           </motion.div>
         )}
       </motion.div>
@@ -344,7 +377,15 @@ export default function OrganizerHomePage() {
   );
 }
 
-function StatCard({ title, value, icon }: { title: string; value: string; icon: ReactNode }) {
+function StatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string;
+  icon: ReactNode;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

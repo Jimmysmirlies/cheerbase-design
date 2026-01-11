@@ -1,4 +1,4 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
 
 /**
  * Full page skeleton for the invoice page.
@@ -51,7 +51,10 @@ export function InvoicePageSkeleton() {
                   <div className="overflow-hidden rounded-md border border-border/70">
                     <Skeleton className="h-10 w-full" />
                     {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-14 w-full border-t border-border/60" />
+                      <Skeleton
+                        key={i}
+                        className="h-14 w-full border-t border-border/60"
+                      />
                     ))}
                   </div>
                 </div>
@@ -89,8 +92,5 @@ export function InvoicePageSkeleton() {
         </div>
       </div>
     </section>
-  )
+  );
 }
-
-
-

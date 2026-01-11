@@ -1,6 +1,7 @@
 # Figma Make App Structure Guide
 
 ## Core Philosophy
+
 Build lightweight prototypes with clear component boundaries, mock data, and design system adherence. Scale to real backend only when needed.
 
 ---
@@ -8,6 +9,7 @@ Build lightweight prototypes with clear component boundaries, mock data, and des
 ## File Structure
 
 ### Single Page Application (SPA)
+
 ```
 /
 ├── App.tsx                          # Main entry point & orchestration
@@ -27,6 +29,7 @@ Build lightweight prototypes with clear component boundaries, mock data, and des
 ```
 
 ### Multi-Page Application (with routing)
+
 ```
 /
 ├── App.tsx                          # Router setup & global layout
@@ -67,11 +70,12 @@ Build lightweight prototypes with clear component boundaries, mock data, and des
 ## App.tsx Patterns
 
 ### Pattern 1: Single Page App
+
 ```tsx
 // App.tsx
-import { Header } from './components/layout/Header';
-import { EventMarketplace } from './components/EventMarketplace';
-import { Footer } from './components/layout/Footer';
+import { Header } from "./components/layout/Header";
+import { EventMarketplace } from "./components/EventMarketplace";
+import { Footer } from "./components/layout/Footer";
 
 export default function App() {
   return (
@@ -87,15 +91,16 @@ export default function App() {
 ```
 
 ### Pattern 2: Multi-Page with React Router
+
 ```tsx
 // App.tsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Header } from './components/layout/Header';
-import { Footer } from './components/layout/Footer';
-import { HomePage } from './pages/HomePage';
-import { EventsPage } from './pages/EventsPage';
-import { EventDetailPage } from './pages/EventDetailPage';
-import { RegistrationPage } from './pages/RegistrationPage';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Header } from "./components/layout/Header";
+import { Footer } from "./components/layout/Footer";
+import { HomePage } from "./pages/HomePage";
+import { EventsPage } from "./pages/EventsPage";
+import { EventDetailPage } from "./pages/EventDetailPage";
+import { RegistrationPage } from "./pages/RegistrationPage";
 
 export default function App() {
   return (
@@ -118,12 +123,13 @@ export default function App() {
 ```
 
 ### Pattern 3: Tab-Based Navigation (no routing needed)
+
 ```tsx
 // App.tsx
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
-import { EventCompanyView } from './components/EventCompanyView';
-import { ClubManagerView } from './components/ClubManagerView';
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { EventCompanyView } from "./components/EventCompanyView";
+import { ClubManagerView } from "./components/ClubManagerView";
 
 export default function App() {
   return (
@@ -150,12 +156,16 @@ export default function App() {
 ## Component Organization Rules
 
 ### 1. Single Responsibility
+
 Each component does ONE thing well:
+
 - ❌ `EventPage.tsx` (too broad)
 - ✅ `EventCard.tsx`, `EventFilters.tsx`, `EventCarousel.tsx`
 
 ### 2. Feature-Based Folders
+
 Group by domain, not by type:
+
 ```
 components/
 ├── events/              # All event-related components
@@ -165,15 +175,13 @@ components/
 ```
 
 ### 3. Composition Over Monoliths
+
 Break large components into smaller, composable pieces:
+
 ```tsx
 // ❌ Bad: One massive component
 function EventMarketplace() {
-  return (
-    <div>
-      {/* 500 lines of JSX */}
-    </div>
-  );
+  return <div>{/* 500 lines of JSX */}</div>;
 }
 
 // ✅ Good: Composed from smaller components
@@ -204,6 +212,7 @@ The `apps/demo` workspace now mirrors the guidelines above:
 ## Data Management Strategy
 
 ### Phase 1: Prototype (Mock Data)
+
 ```tsx
 // data/mockEvents.ts
 export interface Event {
@@ -218,19 +227,19 @@ export interface Event {
 
 export const mockEvents: Event[] = [
   {
-    id: '1',
-    title: 'National Cheer Championship',
-    organizer: 'USA Cheer',
-    date: '2025-03-15',
-    location: 'Dallas, TX',
-    divisions: ['Youth', 'Junior', 'Senior'],
-    imageUrl: 'https://images.unsplash.com/...',
+    id: "1",
+    title: "National Cheer Championship",
+    organizer: "USA Cheer",
+    date: "2025-03-15",
+    location: "Dallas, TX",
+    divisions: ["Youth", "Junior", "Senior"],
+    imageUrl: "https://images.unsplash.com/...",
   },
   // ... more mock data
 ];
 
 // components/EventMarketplace.tsx
-import { mockEvents } from '../data/mockEvents';
+import { mockEvents } from "../data/mockEvents";
 
 export function EventMarketplace() {
   const [events] = useState(mockEvents);
@@ -239,10 +248,11 @@ export function EventMarketplace() {
 ```
 
 ### Phase 2: Real Backend (Supabase)
+
 ```tsx
 // hooks/useEvents.ts
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export function useEvents() {
   const [events, setEvents] = useState([]);
@@ -250,7 +260,7 @@ export function useEvents() {
 
   useEffect(() => {
     async function fetchEvents() {
-      const { data } = await supabase.from('events').select('*');
+      const { data } = await supabase.from("events").select("*");
       setEvents(data);
       setLoading(false);
     }
@@ -261,7 +271,7 @@ export function useEvents() {
 }
 
 // components/EventMarketplace.tsx
-import { useEvents } from '../hooks/useEvents';
+import { useEvents } from "../hooks/useEvents";
 
 export function EventMarketplace() {
   const { events, loading } = useEvents();
@@ -274,6 +284,7 @@ export function EventMarketplace() {
 ## Design System Integration
 
 ### CSS Variables (globals.css)
+
 ```css
 :root {
   /* Colors */
@@ -281,31 +292,36 @@ export function EventMarketplace() {
   --color-secondary: #your-color;
   --color-background: #your-color;
   --color-text: #your-color;
-  
+
   /* Spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
-  
+
   /* Typography */
-  --font-heading: 'YourFont', sans-serif;
-  --font-body: 'YourFont', sans-serif;
-  
+  --font-heading: "YourFont", sans-serif;
+  --font-body: "YourFont", sans-serif;
+
   /* Borders & Radius */
   --border-radius: 8px;
   --border-width: 1px;
 }
 
 /* Semantic HTML gets automatic styling */
-h1 { font-family: var(--font-heading); }
-p { font-family: var(--font-body); }
+h1 {
+  font-family: var(--font-heading);
+}
+p {
+  font-family: var(--font-body);
+}
 ```
 
 ### Using Variables in Components
+
 ```tsx
 // ✅ Good: Use CSS variables via Tailwind or inline styles
-<div className="rounded-[16px]" style={{ 
+<div className="rounded-[16px]" style={{
   backgroundColor: 'var(--color-primary)',
   padding: 'var(--spacing-md)'
 }}>
@@ -315,6 +331,7 @@ p { font-family: var(--font-body); }
 ```
 
 ### Typography Rules
+
 ```tsx
 // ✅ Good: Let semantic HTML handle fonts
 <h1>Event Title</h1>
@@ -329,16 +346,19 @@ p { font-family: var(--font-body); }
 ## Routing Strategy
 
 ### When to use routing:
+
 - Multiple distinct pages (Home, Events, Profile, Dashboard)
 - Deep linking needed (share URLs to specific content)
 - Browser history matters (back/forward navigation)
 
 ### When NOT to use routing:
+
 - Single-page interfaces with modals/overlays
 - Tab-based navigation within one page
 - Simple prototypes focused on one workflow
 
 ### React Router Implementation:
+
 ```bash
 # Import syntax (version auto-resolved)
 import { BrowserRouter, Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
@@ -381,7 +401,9 @@ INTEGRATION:
 ## Example Scenarios
 
 ### Scenario 1: Adding a new page to existing app
+
 **Prompt:**
+
 ```
 Add a Registration Page at /register/:eventId that shows a 3-step wizard for event registration.
 
@@ -406,7 +428,9 @@ DESIGN SYSTEM:
 ```
 
 ### Scenario 2: Adding a feature to existing page
+
 **Prompt:**
+
 ```
 Add a filtering sidebar to the EventsPage that filters by division, region, and date.
 

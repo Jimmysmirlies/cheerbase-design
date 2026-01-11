@@ -13,7 +13,12 @@ const LOCATION_LABEL_OVERRIDES: Record<string, string> = {
   AZ: "Arizona",
 };
 
-const IGNORED_PARTS = new Set(["Canada", "USA", "United States", "United States of America"]);
+const IGNORED_PARTS = new Set([
+  "Canada",
+  "USA",
+  "United States",
+  "United States of America",
+]);
 
 export type ProvinceOption = {
   code: string;
@@ -27,7 +32,9 @@ function slugify(input: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-export function getProvinceFromLocation(location: string): ProvinceOption | null {
+export function getProvinceFromLocation(
+  location: string,
+): ProvinceOption | null {
   if (!location) {
     return null;
   }
@@ -40,7 +47,9 @@ export function getProvinceFromLocation(location: string): ProvinceOption | null
     return null;
   }
 
-  const codeCandidate = [...parts].reverse().find((part) => /^[A-Z]{2}$/.test(part));
+  const codeCandidate = [...parts]
+    .reverse()
+    .find((part) => /^[A-Z]{2}$/.test(part));
   if (codeCandidate) {
     return {
       code: codeCandidate,
@@ -59,7 +68,9 @@ export function getProvinceFromLocation(location: string): ProvinceOption | null
   };
 }
 
-export function getProvinceOptions(events: Event[] = listEvents()): ProvinceOption[] {
+export function getProvinceOptions(
+  events: Event[] = listEvents(),
+): ProvinceOption[] {
   const options = new Map<string, ProvinceOption>();
   events.forEach((event) => {
     const province = getProvinceFromLocation(event.location);
@@ -70,5 +81,7 @@ export function getProvinceOptions(events: Event[] = listEvents()): ProvinceOpti
       options.set(province.code, province);
     }
   });
-  return Array.from(options.values()).sort((a, b) => a.label.localeCompare(b.label));
+  return Array.from(options.values()).sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
 }

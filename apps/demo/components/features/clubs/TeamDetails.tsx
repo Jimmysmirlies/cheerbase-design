@@ -25,13 +25,13 @@ import {
 import type { TeamOption } from "@/components/features/registration/flow/types";
 import type { DivisionPricing } from "@/types/events";
 
-function RosterTable({
-  people,
-}: {
-  people: (Person & { role?: string })[];
-}) {
+function RosterTable({ people }: { people: (Person & { role?: string })[] }) {
   if (people.length === 0) {
-    return <p className="text-sm text-muted-foreground">No members in this list yet.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        No members in this list yet.
+      </p>
+    );
   }
   return (
     <DataTable>
@@ -51,7 +51,9 @@ function RosterTable({
             <DataTableCell>{formatFriendlyDate(p.dob)}</DataTableCell>
             <DataTableCell>{p.email ?? "—"}</DataTableCell>
             <DataTableCell>{formatPhoneNumber(p.phone)}</DataTableCell>
-            <DataTableCell className="text-muted-foreground">{p.role ?? "—"}</DataTableCell>
+            <DataTableCell className="text-muted-foreground">
+              {p.role ?? "—"}
+            </DataTableCell>
           </DataTableRow>
         ))}
       </DataTableBody>
@@ -59,14 +61,31 @@ function RosterTable({
   );
 }
 
-export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: string; onNavigateToTeams?: () => void }) {
+export default function TeamDetails({
+  teamId,
+  onNavigateToTeams,
+}: {
+  teamId: string;
+  onNavigateToTeams?: () => void;
+}) {
   const { user } = useAuth();
   const { data, loading, error } = useClubData(user?.id);
-  const team = useMemo(() => data?.teams.find((t) => t.id === teamId), [data?.teams, teamId]);
+  const team = useMemo(
+    () => data?.teams.find((t) => t.id === teamId),
+    [data?.teams, teamId],
+  );
   const initialRoster = useMemo<TeamRoster>(() => {
-    const empty = { teamId, coaches: [], athletes: [], reservists: [], chaperones: [] };
+    const empty = {
+      teamId,
+      coaches: [],
+      athletes: [],
+      reservists: [],
+      chaperones: [],
+    };
     if (!data) return empty as TeamRoster;
-    return data.rosters.find((r) => r.teamId === teamId) || (empty as TeamRoster);
+    return (
+      data.rosters.find((r) => r.teamId === teamId) || (empty as TeamRoster)
+    );
   }, [data, teamId]);
   const [roster, setRoster] = useState<TeamRoster>(initialRoster);
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -94,13 +113,29 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
         email: m.email,
         phone: m.phone,
       })),
-    [combinedMembers]
+    [combinedMembers],
   );
 
-  const registrationMembersToRoster = (members: { name?: string; type?: string; dob?: string; email?: string; phone?: string }[]): TeamRoster => {
-    const empty: TeamRoster = { teamId, coaches: [], athletes: [], reservists: [], chaperones: [] };
+  const registrationMembersToRoster = (
+    members: {
+      name?: string;
+      type?: string;
+      dob?: string;
+      email?: string;
+      phone?: string;
+    }[],
+  ): TeamRoster => {
+    const empty: TeamRoster = {
+      teamId,
+      coaches: [],
+      athletes: [],
+      reservists: [],
+      chaperones: [],
+    };
     members.forEach((m, idx) => {
-      const [first = "", last = ""] = (m.name ?? `Member ${idx + 1}`).split(" ");
+      const [first = "", last = ""] = (m.name ?? `Member ${idx + 1}`).split(
+        " ",
+      );
       const person: Person = {
         id: `${teamId}-${idx}-${m.type ?? "athlete"}`,
         firstName: first,
@@ -119,11 +154,19 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
   };
 
   if (loading) {
-    return <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">Loading team...</div>;
+    return (
+      <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+        Loading team...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">Failed to load team.</div>;
+    return (
+      <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">
+        Failed to load team.
+      </div>
+    );
   }
 
   return (
@@ -131,14 +174,29 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           {onNavigateToTeams ? (
-            <Button variant="ghost" size="sm" type="button" onClick={onNavigateToTeams}>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={onNavigateToTeams}
+            >
               ← Back to Teams
             </Button>
           ) : null}
-          <Button type="button" variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setBulkOpen(true)}
+          >
             Bulk Upload
           </Button>
-          <Button type="button" variant="default" size="sm" onClick={() => setEditorOpen(true)}>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={() => setEditorOpen(true)}
+          >
             Edit Team
           </Button>
         </div>
@@ -158,7 +216,7 @@ export default function TeamDetails({ teamId, onNavigateToTeams }: { teamId: str
               id: t.id,
               name: t.name,
               division: t.division,
-            }) as TeamOption
+            }) as TeamOption,
         )}
         onImport={(entries) => {
           void entries;

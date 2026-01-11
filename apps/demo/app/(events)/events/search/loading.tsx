@@ -1,5 +1,5 @@
-import { EventSearchSkeleton } from '@/components/ui'
+import { EventSearchSkeleton } from "@/components/ui";
 
 export default function EventSearchLoading() {
-  return <EventSearchSkeleton />
+  return <EventSearchSkeleton />;
 }

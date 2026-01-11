@@ -1,24 +1,32 @@
-import { eventCategories, listEvents, isRegistrationClosed } from './categories'
-import { organizers, findOrganizerById, findOrganizerByName } from './organizers'
-import { demoRegistrations } from '@/data/clubs/registrations'
-import type { Event, Organizer } from '@/types/events'
-import type { Registration } from '@/types/club'
+import {
+  eventCategories,
+  listEvents,
+  isRegistrationClosed,
+} from "./categories";
+import {
+  organizers,
+  findOrganizerById,
+  findOrganizerByName,
+} from "./organizers";
+import { demoRegistrations } from "@/data/clubs/registrations";
+import type { Event, Organizer } from "@/types/events";
+import type { Registration } from "@/types/club";
 
 /**
  * Get all events for a specific organizer by organizer ID
  */
 export function getEventsByOrganizerId(organizerId: string): Event[] {
-  const organizer = findOrganizerById(organizerId)
-  if (!organizer) return []
-  
-  return listEvents().filter(event => event.organizer === organizer.name)
+  const organizer = findOrganizerById(organizerId);
+  if (!organizer) return [];
+
+  return listEvents().filter((event) => event.organizer === organizer.name);
 }
 
 /**
  * Get all events for a specific organizer by organizer name
  */
 export function getEventsByOrganizerName(organizerName: string): Event[] {
-  return listEvents().filter(event => event.organizer === organizerName)
+  return listEvents().filter((event) => event.organizer === organizerName);
 }
 
 /**
@@ -26,83 +34,94 @@ export function getEventsByOrganizerName(organizerName: string): Event[] {
  * Active = published AND accepting registrations (registration not closed).
  */
 export function getActiveEventsByOrganizerId(organizerId: string): Event[] {
-  const allEvents = getEventsByOrganizerId(organizerId)
-  return allEvents.filter(event => !isRegistrationClosed(event))
+  const allEvents = getEventsByOrganizerId(organizerId);
+  return allEvents.filter((event) => !isRegistrationClosed(event));
 }
 
 /**
  * Count active events for an organizer.
  */
 export function getActiveEventCount(organizerId: string): number {
-  return getActiveEventsByOrganizerId(organizerId).length
+  return getActiveEventsByOrganizerId(organizerId).length;
 }
 
 /**
  * Get all registrations for events belonging to a specific organizer
  */
-export function getRegistrationsByOrganizerId(organizerId: string): Registration[] {
-  const organizer = findOrganizerById(organizerId)
-  if (!organizer) return []
-  
+export function getRegistrationsByOrganizerId(
+  organizerId: string,
+): Registration[] {
+  const organizer = findOrganizerById(organizerId);
+  if (!organizer) return [];
+
   // Get all events for this organizer
-  const organizerEvents = getEventsByOrganizerId(organizerId)
-  const organizerEventIds = new Set(organizerEvents.map(e => e.id))
-  
+  const organizerEvents = getEventsByOrganizerId(organizerId);
+  const organizerEventIds = new Set(organizerEvents.map((e) => e.id));
+
   // Filter registrations to only those for this organizer's events
-  return demoRegistrations.filter(reg => organizerEventIds.has(reg.eventId))
+  return demoRegistrations.filter((reg) => organizerEventIds.has(reg.eventId));
 }
 
 /**
  * Get registrations grouped by event for an organizer
  */
-export function getRegistrationsByEventForOrganizer(organizerId: string): Map<string, Registration[]> {
-  const registrations = getRegistrationsByOrganizerId(organizerId)
-  const byEvent = new Map<string, Registration[]>()
-  
+export function getRegistrationsByEventForOrganizer(
+  organizerId: string,
+): Map<string, Registration[]> {
+  const registrations = getRegistrationsByOrganizerId(organizerId);
+  const byEvent = new Map<string, Registration[]>();
+
   for (const reg of registrations) {
-    const existing = byEvent.get(reg.eventId) ?? []
-    existing.push(reg)
-    byEvent.set(reg.eventId, existing)
+    const existing = byEvent.get(reg.eventId) ?? [];
+    existing.push(reg);
+    byEvent.set(reg.eventId, existing);
   }
-  
-  return byEvent
+
+  return byEvent;
 }
 
 /**
  * Get organizer profile by ID
  */
-export function getOrganizerProfile(organizerId: string): Organizer | undefined {
-  return findOrganizerById(organizerId)
+export function getOrganizerProfile(
+  organizerId: string,
+): Organizer | undefined {
+  return findOrganizerById(organizerId);
 }
 
 /**
  * Calculate stats for an organizer
  */
 export function getOrganizerStats(organizerId: string): {
-  activeEvents: number
-  totalEvents: number
-  totalRegistrations: number
-  pendingRegistrations: number
-  paidRegistrations: number
-  totalRevenue: number
-  totalAthletes: number
+  activeEvents: number;
+  totalEvents: number;
+  totalRegistrations: number;
+  pendingRegistrations: number;
+  paidRegistrations: number;
+  totalRevenue: number;
+  totalAthletes: number;
 } {
-  const allEvents = getEventsByOrganizerId(organizerId)
-  const activeEvents = getActiveEventsByOrganizerId(organizerId)
-  const registrations = getRegistrationsByOrganizerId(organizerId)
-  
-  const pendingRegistrations = registrations.filter(r => r.status === 'pending')
-  const paidRegistrations = registrations.filter(r => r.status === 'paid')
-  
+  const allEvents = getEventsByOrganizerId(organizerId);
+  const activeEvents = getActiveEventsByOrganizerId(organizerId);
+  const registrations = getRegistrationsByOrganizerId(organizerId);
+
+  const pendingRegistrations = registrations.filter(
+    (r) => r.status === "pending",
+  );
+  const paidRegistrations = registrations.filter((r) => r.status === "paid");
+
   // Calculate total revenue from paid registrations
   const totalRevenue = paidRegistrations.reduce((sum, reg) => {
-    const amount = parseFloat(reg.invoiceTotal) || 0
-    return sum + amount
-  }, 0)
-  
+    const amount = parseFloat(reg.invoiceTotal) || 0;
+    return sum + amount;
+  }, 0);
+
   // Calculate total athletes across all registrations
-  const totalAthletes = registrations.reduce((sum, reg) => sum + reg.athletes, 0)
-  
+  const totalAthletes = registrations.reduce(
+    (sum, reg) => sum + reg.athletes,
+    0,
+  );
+
   return {
     activeEvents: activeEvents.length,
     totalEvents: allEvents.length,
@@ -111,19 +130,19 @@ export function getOrganizerStats(organizerId: string): {
     paidRegistrations: paidRegistrations.length,
     totalRevenue,
     totalAthletes,
-  }
+  };
 }
 
 /**
  * Parse event date string (e.g., "Nov 14, 2026") into a Date object
  */
 export function parseEventDate(dateStr: string): Date {
-  const parsed = new Date(dateStr)
+  const parsed = new Date(dateStr);
   if (!Number.isNaN(parsed.getTime())) {
-    return parsed
+    return parsed;
   }
   // Fallback: return invalid date (caller should handle)
-  return new Date(NaN)
+  return new Date(NaN);
 }
 
 /**
@@ -132,13 +151,13 @@ export function parseEventDate(dateStr: string): Date {
 export function isEventInSeason(
   eventDate: Date,
   seasonStart: Date,
-  seasonEnd: Date
+  seasonEnd: Date,
 ): boolean {
-  if (!(eventDate instanceof Date) || Number.isNaN(eventDate.getTime())) return false
-  return eventDate >= seasonStart && eventDate <= seasonEnd
+  if (!(eventDate instanceof Date) || Number.isNaN(eventDate.getTime()))
+    return false;
+  return eventDate >= seasonStart && eventDate <= seasonEnd;
 }
 
 // Re-export for convenience
-export { organizers, findOrganizerById, findOrganizerByName }
-export { eventCategories, listEvents, isRegistrationClosed }
-
+export { organizers, findOrganizerById, findOrganizerByName };
+export { eventCategories, listEvents, isRegistrationClosed };

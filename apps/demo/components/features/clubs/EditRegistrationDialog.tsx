@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { AlertCircleIcon } from 'lucide-react'
+import { useRouter } from "next/navigation";
+import { AlertCircleIcon } from "lucide-react";
 
-import { Button } from '@workspace/ui/shadcn/button'
+import { Button } from "@workspace/ui/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -11,21 +11,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@workspace/ui/shadcn/dialog'
+} from "@workspace/ui/shadcn/dialog";
 
 type EditRegistrationDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  registrationId: string
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  registrationId: string;
+};
 
-export function EditRegistrationDialog({ open, onOpenChange, registrationId }: EditRegistrationDialogProps) {
-  const router = useRouter()
+export function EditRegistrationDialog({
+  open,
+  onOpenChange,
+  registrationId,
+}: EditRegistrationDialogProps) {
+  const router = useRouter();
 
   const handleConfirm = () => {
-    onOpenChange(false)
-    router.push(`/clubs/registrations/${registrationId}?mode=edit`)
-  }
+    onOpenChange(false);
+    router.push(`/clubs/registrations/${registrationId}?mode=edit`);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,8 +42,9 @@ export function EditRegistrationDialog({ open, onOpenChange, registrationId }: E
             <DialogTitle className="text-left">Edit Registration?</DialogTitle>
           </div>
           <DialogDescription className="text-left">
-            Any changes you make to your teams will be reflected in a new invoice. Your current invoice will be updated
-            to show the revised totals.
+            Any changes you make to your teams will be reflected in a new
+            invoice. Your current invoice will be updated to show the revised
+            totals.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -50,5 +55,5 @@ export function EditRegistrationDialog({ open, onOpenChange, registrationId }: E
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

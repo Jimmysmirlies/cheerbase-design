@@ -3,7 +3,14 @@
 import { useState } from "react";
 
 import { Button } from "@workspace/ui/shadcn/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/shadcn/card";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
 import { toast } from "@workspace/ui/shadcn/sonner";
@@ -16,16 +23,28 @@ import { useAuth } from "@/components/providers/AuthProvider";
 export default function OrganizerSignUpPage() {
   const router = useRouter();
   const { signUp } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", password: "", orgName: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    orgName: "",
+  });
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (field: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setForm(prev => ({ ...prev, [field]: event.target.value }));
-  };
+  const handleChange =
+    (field: keyof typeof form) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.password.trim() || !form.orgName.trim()) {
+    if (
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.password.trim() ||
+      !form.orgName.trim()
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -46,7 +65,10 @@ export default function OrganizerSignUpPage() {
       router.push("/organizer");
     } catch (error) {
       console.error(error);
-      const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.";
       toast.error(errorMessage);
     } finally {
       setSubmitting(false);
@@ -59,7 +81,9 @@ export default function OrganizerSignUpPage() {
         <div className="flex items-center gap-3">
           <ShieldCheckIcon className="text-primary size-6" />
           <div>
-            <p className="text-sm font-semibold text-primary">Event Organizer</p>
+            <p className="text-sm font-semibold text-primary">
+              Event Organizer
+            </p>
             <h1 className="heading-2">Create your account</h1>
           </div>
         </div>
@@ -67,34 +91,67 @@ export default function OrganizerSignUpPage() {
         <Card className="border-border/80">
           <CardHeader>
             <CardTitle>Organizer sign up</CardTitle>
-            <CardDescription>Set up your organizer profile to manage events and registrations.</CardDescription>
+            <CardDescription>
+              Set up your organizer profile to manage events and registrations.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <Label htmlFor="name">Your name</Label>
-                <Input id="name" value={form.name} onChange={handleChange("name")} placeholder="Jordan Director" required />
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={handleChange("name")}
+                  placeholder="Jordan Director"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={form.email} onChange={handleChange("email")} placeholder="you@example.com" required />
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange("email")}
+                  placeholder="you@example.com"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={form.password} onChange={handleChange("password")} placeholder="Create a password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange("password")}
+                  placeholder="Create a password"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="orgName">Organization</Label>
-                <Input id="orgName" value={form.orgName} onChange={handleChange("orgName")} placeholder="Summit Events Co." required />
+                <Input
+                  id="orgName"
+                  value={form.orgName}
+                  onChange={handleChange("orgName")}
+                  placeholder="Summit Events Co."
+                  required
+                />
               </div>
               <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? "Creating account..." : "Continue to organizer portal"}
+                {submitting
+                  ? "Creating account..."
+                  : "Continue to organizer portal"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link className="ml-2 text-primary font-semibold hover:underline" href="/">
+            <Link
+              className="ml-2 text-primary font-semibold hover:underline"
+              href="/"
+            >
               Log in
             </Link>
           </CardFooter>

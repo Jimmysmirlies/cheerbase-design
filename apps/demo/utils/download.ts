@@ -9,4 +9,3 @@ export function downloadTextFile(filename: string, contents: string) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-

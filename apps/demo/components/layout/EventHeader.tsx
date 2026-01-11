@@ -12,7 +12,15 @@ type EventHeaderProps = {
   invoiceHref?: string;
 };
 
-export function EventHeader({ title, location, date, organizer, backHref, listingHref, invoiceHref }: EventHeaderProps) {
+export function EventHeader({
+  title,
+  location,
+  date,
+  organizer,
+  backHref,
+  listingHref,
+  invoiceHref,
+}: EventHeaderProps) {
   return (
     <div className="space-y-4">
       <div>

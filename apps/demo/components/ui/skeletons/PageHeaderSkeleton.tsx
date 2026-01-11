@@ -1,15 +1,15 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { cn } from '@workspace/ui/lib/utils'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 
 type PageHeaderSkeletonProps = {
   /** Whether to show breadcrumb placeholder */
-  showBreadcrumb?: boolean
+  showBreadcrumb?: boolean;
   /** Whether to show subtitle placeholder */
-  showSubtitle?: boolean
+  showSubtitle?: boolean;
   /** Whether to show action button placeholder */
-  showAction?: boolean
-  className?: string
-}
+  showAction?: boolean;
+  className?: string;
+};
 
 /**
  * Skeleton for PageHeader component.
@@ -24,14 +24,16 @@ export function PageHeaderSkeleton({
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden border-b border-border/70 bg-gradient-to-br from-primary/20 via-primary/10 to-background',
-        className
+        "relative w-full overflow-hidden border-b border-border/70 bg-gradient-to-br from-primary/20 via-primary/10 to-background",
+        className,
       )}
     >
       <header className="flex min-h-[240px] w-full max-w-full flex-col justify-between px-4 pb-8 pt-4 lg:mx-auto lg:max-w-7xl lg:px-8">
         {/* Top row: action */}
         <div className="flex justify-end">
-          {showAction && <Skeleton className="h-9 w-24 rounded-full bg-white/20" />}
+          {showAction && (
+            <Skeleton className="h-9 w-24 rounded-full bg-white/20" />
+          )}
         </div>
         <div className="flex flex-col justify-end gap-4">
           <div className="flex flex-col gap-2">
@@ -56,5 +58,5 @@ export function PageHeaderSkeleton({
         </div>
       </header>
     </div>
-  )
+  );
 }

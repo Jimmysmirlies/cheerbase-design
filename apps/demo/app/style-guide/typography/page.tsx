@@ -6,7 +6,12 @@ type TypeToken = {
   label: string;
   className: string;
   description: string;
-  css: { fontSize: string; lineHeight: string; fontWeight?: string; letterSpacing?: string };
+  css: {
+    fontSize: string;
+    lineHeight: string;
+    fontWeight?: string;
+    letterSpacing?: string;
+  };
 };
 
 const typeTokens: TypeToken[] = [
@@ -66,9 +71,7 @@ export default function TypographyPage() {
       <PageHeader
         title="Typography"
         subtitle="The type scale is built on Inter. Pair these sizes with consistent spacing to keep hierarchy predictable."
-        breadcrumbs={[
-          { label: "Brand Guidelines", href: "/style-guide" },
-        ]}
+        breadcrumbs={[{ label: "Brand Guidelines", href: "/style-guide" }]}
       />
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
         <div className="space-y-12">
@@ -79,14 +82,29 @@ export default function TypographyPage() {
             </div>
             <div className="space-y-6 rounded-2xl border border-border bg-card/70 p-6">
               {typeTokens.map((type) => (
-                <div key={type.label} className="space-y-2 border-l-2 border-dashed border-border/70 pl-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{type.label}</p>
-                  <p className={`${type.className} font-semibold`}>The quick brown fox jumps over the lazy dog.</p>
+                <div
+                  key={type.label}
+                  className="space-y-2 border-l-2 border-dashed border-border/70 pl-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {type.label}
+                  </p>
+                  <p className={`${type.className} font-semibold`}>
+                    The quick brown fox jumps over the lazy dog.
+                  </p>
                   <div className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">CSS:</span>{' '}
-                    <code>font-size: {type.css.fontSize}; line-height: {type.css.lineHeight};{type.css.fontWeight ? ` font-weight: ${type.css.fontWeight};` : ''}</code>
+                    <span className="font-semibold text-foreground">CSS:</span>{" "}
+                    <code>
+                      font-size: {type.css.fontSize}; line-height:{" "}
+                      {type.css.lineHeight};
+                      {type.css.fontWeight
+                        ? ` font-weight: ${type.css.fontWeight};`
+                        : ""}
+                    </code>
                   </div>
-                  <p className="text-xs text-muted-foreground">{type.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {type.description}
+                  </p>
                 </div>
               ))}
             </div>

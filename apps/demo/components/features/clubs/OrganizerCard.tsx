@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import { Button } from '@workspace/ui/shadcn/button'
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
+import { Button } from "@workspace/ui/shadcn/button";
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
 
-import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
-import { OrganizerFollowButton } from '@/components/features/clubs/OrganizerFollowButton'
-import { brandGradients, type BrandGradient } from '@/lib/gradients'
+import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
+import { OrganizerFollowButton } from "@/components/features/clubs/OrganizerFollowButton";
+import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 type OrganizerCardProps = {
   /** Organizer display name */
-  name: string
+  name: string;
   /** Brand gradient key for avatar */
-  gradient?: BrandGradient
+  gradient?: BrandGradient;
   /** Number of followers (formatted string or number) */
-  followers?: string | number
+  followers?: string | number;
   /** Number of events hosted */
-  eventsCount?: number
+  eventsCount?: number;
   /** How long they've been hosting (e.g., "3 years") */
-  hostingDuration?: string
+  hostingDuration?: string;
   /** Whether to show action buttons (Follow, Contact) */
-  showActions?: boolean
+  showActions?: boolean;
   /** Callback when contact button is clicked */
-  onContact?: () => void
+  onContact?: () => void;
   /** Show loading skeleton instead of content */
-  isLoading?: boolean
-}
+  isLoading?: boolean;
+};
 
 /**
  * OrganizerCard
- * 
+ *
  * Reusable card component displaying organizer information with:
  * - Gradient avatar with initial
  * - Name and stats (followers, events, hosting duration)
  * - Optional action buttons (Follow, Contact)
- * 
+ *
  * Used on event pages, registration detail pages, and organizer listings.
  */
 export function OrganizerCard({
   name,
-  gradient = 'teal',
+  gradient = "teal",
   followers,
   eventsCount,
   hostingDuration,
@@ -46,14 +46,14 @@ export function OrganizerCard({
   onContact,
   isLoading = false,
 }: OrganizerCardProps) {
-  const formattedFollowers = typeof followers === 'number' 
-    ? followers.toLocaleString() 
-    : followers
+  const formattedFollowers =
+    typeof followers === "number" ? followers.toLocaleString() : followers;
 
   // Get gradient styling
-  const gradientConfig = brandGradients[gradient]
-  const gradientCss = gradientConfig.css
-  const firstGradientColor = gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? '#0D9488'
+  const gradientConfig = brandGradients[gradient];
+  const gradientCss = gradientConfig.css;
+  const firstGradientColor =
+    gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
 
   // Loading skeleton
   if (isLoading) {
@@ -88,11 +88,11 @@ export function OrganizerCard({
           )}
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div 
+    <div
       className="relative rounded-md border p-5 transition-all overflow-hidden"
       style={{
         borderColor: `${firstGradientColor}50`,
@@ -103,8 +103,8 @@ export function OrganizerCard({
         className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage: gradientCss,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
       <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -144,6 +144,5 @@ export function OrganizerCard({
         )}
       </div>
     </div>
-  )
+  );
 }
-

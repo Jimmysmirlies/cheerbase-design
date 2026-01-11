@@ -4,15 +4,15 @@ import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 export default function RegistrationNoticeBarPage() {
   const gradients: BrandGradient[] = [
-    'primary',
-    'teal',
-    'blue',
-    'mustard',
-    'red',
-    'orange',
-    'green',
-    'indigo',
-    'purple',
+    "primary",
+    "teal",
+    "blue",
+    "mustard",
+    "red",
+    "orange",
+    "green",
+    "indigo",
+    "purple",
   ];
 
   return (
@@ -34,7 +34,9 @@ export default function RegistrationNoticeBarPage() {
             </div>
             <div className="grid gap-4">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Early Bird Pricing</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Early Bird Phase
+                </p>
                 <RegistrationNoticeBar
                   title="Early Bird Pricing"
                   subtitle="Ends Jan 14, 2026"
@@ -42,45 +44,19 @@ export default function RegistrationNoticeBarPage() {
                 />
               </div>
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Early Bird Ends Soon</p>
-                <RegistrationNoticeBar
-                  title="Early Bird Pricing Ends Soon"
-                  subtitle="Closes Jan 14, 2026"
-                  gradient="mustard"
-                />
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Early Bird Ended</p>
-                <RegistrationNoticeBar
-                  title="Early Bird Pricing"
-                  subtitle="Ended Jan 14, 2026"
-                />
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Open</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Regular Pricing Phase
+                </p>
                 <RegistrationNoticeBar
                   title="Registration Open"
-                  subtitle="Open for 48 days 22 hrs 52 mins"
+                  subtitle="Ends Feb 20, 2026"
                   gradient="teal"
                 />
               </div>
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Closes Soon</p>
-                <RegistrationNoticeBar
-                  title="Registration Closes Soon"
-                  subtitle="Open for 6 days 14 hrs 23 mins"
-                  gradient="orange"
-                />
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Closes</p>
-                <RegistrationNoticeBar
-                  title="Registration Closes"
-                  subtitle="Feb 20, 2026"
-                />
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Closed</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Closed Phase
+                </p>
                 <RegistrationNoticeBar
                   title="Registration Closed"
                   subtitle="Feb 20, 2026"
@@ -95,16 +71,19 @@ export default function RegistrationNoticeBarPage() {
               <div className="h-px w-full bg-border" />
               <p className="text-lg font-semibold">Gradient Variants</p>
               <p className="text-sm text-muted-foreground">
-                Each organizer can use their brand gradient to style the notice bar.
+                Each organizer can use their brand gradient to style the notice
+                bar.
               </p>
             </div>
             <div className="grid gap-4">
               {gradients.map((gradient) => (
                 <div key={gradient} className="space-y-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{brandGradients[gradient].name}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {brandGradients[gradient].name}
+                  </p>
                   <RegistrationNoticeBar
                     title="Registration Open"
-                    subtitle="Open for 48 days 22 hrs 52 mins"
+                    subtitle="Ends Feb 20, 2026"
                     gradient={gradient}
                   />
                 </div>
@@ -124,39 +103,77 @@ export default function RegistrationNoticeBarPage() {
                   <tr>
                     <th className="px-3 py-3 font-medium sm:px-4">Prop</th>
                     <th className="px-3 py-3 font-medium sm:px-4">Type</th>
-                    <th className="px-3 py-3 font-medium sm:px-4">Description</th>
+                    <th className="px-3 py-3 font-medium sm:px-4">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-t">
-                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">title</td>
-                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">string</td>
-                    <td className="px-3 py-3 text-muted-foreground sm:px-4">Phase title (e.g., &quot;Registration Open&quot;)</td>
+                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">
+                      title
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">
+                      string
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground sm:px-4">
+                      Phase title (e.g., &quot;Registration Open&quot;)
+                    </td>
                   </tr>
                   <tr className="border-t">
-                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">subtitle</td>
-                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">string</td>
-                    <td className="px-3 py-3 text-muted-foreground sm:px-4">Phase subtitle (e.g., date or countdown)</td>
+                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">
+                      subtitle
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">
+                      string
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground sm:px-4">
+                      Phase subtitle (e.g., date or countdown)
+                    </td>
                   </tr>
                   <tr className="border-t">
-                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">gradient</td>
-                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">BrandGradient?</td>
-                    <td className="px-3 py-3 text-muted-foreground sm:px-4">Brand gradient variant (primary, teal, blue, etc.)</td>
+                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">
+                      gradient
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">
+                      BrandGradient?
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground sm:px-4">
+                      Brand gradient variant (primary, teal, blue, etc.)
+                    </td>
                   </tr>
                   <tr className="border-t">
-                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">gradientCss</td>
-                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">string?</td>
-                    <td className="px-3 py-3 text-muted-foreground sm:px-4">Manual gradient CSS override</td>
+                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">
+                      gradientCss
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">
+                      string?
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground sm:px-4">
+                      Manual gradient CSS override
+                    </td>
                   </tr>
                   <tr className="border-t">
-                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">borderColor</td>
-                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">string?</td>
-                    <td className="px-3 py-3 text-muted-foreground sm:px-4">Manual border color override</td>
+                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">
+                      borderColor
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">
+                      string?
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground sm:px-4">
+                      Manual border color override
+                    </td>
                   </tr>
                   <tr className="border-t">
-                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">dotColor</td>
-                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">string?</td>
-                    <td className="px-3 py-3 text-muted-foreground sm:px-4">Manual dot indicator color override</td>
+                    <td className="text-foreground px-3 py-3 font-mono text-xs sm:px-4">
+                      dotColor
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-muted-foreground sm:px-4">
+                      string?
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground sm:px-4">
+                      Manual dot indicator color override
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -188,9 +205,18 @@ export default function RegistrationNoticeBarPage() {
             <div className="body-text text-foreground">
               <p className="mb-2">The Registration Notice Bar is used to:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Display current registration phase at the top of event detail pages</li>
-                <li>Show active phase with organizer&apos;s brand gradient highlighting</li>
-                <li>Provide quick visibility into registration deadlines and countdowns</li>
+                <li>
+                  Display current registration phase at the top of event detail
+                  pages
+                </li>
+                <li>
+                  Show active phase with organizer&apos;s brand gradient
+                  highlighting
+                </li>
+                <li>
+                  Provide quick visibility into registration deadlines and
+                  countdowns
+                </li>
                 <li>Visually separate from detailed timeline cards below</li>
               </ul>
             </div>

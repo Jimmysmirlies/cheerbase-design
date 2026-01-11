@@ -42,4 +42,3 @@ export function usePersistentRoster(teamId: string, fallback: TeamRoster) {
 
   return [roster, setRoster] as const;
 }
-

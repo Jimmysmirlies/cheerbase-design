@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * TeamHeaderCard
@@ -6,21 +6,30 @@
  * Purpose
  * - Compact, reusable header card for a team with title, meta badges, and an Edit action.
  */
-import { Badge } from '@workspace/ui/shadcn/badge'
-import { Card, CardContent } from '@workspace/ui/shadcn/card'
+import { Badge } from "@workspace/ui/shadcn/badge";
+import { Card, CardContent } from "@workspace/ui/shadcn/card";
 
-import { Layers as LayersIcon, Mars as MarsIcon, Users as UsersIcon } from 'lucide-react'
+import {
+  Layers as LayersIcon,
+  Mars as MarsIcon,
+  Users as UsersIcon,
+} from "lucide-react";
 
-import TeamSettingsDialog from './TeamSettingsDialog'
+import TeamSettingsDialog from "./TeamSettingsDialog";
 
 type Props = {
-  name: string
-  division: string
-  size: number
-  coedCount: number
-}
+  name: string;
+  division: string;
+  size: number;
+  coedCount: number;
+};
 
-export default function TeamHeaderCard({ name, division, size, coedCount }: Props) {
+export default function TeamHeaderCard({
+  name,
+  division,
+  size,
+  coedCount,
+}: Props) {
   return (
     <Card className="rounded-3xl">
       <CardContent className="px-6">
@@ -39,7 +48,7 @@ export default function TeamHeaderCard({ name, division, size, coedCount }: Prop
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge variant="outline" className="inline-flex items-center gap-1">
             <LayersIcon className="h-3.5 w-3.5" />
-            <span className="text-xs">{division || 'TBD'}</span>
+            <span className="text-xs">{division || "TBD"}</span>
           </Badge>
           <Badge variant="outline" className="inline-flex items-center gap-1">
             <UsersIcon className="h-3.5 w-3.5" />
@@ -52,5 +61,5 @@ export default function TeamHeaderCard({ name, division, size, coedCount }: Prop
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

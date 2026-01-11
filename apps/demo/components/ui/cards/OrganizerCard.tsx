@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * OrganizerCard
@@ -12,23 +12,28 @@
  * - Visibility badge (e.g., Public / Invite-only)
  */
 type OrganizerCardProps = {
-  name: string
-  region: string
-  visibility: string
-  accentGradient: string
-}
+  name: string;
+  region: string;
+  visibility: string;
+  accentGradient: string;
+};
 
-import { Badge } from '@workspace/ui/shadcn/badge'
+import { Badge } from "@workspace/ui/shadcn/badge";
 
-import { GlassCard } from '@/components/ui/glass/GlassCard'
+import { GlassCard } from "@/components/ui/glass/GlassCard";
 
-export function OrganizerCard({ name, region, visibility, accentGradient }: OrganizerCardProps) {
+export function OrganizerCard({
+  name,
+  region,
+  visibility,
+  accentGradient,
+}: OrganizerCardProps) {
   const initials = name
-    .split(' ')
+    .split(" ")
     .map((word) => word[0])
-    .join('')
+    .join("")
     .slice(0, 2)
-    .toUpperCase()
+    .toUpperCase();
 
   return (
     <GlassCard className="min-w-[220px] snap-start p-6 text-center">
@@ -47,5 +52,5 @@ export function OrganizerCard({ name, region, visibility, accentGradient }: Orga
         </Badge>
       </div>
     </GlassCard>
-  )
+  );
 }

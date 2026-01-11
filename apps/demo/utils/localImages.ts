@@ -12,7 +12,9 @@ const RAW_PLACEHOLDER_IMAGES = [
 ] as const;
 
 const DEFAULT_IMAGE = encodeURI(RAW_PLACEHOLDER_IMAGES[0]);
-const PLACEHOLDER_IMAGES: string[] = RAW_PLACEHOLDER_IMAGES.map((path) => encodeURI(path));
+const PLACEHOLDER_IMAGES: string[] = RAW_PLACEHOLDER_IMAGES.map((path) =>
+  encodeURI(path),
+);
 
 const total = PLACEHOLDER_IMAGES.length;
 

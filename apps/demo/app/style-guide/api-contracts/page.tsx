@@ -21,7 +21,8 @@ const eventDiscovery = [
   ],
   "pagination": { "cursor": "..." }
 }`,
-    uiStates: "Loading skeleton cards, Empty prompt \"Reset filters\", Error banner with retry",
+    uiStates:
+      'Loading skeleton cards, Empty prompt "Reset filters", Error banner with retry',
   },
   {
     endpoint: "GET /events/{id}",
@@ -38,7 +39,8 @@ const eventDiscovery = [
   "requirements": [...],
   "organizer": { "id": "district-sports", "name": "District Sports Network" }
 }`,
-    uiStates: "Loading skeleton hero + tabs, Empty divisions → follow organizer CTA, Error → inline alert + back link",
+    uiStates:
+      "Loading skeleton hero + tabs, Empty divisions → follow organizer CTA, Error → inline alert + back link",
   },
 ];
 
@@ -53,7 +55,8 @@ const registrationLifecycle = [
   "nextAction": "completePayment",
   "checkoutUrl": "https://pay.ralli.app/..."
 }`,
-    uiStates: "Success redirect to payment, Validation errors inline, Error toast with retry",
+    uiStates:
+      "Success redirect to payment, Validation errors inline, Error toast with retry",
   },
   {
     endpoint: "PATCH /registrations/{id}",
@@ -66,7 +69,8 @@ const registrationLifecycle = [
     { "at": "2025-03-01T18:22:00Z", "by": "user", "change": "Roster updated" }
   ]
 }`,
-    uiStates: "Loading overlay during submit, Success confirmation banner, Conflict waitlist modal",
+    uiStates:
+      "Loading overlay during submit, Success confirmation banner, Conflict waitlist modal",
   },
   {
     endpoint: "GET /registrations?clubId=",
@@ -82,21 +86,24 @@ const registrationLifecycle = [
     }
   ]
 }`,
-    uiStates: "Loading table skeleton, Empty state CTA \"Browse events\", Error inline alert",
+    uiStates:
+      'Loading table skeleton, Empty state CTA "Browse events", Error inline alert',
   },
 ];
 
 const organizerOnboarding = [
   {
     endpoint: "POST /host-applications",
-    purpose: "Submit \"Host Events\" inquiry",
-    params: "Body { companyName, contactEmail, phone, sportFocus, sampleEventUrl }",
+    purpose: 'Submit "Host Events" inquiry',
+    params:
+      "Body { companyName, contactEmail, phone, sportFocus, sampleEventUrl }",
     response: `{
   "id": "apply_456",
   "status": "under_review",
   "submittedAt": "2025-02-10T15:30:00Z"
 }`,
-    uiStates: "Success thank-you message, Validation highlights, Error modal retry",
+    uiStates:
+      "Success thank-you message, Validation highlights, Error modal retry",
   },
   {
     endpoint: "GET /host-applications/{id}",
@@ -111,24 +118,32 @@ const organizerOnboarding = [
   ],
   "history": []
 }`,
-    uiStates: "Loading skeleton detail, Decision controls disabled until load, Error fallback message",
+    uiStates:
+      "Loading skeleton detail, Decision controls disabled until load, Error fallback message",
   },
   {
     endpoint: "POST /host-applications/{id}/decision",
     purpose: "Approve/decline application",
-    params: "Body { decision: \"approve\" | \"decline\", message }",
+    params: 'Body { decision: "approve" | "decline", message }',
     response: `{
   "id": "apply_456",
   "status": "approved",
   "organizerAccountInvite": "https://ralli.app/invite/..."
 }`,
-    uiStates: "Success toast with invite link, Decline prompts reason + sends email, Error keeps modal open",
+    uiStates:
+      "Success toast with invite link, Decline prompts reason + sends email, Error keeps modal open",
   },
 ];
 
 type ContractRow = (typeof eventDiscovery)[number];
 
-function ContractTable({ title, rows }: { title: string; rows: ContractRow[] }) {
+function ContractTable({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: ContractRow[];
+}) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-lg font-semibold">{title}</p>
@@ -146,15 +161,23 @@ function ContractTable({ title, rows }: { title: string; rows: ContractRow[] }) 
           <tbody className="[&>tr:nth-child(even)]:bg-muted/30">
             {rows.map((row) => (
               <tr key={row.endpoint}>
-                <td className="align-top px-4 py-4 font-semibold text-foreground">{row.endpoint}</td>
-                <td className="align-top px-4 py-4 text-muted-foreground">{row.purpose}</td>
-                <td className="align-top px-4 py-4 text-muted-foreground">{row.params}</td>
+                <td className="align-top px-4 py-4 font-semibold text-foreground">
+                  {row.endpoint}
+                </td>
+                <td className="align-top px-4 py-4 text-muted-foreground">
+                  {row.purpose}
+                </td>
+                <td className="align-top px-4 py-4 text-muted-foreground">
+                  {row.params}
+                </td>
                 <td className="align-top px-4 py-4">
                   <pre className="whitespace-pre-wrap rounded-xl bg-background/80 p-3 text-xs font-mono text-muted-foreground shadow-inner">
                     {row.response}
                   </pre>
                 </td>
-                <td className="align-top px-4 py-4 text-muted-foreground">{row.uiStates}</td>
+                <td className="align-top px-4 py-4 text-muted-foreground">
+                  {row.uiStates}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -170,9 +193,7 @@ export default function ApiContractsPage() {
       <PageHeader
         title="API Contracts"
         subtitle="Reference endpoints that power the discovery-first experience. Each table pairs the request/response shape with the UI states designers need to mock."
-        breadcrumbs={[
-          { label: "Brand Guidelines", href: "/style-guide" },
-        ]}
+        breadcrumbs={[{ label: "Brand Guidelines", href: "/style-guide" }]}
       />
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
         <div className="space-y-12">
@@ -184,13 +205,19 @@ export default function ApiContractsPage() {
           {/* Registration Lifecycle */}
           <div className="flex flex-col gap-4 px-1">
             <div className="h-px w-full bg-border" />
-            <ContractTable title="Registration Lifecycle" rows={registrationLifecycle} />
+            <ContractTable
+              title="Registration Lifecycle"
+              rows={registrationLifecycle}
+            />
           </div>
 
           {/* Organizer Onboarding */}
           <div className="flex flex-col gap-4 px-1">
             <div className="h-px w-full bg-border" />
-            <ContractTable title="Organizer Onboarding" rows={organizerOnboarding} />
+            <ContractTable
+              title="Organizer Onboarding"
+              rows={organizerOnboarding}
+            />
           </div>
         </div>
       </div>

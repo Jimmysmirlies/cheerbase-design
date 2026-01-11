@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
-import { ScrollArea } from '@workspace/ui/shadcn/scroll-area'
-import { NavBar } from '@/components/layout/NavBar'
+import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
+import { NavBar } from "@/components/layout/NavBar";
 
 export default function EventsLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,10 +10,8 @@ export default function EventsLayout({ children }: { children: ReactNode }) {
         <div className="sticky top-0 z-40">
           <NavBar />
         </div>
-        <main className="bg-background text-foreground">
-          {children}
-        </main>
+        <main className="bg-background text-foreground">{children}</main>
       </ScrollArea>
     </div>
-  )
+  );
 }

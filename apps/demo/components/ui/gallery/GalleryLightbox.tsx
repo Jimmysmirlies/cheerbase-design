@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { useCallback, useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
-import Image from 'next/image'
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react'
+import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import Image from "next/image";
+import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
 
-import { cn } from '@workspace/ui/lib/utils'
+import { cn } from "@workspace/ui/lib/utils";
 
 type GalleryLightboxProps = {
   /** Array of image URLs */
-  images: string[]
+  images: string[];
   /** Alt text prefix for images */
-  alt?: string
+  alt?: string;
   /** Initial image index to display */
-  initialIndex?: number
+  initialIndex?: number;
   /** Whether the lightbox is open */
-  open: boolean
+  open: boolean;
   /** Callback when open state changes */
-  onOpenChange: (open: boolean) => void
-}
+  onOpenChange: (open: boolean) => void;
+};
 
 /**
  * GalleryLightbox
- * 
+ *
  * Full-screen modal for viewing images in a slideshow format.
  * Uses React Portal to render at document body level.
  * Features:
@@ -34,75 +34,75 @@ type GalleryLightboxProps = {
  */
 export function GalleryLightbox({
   images,
-  alt = 'Gallery image',
+  alt = "Gallery image",
   initialIndex = 0,
   open,
   onOpenChange,
 }: GalleryLightboxProps) {
-  const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  const [mounted, setMounted] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [mounted, setMounted] = useState(false);
 
   // Handle client-side mounting for portal
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   // Reset to initial index when opening
   useEffect(() => {
     if (open) {
-      setCurrentIndex(initialIndex)
+      setCurrentIndex(initialIndex);
     }
-  }, [open, initialIndex])
+  }, [open, initialIndex]);
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  }, [images.length])
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  }, [images.length]);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
-  }, [images.length])
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  }, [images.length]);
 
   const handleClose = useCallback(() => {
-    onOpenChange(false)
-  }, [onOpenChange])
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   // Keyboard navigation
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
-        case 'Escape':
-          handleClose()
-          break
-        case 'ArrowLeft':
-          handlePrev()
-          break
-        case 'ArrowRight':
-          handleNext()
-          break
+        case "Escape":
+          handleClose();
+          break;
+        case "ArrowLeft":
+          handlePrev();
+          break;
+        case "ArrowRight":
+          handleNext();
+          break;
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open, handleClose, handlePrev, handleNext])
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, handleClose, handlePrev, handleNext]);
 
   // Prevent body scroll when open
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
-  if (!mounted || !open || images.length === 0) return null
+  if (!mounted || !open || images.length === 0) return null;
 
-  const currentImage = images[currentIndex]
+  const currentImage = images[currentIndex];
 
   const lightboxContent = (
     <div
@@ -110,7 +110,7 @@ export function GalleryLightbox({
       role="dialog"
       aria-modal="true"
       aria-label="Image gallery"
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
     >
       {/* Dark overlay - click to close */}
       <div
@@ -174,13 +174,13 @@ export function GalleryLightbox({
               type="button"
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                'h-2.5 rounded-full transition-all duration-300',
+                "h-2.5 rounded-full transition-all duration-300",
                 index === currentIndex
-                  ? 'w-8 bg-white'
-                  : 'w-2.5 bg-white/40 hover:bg-white/60'
+                  ? "w-8 bg-white"
+                  : "w-2.5 bg-white/40 hover:bg-white/60",
               )}
               aria-label={`Go to image ${index + 1}`}
-              aria-current={index === currentIndex ? 'true' : undefined}
+              aria-current={index === currentIndex ? "true" : undefined}
             />
           ))}
         </div>
@@ -191,8 +191,8 @@ export function GalleryLightbox({
         {currentIndex + 1} / {images.length}
       </div>
     </div>
-  )
+  );
 
   // Render via portal to document body
-  return createPortal(lightboxContent, document.body)
+  return createPortal(lightboxContent, document.body);
 }

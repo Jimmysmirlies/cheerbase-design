@@ -1,79 +1,95 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from "react";
 
-import { cn } from '@workspace/ui/lib/utils'
-import { Button } from '@workspace/ui/shadcn/button'
+import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/shadcn/button";
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/shadcn/dialog";
 
-import { GradientAvatar } from '@/components/ui/avatars/GradientAvatar'
+import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
 
-import type { RegistrationEntry, TeamOption } from './types'
+import type { RegistrationEntry, TeamOption } from "./types";
 
 type RegisterTeamModalProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  divisions: string[]
-  teams: TeamOption[]
-  onSubmit: (entry: RegistrationEntry) => void
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  divisions: string[];
+  teams: TeamOption[];
+  onSubmit: (entry: RegistrationEntry) => void;
+};
 
-export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubmit }: RegisterTeamModalProps) {
-  const [division, setDivision] = useState<string>('')
-  const [teamId, setTeamId] = useState<string>('')
+export function RegisterTeamModal({
+  open,
+  onOpenChange,
+  divisions,
+  teams,
+  onSubmit,
+}: RegisterTeamModalProps) {
+  const [division, setDivision] = useState<string>("");
+  const [teamId, setTeamId] = useState<string>("");
 
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setDivision('')
-      setTeamId('')
+      setDivision("");
+      setTeamId("");
     }
-  }, [open])
+  }, [open]);
 
   // Build a map of divisions to their available teams
   // Teams can only be registered in divisions that match their team.division
   const divisionTeamsMap = useMemo(() => {
-    const map = new Map<string, TeamOption[]>()
-    
-    divisions.forEach(div => {
-      const teamsInDivision = teams.filter(team => team.division === div)
-      map.set(div, teamsInDivision)
-    })
-    
-    return map
-  }, [divisions, teams])
+    const map = new Map<string, TeamOption[]>();
+
+    divisions.forEach((div) => {
+      const teamsInDivision = teams.filter((team) => team.division === div);
+      map.set(div, teamsInDivision);
+    });
+
+    return map;
+  }, [divisions, teams]);
 
   // Get teams for the selected division
   const availableTeams = useMemo(() => {
-    if (!division) return []
-    return divisionTeamsMap.get(division) ?? []
-  }, [division, divisionTeamsMap])
+    if (!division) return [];
+    return divisionTeamsMap.get(division) ?? [];
+  }, [division, divisionTeamsMap]);
 
-  const canSubmit = Boolean(division && teamId)
+  const canSubmit = Boolean(division && teamId);
 
   const handleSubmit = () => {
-    if (!canSubmit) return
+    if (!canSubmit) return;
 
-    const team = teams.find(t => t.id === teamId)
-    if (!team) return
+    const team = teams.find((t) => t.id === teamId);
+    if (!team) return;
 
-    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `entry-${Date.now()}`
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `entry-${Date.now()}`;
 
     onSubmit({
       id,
       division,
-      mode: 'existing',
+      mode: "existing",
       teamId: team.id,
       teamName: team.name,
       teamSize: team.size,
-    })
+    });
 
-    onOpenChange(false)
-  }
+    onOpenChange(false);
+  };
 
   const handleDivisionSelect = (divisionName: string) => {
-    setDivision(divisionName)
-    setTeamId('') // Reset team selection when division changes
-  }
+    setDivision(divisionName);
+    setTeamId(""); // Reset team selection when division changes
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,9 +106,9 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
           <div className="space-y-3 pt-0">
             <label className="label text-muted-foreground">Division</label>
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
-              {divisions.map(div => {
-                const teamsInDivision = divisionTeamsMap.get(div) ?? []
-                const hasTeamsInDivision = teamsInDivision.length > 0
+              {divisions.map((div) => {
+                const teamsInDivision = divisionTeamsMap.get(div) ?? [];
+                const hasTeamsInDivision = teamsInDivision.length > 0;
                 return (
                   <DivisionCard
                     key={div}
@@ -102,7 +118,7 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
                     disabled={!hasTeamsInDivision}
                     onClick={() => handleDivisionSelect(div)}
                   />
-                )
+                );
               })}
             </div>
           </div>
@@ -113,7 +129,7 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
               <label className="label text-muted-foreground">Team</label>
               {availableTeams.length > 0 ? (
                 <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
-                  {availableTeams.map(team => (
+                  {availableTeams.map((team) => (
                     <SelectableTeamCard
                       key={team.id}
                       team={team}
@@ -132,7 +148,11 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
         </div>
 
         <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
@@ -141,7 +161,7 @@ export function RegisterTeamModal({ open, onOpenChange, divisions, teams, onSubm
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 // Division card - selectable grid item
@@ -152,11 +172,11 @@ function DivisionCard({
   disabled,
   onClick,
 }: {
-  division: string
-  teamCount: number
-  selected: boolean
-  disabled: boolean
-  onClick: () => void
+  division: string;
+  teamCount: number;
+  selected: boolean;
+  disabled: boolean;
+  onClick: () => void;
 }) {
   return (
     <button
@@ -164,23 +184,23 @@ function DivisionCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'rounded-md border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        "rounded-md border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         selected
-          ? 'border-primary bg-primary/5 shadow-sm'
-          : 'border-border/60 hover:border-primary/40',
-        disabled && 'cursor-not-allowed opacity-50 hover:border-border/60'
+          ? "border-primary bg-primary/5 shadow-sm"
+          : "border-border/60 hover:border-primary/40",
+        disabled && "cursor-not-allowed opacity-50 hover:border-border/60",
       )}
     >
       <p className="body-text font-medium">{division}</p>
       <p className="body-small text-muted-foreground">
         {teamCount === 0
-          ? 'No teams available to register'
+          ? "No teams available to register"
           : teamCount === 1
-            ? '1 team available'
+            ? "1 team available"
             : `${teamCount} teams available`}
       </p>
     </button>
-  )
+  );
 }
 
 // Simplified team card - selectable list item
@@ -189,23 +209,23 @@ function SelectableTeamCard({
   selected,
   onClick,
 }: {
-  team: TeamOption
-  selected: boolean
-  onClick: () => void
+  team: TeamOption;
+  selected: boolean;
+  onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        'flex items-center gap-3 rounded-md border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        "flex items-center gap-3 rounded-md border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         selected
-          ? 'border-primary bg-primary/5 shadow-sm'
-          : 'border-border/60 hover:border-primary/40'
+          ? "border-primary bg-primary/5 shadow-sm"
+          : "border-border/60 hover:border-primary/40",
       )}
     >
       <GradientAvatar name={team.name} size="sm" />
       <span className="body-text font-medium truncate">{team.name}</span>
     </button>
-  )
+  );
 }

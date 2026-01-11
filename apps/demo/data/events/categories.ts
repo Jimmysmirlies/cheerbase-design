@@ -6,10 +6,26 @@ import { getLocalEventImage, getLocalGalleryImages } from "@/utils/localImages";
  * Helper to calculate registration deadline from event date.
  * Returns 7 days before the event date as ISO string.
  */
-function getRegistrationDeadline(eventDate: string, daysBeforeEvent = 7): string {
+function getRegistrationDeadline(
+  eventDate: string,
+  daysBeforeEvent = 7,
+): string {
   const date = new Date(eventDate);
   date.setDate(date.getDate() - daysBeforeEvent);
-  return date.toISOString().split('T')[0] as string;
+  return date.toISOString().split("T")[0] as string;
+}
+
+/**
+ * Helper to calculate registration start date from event date.
+ * Returns 120 days (roughly 4 months) before the event date as ISO string.
+ */
+function getRegistrationStartDate(
+  eventDate: string,
+  daysBeforeEvent = 120,
+): string {
+  const date = new Date(eventDate);
+  date.setDate(date.getDate() - daysBeforeEvent);
+  return date.toISOString().split("T")[0] as string;
 }
 
 export const eventCategories: EventCategory[] = [
@@ -23,7 +39,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Cheer Elite Events",
         type: "Championship",
         date: "Nov 14, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Nov 14, 2026"),
         registrationDeadline: getRegistrationDeadline("Nov 14, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Nov 14, 2026"),
         earlyBirdDeadline: "2026-10-12",
         location: "Madison Square Garden, NY",
         teams: "32 / 48 teams",
@@ -76,7 +96,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Spirit Sports Co.",
         type: "Friendly Competition",
         date: "Apr 19, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Apr 19, 2026"),
         registrationDeadline: getRegistrationDeadline("Apr 19, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Apr 19, 2026"),
         earlyBirdDeadline: "2026-02-10",
         location: "Dallas Convention Center, TX",
         teams: "18 / 32 teams",
@@ -129,7 +153,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "East Region Events",
         type: "Friendly Competition",
         date: "May 03, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("May 03, 2026"),
         registrationDeadline: getRegistrationDeadline("May 03, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("May 03, 2026"),
         earlyBirdDeadline: "2026-03-01",
         location: "Boston Convention Center, MA",
         teams: "12 / 24 teams",
@@ -181,7 +209,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Southern Spirit",
         type: "Championship",
         date: "Jul 19, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Jul 19, 2026"),
         registrationDeadline: getRegistrationDeadline("Jul 19, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Jul 19, 2026"),
         earlyBirdDeadline: "2026-06-01",
         location: "Austin Sports Center, TX",
         teams: "28 / 36 teams",
@@ -240,7 +272,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Cheer Squad Prestige Academy",
         type: "Championship",
         date: "Sep 06, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Sep 06, 2026"),
         registrationDeadline: getRegistrationDeadline("Sep 06, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Sep 06, 2026"),
         earlyBirdDeadline: "2026-07-15",
         location: "Buffalo Convention Center, NY",
         teams: "20 / 40 teams",
@@ -292,7 +328,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "West Coast Cheer",
         type: "Friendly Competition",
         date: "Oct 11, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Oct 11, 2026"),
         registrationDeadline: getRegistrationDeadline("Oct 11, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Oct 11, 2026"),
         earlyBirdDeadline: "2026-09-05",
         location: "Los Angeles Convention Center, CA",
         teams: "25 / 30 teams",
@@ -345,7 +385,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Spirit Sports Co.",
         type: "Friendly Competition",
         date: "Aug 23, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Aug 23, 2026"),
         registrationDeadline: getRegistrationDeadline("Aug 23, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Aug 23, 2026"),
         earlyBirdDeadline: "2026-05-15",
         location: "Phoenix Civic Center, AZ",
         teams: "14 / 28 teams",
@@ -397,7 +441,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Midwest Athletics",
         type: "Championship",
         date: "Oct 25, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Oct 25, 2026"),
         registrationDeadline: getRegistrationDeadline("Oct 25, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Oct 25, 2026"),
         earlyBirdDeadline: "2026-09-10",
         location: "United Center, IL",
         teams: "30 / 48 teams",
@@ -456,7 +504,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Championship",
         date: "Nov 29, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Nov 29, 2026"),
         registrationDeadline: getRegistrationDeadline("Nov 29, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Nov 29, 2026"),
         earlyBirdDeadline: "2026-09-30",
         location: "Palais des congrès de Montréal, Montreal, QC, Canada",
         teams: "30 / 50 teams",
@@ -509,7 +561,26 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Friendly Competition",
         date: "Jan 17, 2026",
+        endDate: "Jan 18, 2026",
+        schedule: [
+          {
+            date: "2026-01-17",
+            label: "Preliminary Rounds",
+            startTime: "8:00 AM",
+            endTime: "6:00 PM",
+          },
+          {
+            date: "2026-01-18",
+            label: "Finals & Awards Ceremony",
+            startTime: "9:00 AM",
+            endTime: "5:00 PM",
+          },
+        ],
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Jan 17, 2026"),
         registrationDeadline: getRegistrationDeadline("Jan 17, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Jan 17, 2026"),
         earlyBirdDeadline: "2025-11-30",
         location: "Centre Pierre-Charbonneau, Montreal, QC, Canada",
         teams: "22 / 40 teams",
@@ -519,8 +590,8 @@ export const eventCategories: EventCategory[] = [
           capacity: 40,
         },
         description:
-          "Winter festival event featuring ice-sculpture village, hot chocolate lounge, and judges feedback pods.",
-        tags: ["Winter Series"],
+          "Two-day winter festival event featuring ice-sculpture village, hot chocolate lounge, and judges feedback pods.",
+        tags: ["Winter Series", "Multi-Day"],
         gallery: getLocalGalleryImages("frostfest-montreal"),
         availableDivisions: [
           {
@@ -561,7 +632,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Championship",
         date: "Feb 06, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Feb 06, 2026"),
         registrationDeadline: getRegistrationDeadline("Feb 06, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Feb 06, 2026"),
         earlyBirdDeadline: "2025-12-01",
         location: "Palais des congrès de Montréal, Montreal, QC, Canada",
         teams: "34 / 50 teams",
@@ -594,7 +669,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Friendly Competition",
         date: "Feb 28, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Feb 28, 2026"),
         registrationDeadline: getRegistrationDeadline("Feb 28, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Feb 28, 2026"),
         earlyBirdDeadline: "2026-01-15",
         location: "École secondaire Casavant, Saint-Hyacinthe, QC, Canada",
         teams: "18 / 32 teams",
@@ -626,7 +705,11 @@ export const eventCategories: EventCategory[] = [
         organizer: "Sapphire Productions",
         type: "Friendly Competition",
         date: "Mar 28, 2026",
+        registrationEnabled: true,
+        registrationStartDate: getRegistrationStartDate("Mar 28, 2026"),
         registrationDeadline: getRegistrationDeadline("Mar 28, 2026"),
+        earlyBirdEnabled: true,
+        earlyBirdStartDate: getRegistrationStartDate("Mar 28, 2026"),
         earlyBirdDeadline: "2026-02-15",
         location: "Théâtre Marcellin-Champagnat, Laval, QC, Canada",
         teams: "24 / 36 teams",
@@ -657,7 +740,9 @@ export const eventCategories: EventCategory[] = [
 ];
 
 const eventById = new Map(
-  eventCategories.flatMap((category) => category.events.map((event) => [event.id, event] as const)),
+  eventCategories.flatMap((category) =>
+    category.events.map((event) => [event.id, event] as const),
+  ),
 );
 
 export function findEventById(id: string) {
@@ -672,9 +757,12 @@ export function listEvents() {
  * Check if registration is closed for an event.
  * Registration is closed if the deadline has passed or the event date has passed.
  */
-export function isRegistrationClosed(event: { registrationDeadline?: string; date: string }): boolean {
+export function isRegistrationClosed(event: {
+  registrationDeadline?: string;
+  date: string;
+}): boolean {
   const now = new Date();
-  
+
   // If there's a registration deadline, check against that
   if (event.registrationDeadline) {
     const deadline = new Date(event.registrationDeadline);
@@ -682,7 +770,7 @@ export function isRegistrationClosed(event: { registrationDeadline?: string; dat
     deadline.setHours(23, 59, 59, 999);
     if (now > deadline) return true;
   }
-  
+
   // Also check if event date has passed
   const eventDate = new Date(event.date);
   eventDate.setHours(23, 59, 59, 999);
@@ -693,5 +781,5 @@ export function isRegistrationClosed(event: { registrationDeadline?: string; dat
  * List only events with open registration.
  */
 export function listOpenEvents() {
-  return listEvents().filter(event => !isRegistrationClosed(event));
+  return listEvents().filter((event) => !isRegistrationClosed(event));
 }

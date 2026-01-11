@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useState } from 'react'
-import { CheckIcon } from 'lucide-react'
-import { Button } from '@workspace/ui/shadcn/button'
-import { Input } from '@workspace/ui/shadcn/input'
-import { Label } from '@workspace/ui/shadcn/label'
-import { GlassSelect } from '@workspace/ui/components/glass-select'
+import { useEffect, useMemo, useState } from "react";
+import { CheckIcon } from "lucide-react";
+import { Button } from "@workspace/ui/shadcn/button";
+import { Input } from "@workspace/ui/shadcn/input";
+import { Label } from "@workspace/ui/shadcn/label";
+import { GlassSelect } from "@workspace/ui/components/glass-select";
 import {
   Dialog,
   DialogContent,
@@ -13,105 +13,115 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@workspace/ui/shadcn/dialog'
-import { cn } from '@workspace/ui/lib/utils'
-import { divisionCatalog } from '@/data/divisions'
-import { brandGradients, type BrandGradient } from '@/lib/gradients'
+} from "@workspace/ui/shadcn/dialog";
+import { cn } from "@workspace/ui/lib/utils";
+import { divisionCatalog } from "@/data/divisions";
+import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 export type CreateTeamData = {
-  id: string
-  name: string
-  division: string
-  gradient?: BrandGradient
-}
+  id: string;
+  name: string;
+  division: string;
+  gradient?: BrandGradient;
+};
 
 type CreateTeamModalProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (team: CreateTeamData) => void
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (team: CreateTeamData) => void;
+};
 
 const gradientOptions = Object.entries(brandGradients).map(([key, value]) => ({
   key: key as BrandGradient,
   ...value,
-}))
+}));
 
-export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModalProps) {
-  const [teamName, setTeamName] = useState('')
-  const [category, setCategory] = useState('')
-  const [tier, setTier] = useState('')
-  const [level, setLevel] = useState('')
-  const [selectedGradient, setSelectedGradient] = useState<BrandGradient>('primary')
+export function CreateTeamModal({
+  open,
+  onOpenChange,
+  onSubmit,
+}: CreateTeamModalProps) {
+  const [teamName, setTeamName] = useState("");
+  const [category, setCategory] = useState("");
+  const [tier, setTier] = useState("");
+  const [level, setLevel] = useState("");
+  const [selectedGradient, setSelectedGradient] =
+    useState<BrandGradient>("primary");
 
   useEffect(() => {
     if (open) {
-      setTeamName('')
-      setCategory(divisionCatalog[0]?.name ?? '')
-      setTier('')
-      setLevel('')
-      setSelectedGradient('primary')
+      setTeamName("");
+      setCategory(divisionCatalog[0]?.name ?? "");
+      setTier("");
+      setLevel("");
+      setSelectedGradient("primary");
     }
-  }, [open])
+  }, [open]);
 
   const selectedCategory = useMemo(
-    () => divisionCatalog.find(cat => cat.name === category),
-    [category]
-  )
+    () => divisionCatalog.find((cat) => cat.name === category),
+    [category],
+  );
 
   const selectedTier = useMemo(
-    () => selectedCategory?.tiers.find(t => t.name === tier),
-    [selectedCategory, tier]
-  )
+    () => selectedCategory?.tiers.find((t) => t.name === tier),
+    [selectedCategory, tier],
+  );
 
   useEffect(() => {
     if (category && selectedCategory) {
-      setTier(selectedCategory.tiers[0]?.name ?? '')
+      setTier(selectedCategory.tiers[0]?.name ?? "");
     }
-  }, [category, selectedCategory])
+  }, [category, selectedCategory]);
 
   useEffect(() => {
     if (tier && selectedTier) {
-      setLevel(selectedTier.levels[0] ?? '')
+      setLevel(selectedTier.levels[0] ?? "");
     }
-  }, [tier, selectedTier])
+  }, [tier, selectedTier]);
 
   const division = useMemo(() => {
-    if (!category || !tier || !level) return ''
-    return `${category} - ${tier} - ${level}`
-  }, [category, tier, level])
+    if (!category || !tier || !level) return "";
+    return `${category} - ${tier} - ${level}`;
+  }, [category, tier, level]);
 
-  const canSubmit = Boolean(teamName.trim() && category && tier && level)
+  const canSubmit = Boolean(teamName.trim() && category && tier && level);
 
   const handleSubmit = () => {
-    if (!canSubmit) return
+    if (!canSubmit) return;
 
-    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `team-${Date.now()}`
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `team-${Date.now()}`;
 
     onSubmit({
       id,
       name: teamName.trim(),
       division,
       gradient: selectedGradient,
-    })
+    });
 
-    onOpenChange(false)
-  }
+    onOpenChange(false);
+  };
 
   // Prepare options for GlassSelect
-  const categoryOptions = divisionCatalog.map(cat => ({
+  const categoryOptions = divisionCatalog.map((cat) => ({
     value: cat.name,
     label: cat.name,
-  }))
+  }));
 
-  const tierOptions = selectedCategory?.tiers.map(t => ({
-    value: t.name,
-    label: t.name,
-  })) ?? []
+  const tierOptions =
+    selectedCategory?.tiers.map((t) => ({
+      value: t.name,
+      label: t.name,
+    })) ?? [];
 
-  const levelOptions = selectedTier?.levels.map(lvl => ({
-    value: lvl,
-    label: lvl,
-  })) ?? []
+  const levelOptions =
+    selectedTier?.levels.map((lvl) => ({
+      value: lvl,
+      label: lvl,
+    })) ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,7 +129,8 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
         <DialogHeader>
           <DialogTitle className="heading-4">Create Team</DialogTitle>
           <DialogDescription className="body-small">
-            Add a new team to your club. You&apos;ll be able to add members after creation.
+            Add a new team to your club. You&apos;ll be able to add members
+            after creation.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,11 +141,11 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
               id="team-name"
               placeholder="e.g., U16 Thunder"
               value={teamName}
-              onChange={e => setTeamName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && canSubmit) {
-                  e.preventDefault()
-                  handleSubmit()
+              onChange={(e) => setTeamName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canSubmit) {
+                  e.preventDefault();
+                  handleSubmit();
                 }
               }}
             />
@@ -150,11 +161,11 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
                   type="button"
                   onClick={() => setSelectedGradient(key)}
                   className={cn(
-                    'relative flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br transition-all',
+                    "relative flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br transition-all",
                     tailwind,
                     selectedGradient === key
-                      ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
-                      : 'hover:scale-105'
+                      ? "ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                      : "hover:scale-105",
                   )}
                   title={name}
                   aria-label={`Select ${name} color`}
@@ -213,5 +224,5 @@ export function CreateTeamModal({ open, onOpenChange, onSubmit }: CreateTeamModa
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

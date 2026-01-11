@@ -1,48 +1,56 @@
-'use client'
+"use client";
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'registration-timeline', label: 'Registration Timeline' },
-  { id: 'date-location', label: 'Date & Location' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'organizer', label: 'Organizer' },
-  { id: 'pricing', label: 'Pricing' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'results', label: 'Results' },
-] as const
+  { id: "overview", label: "Overview" },
+  { id: "registration-pricing", label: "Registration & Pricing" },
+  { id: "date-time", label: "Event Date & Time" },
+  { id: "location", label: "Where You'll Be" },
+  { id: "gallery", label: "Gallery" },
+  { id: "organizer", label: "Organizer" },
+  { id: "documents", label: "Documents" },
+  { id: "results", label: "Results" },
+] as const;
 
-const NAV_HEIGHT = 88
+const NAV_HEIGHT = 88;
 
 type EventTableOfContentsProps = {
-  showLabel?: boolean
-  showDivider?: boolean
-}
+  showLabel?: boolean;
+  showDivider?: boolean;
+};
 
-export function EventTableOfContents({ showLabel = true, showDivider = true }: EventTableOfContentsProps) {
+export function EventTableOfContents({
+  showLabel = true,
+  showDivider = true,
+}: EventTableOfContentsProps) {
   const scrollToSection = (id: string) => {
-    const section = document.getElementById(id)
-    if (!section) return
+    const section = document.getElementById(id);
+    if (!section) return;
 
     // Check if we're inside a ScrollArea component
     // Look for the ScrollArea viewport element (has data-slot="scroll-area-viewport")
-    const scrollAreaViewport = document.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement | null
+    const scrollAreaViewport = document.querySelector(
+      '[data-slot="scroll-area-viewport"]',
+    ) as HTMLElement | null;
 
     if (scrollAreaViewport) {
       // We're inside a ScrollArea, scroll the viewport instead of window
-      const viewportRect = scrollAreaViewport.getBoundingClientRect()
-      const sectionRect = section.getBoundingClientRect()
-      const scrollTop = scrollAreaViewport.scrollTop
-      const top = sectionRect.top - viewportRect.top + scrollTop - NAV_HEIGHT
-      scrollAreaViewport.scrollTo({ top, behavior: 'smooth' })
+      const viewportRect = scrollAreaViewport.getBoundingClientRect();
+      const sectionRect = section.getBoundingClientRect();
+      const scrollTop = scrollAreaViewport.scrollTop;
+      const top = sectionRect.top - viewportRect.top + scrollTop - NAV_HEIGHT;
+      scrollAreaViewport.scrollTo({ top, behavior: "smooth" });
     } else {
       // No ScrollArea wrapper, use standard window scrolling
-      const top = section.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT
-      window.scrollTo({ top, behavior: 'smooth' })
+      const top =
+        section.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT;
+      window.scrollTo({ top, behavior: "smooth" });
     }
-  }
+  };
 
   return (
-    <nav className={`flex flex-col gap-1 ${showDivider ? 'border-t border-border/50 pt-4' : ''}`}>
+    <nav
+      className={`flex flex-col gap-1 ${showDivider ? "border-t border-border/50 pt-4" : ""}`}
+    >
       {showLabel && (
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide pb-2 pt-1">
           On this page
@@ -59,5 +67,5 @@ export function EventTableOfContents({ showLabel = true, showDivider = true }: E
         </button>
       ))}
     </nav>
-  )
+  );
 }

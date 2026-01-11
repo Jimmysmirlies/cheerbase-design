@@ -1,34 +1,49 @@
 "use client";
 
 import { useMemo, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/shadcn/card";
 import { Badge } from "@workspace/ui/shadcn/badge";
-import { CalendarIcon, UsersIcon, DollarSignIcon, CheckCircleIcon, ClockIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  UsersIcon,
+  DollarSignIcon,
+  CheckCircleIcon,
+  ClockIcon,
+} from "lucide-react";
 
 import { useOrganizer } from "@/hooks/useOrganizer";
-import { getRegistrationsByOrganizerId, getRegistrationsByEventForOrganizer } from "@/data/events/selectors";
+import {
+  getRegistrationsByOrganizerId,
+  getRegistrationsByEventForOrganizer,
+} from "@/data/events/selectors";
 import type { Registration } from "@/types/club";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { useLayoutContextSafe } from "@/components/providers/LayoutProvider";
 import { type BrandGradient } from "@/lib/gradients";
 
 export default function OrganizerRegistrationsPage() {
-  const { layout } = useLayoutContextSafe();
   const { organizer, organizerId, isLoading } = useOrganizer();
-  const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
+  const [organizerGradient, setOrganizerGradient] = useState<
+    BrandGradient | undefined
+  >(undefined);
 
   // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
       if (organizerId) {
         try {
-          const stored = localStorage.getItem(`cheerbase-organizer-settings-${organizerId}`)
+          const stored = localStorage.getItem(
+            `cheerbase-organizer-settings-${organizerId}`,
+          );
           if (stored) {
-            const settings = JSON.parse(stored)
+            const settings = JSON.parse(stored);
             if (settings.gradient) {
-              setOrganizerGradient(settings.gradient)
-              return
+              setOrganizerGradient(settings.gradient);
+              return;
             }
           }
         } catch {
@@ -36,32 +51,41 @@ export default function OrganizerRegistrationsPage() {
         }
       }
       // Fall back to organizer's default gradient
-      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined)
-    }
+      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
+    };
 
-    loadGradient()
+    loadGradient();
 
     // Listen for settings changes
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
-        setOrganizerGradient(event.detail.gradient as BrandGradient)
+        setOrganizerGradient(event.detail.gradient as BrandGradient);
       }
-    }
+    };
 
-    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    window.addEventListener(
+      "organizer-settings-changed",
+      handleSettingsChange as EventListener,
+    );
     return () => {
-      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
-    }
-  }, [organizerId, organizer?.gradient])
+      window.removeEventListener(
+        "organizer-settings-changed",
+        handleSettingsChange as EventListener,
+      );
+    };
+  }, [organizerId, organizer?.gradient]);
 
   const registrations = useMemo(
     () => (organizerId ? getRegistrationsByOrganizerId(organizerId) : []),
-    [organizerId]
+    [organizerId],
   );
 
   const registrationsByEvent = useMemo(
-    () => (organizerId ? getRegistrationsByEventForOrganizer(organizerId) : new Map<string, Registration[]>()),
-    [organizerId]
+    () =>
+      organizerId
+        ? getRegistrationsByEventForOrganizer(organizerId)
+        : new Map<string, Registration[]>(),
+    [organizerId],
   );
 
   // Calculate summary stats
@@ -88,19 +112,12 @@ export default function OrganizerRegistrationsPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        {layout === 'A' ? (
-          <PageHeader
+        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+          <PageTitle
             title="Registrations"
             gradient={organizerGradient || organizer?.gradient}
           />
-        ) : (
-          <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-            <PageTitle
-              title="Registrations"
-              gradient={organizerGradient || organizer?.gradient}
-            />
-          </div>
-        )}
+        </div>
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -120,26 +137,20 @@ export default function OrganizerRegistrationsPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      {layout === 'A' ? (
-        <PageHeader
+      <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
+        <PageTitle
           title="Registrations"
           gradient={organizerGradient || organizer?.gradient}
         />
-      ) : (
-        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-          <PageTitle
-            title="Registrations"
-            gradient={organizerGradient || organizer?.gradient}
-          />
-        </div>
-      )}
+      </div>
       <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
-
         {/* Summary Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium text-muted-foreground">Total Registrations</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total Registrations
+              </p>
               <UsersIcon className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -148,11 +159,15 @@ export default function OrganizerRegistrationsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Pending
+              </p>
               <ClockIcon className="size-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold text-amber-600">{stats.pending}</p>
+              <p className="text-2xl font-semibold text-amber-600">
+                {stats.pending}
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -161,16 +176,22 @@ export default function OrganizerRegistrationsPage() {
               <CheckCircleIcon className="size-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold text-emerald-600">{stats.paid}</p>
+              <p className="text-2xl font-semibold text-emerald-600">
+                {stats.paid}
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium text-muted-foreground">Revenue</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Revenue
+              </p>
               <DollarSignIcon className="size-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{formatCurrency(stats.totalRevenue)}</p>
+              <p className="text-2xl font-semibold">
+                {formatCurrency(stats.totalRevenue)}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -178,16 +199,18 @@ export default function OrganizerRegistrationsPage() {
         {/* Registrations grouped by event */}
         {registrations.length > 0 ? (
           <div className="space-y-6">
-            {Array.from(registrationsByEvent.entries()).map(([eventId, eventRegs]) => (
-              <EventRegistrationGroup
-                key={eventId}
-                eventName={eventRegs[0]?.eventName ?? eventId}
-                eventDate={eventRegs[0]?.eventDate ?? ""}
-                location={eventRegs[0]?.location ?? ""}
-                registrations={eventRegs}
-                formatCurrency={formatCurrency}
-              />
-            ))}
+            {Array.from(registrationsByEvent.entries()).map(
+              ([eventId, eventRegs]) => (
+                <EventRegistrationGroup
+                  key={eventId}
+                  eventName={eventRegs[0]?.eventName ?? eventId}
+                  eventDate={eventRegs[0]?.eventDate ?? ""}
+                  location={eventRegs[0]?.location ?? ""}
+                  registrations={eventRegs}
+                  formatCurrency={formatCurrency}
+                />
+              ),
+            )}
           </div>
         ) : (
           <Card className="border-dashed border-border/70">
@@ -195,7 +218,8 @@ export default function OrganizerRegistrationsPage() {
               <CardTitle className="text-base">No Registrations Yet</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              When clubs register for your events, they will appear here for review.
+              When clubs register for your events, they will appear here for
+              review.
             </CardContent>
           </Card>
         )}
@@ -248,7 +272,9 @@ function EventRegistrationGroup({
               </div>
               <div className="flex items-center gap-4 flex-shrink-0">
                 <div className="text-right">
-                  <p className="font-medium">{formatCurrency(reg.invoiceTotal)}</p>
+                  <p className="font-medium">
+                    {formatCurrency(reg.invoiceTotal)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Due: {new Date(reg.paymentDeadline).toLocaleDateString()}
                   </p>

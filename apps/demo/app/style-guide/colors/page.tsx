@@ -52,13 +52,15 @@ const colors = [
     name: "Accent Lighter",
     token: "var(--accent-lighter)",
     text: "var(--accent-lighter-foreground)",
-    usage: "Hover states and light highlights (e.g., dropdown items, soft chips).",
+    usage:
+      "Hover states and light highlights (e.g., dropdown items, soft chips).",
   },
   {
     name: "Accent Lighter Foreground",
     token: "var(--accent-lighter-foreground)",
     text: "var(--background)",
-    usage: "Text/icons on accent-lighter backgrounds when extra contrast is needed.",
+    usage:
+      "Text/icons on accent-lighter backgrounds when extra contrast is needed.",
   },
   {
     name: "Popover",
@@ -148,9 +150,7 @@ export default function ColorsPage() {
       <PageHeader
         title="Color Roles"
         subtitle="Core palette mapped to semantic roles. Default to these tokens across surfaces and activate extended brand colors only for illustrations or analytics."
-        breadcrumbs={[
-          { label: "Brand Guidelines", href: "/style-guide" },
-        ]}
+        breadcrumbs={[{ label: "Brand Guidelines", href: "/style-guide" }]}
       />
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
         <div className="space-y-12">
@@ -161,7 +161,13 @@ export default function ColorsPage() {
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {colors.map((color) => (
-                <ColorSwatch key={color.name} name={color.name} token={color.token} textToken={color.text} usage={color.usage} />
+                <ColorSwatch
+                  key={color.name}
+                  name={color.name}
+                  token={color.token}
+                  textToken={color.text}
+                  usage={color.usage}
+                />
               ))}
             </div>
           </div>

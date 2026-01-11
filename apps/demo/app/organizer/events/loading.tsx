@@ -1,4 +1,4 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
 
 export default function OrganizerEventsLoading() {
   return (
@@ -17,7 +17,10 @@ export default function OrganizerEventsLoading() {
       {/* Event cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="rounded-lg border border-border/60 bg-card overflow-hidden">
+          <div
+            key={i}
+            className="rounded-lg border border-border/60 bg-card overflow-hidden"
+          >
             <Skeleton className="aspect-video w-full" />
             <div className="p-5 space-y-3">
               <Skeleton className="h-5 w-3/4 rounded" />
@@ -35,5 +38,5 @@ export default function OrganizerEventsLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }

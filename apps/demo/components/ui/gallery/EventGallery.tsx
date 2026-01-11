@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
-import { LayoutGridIcon } from 'lucide-react'
+import { useState } from "react";
+import Image from "next/image";
+import { LayoutGridIcon } from "lucide-react";
 
-import { cn } from '@workspace/ui/lib/utils'
+import { cn } from "@workspace/ui/lib/utils";
 
-import { GalleryLightbox } from './GalleryLightbox'
+import { GalleryLightbox } from "./GalleryLightbox";
 
 type EventGalleryProps = {
   /** Array of image URLs */
-  images: string[]
+  images: string[];
   /** Alt text prefix for images */
-  alt?: string
+  alt?: string;
   /** Maximum number of images to show in grid (default: 5) */
-  maxImages?: number
-}
+  maxImages?: number;
+};
 
 /**
  * EventGallery
- * 
+ *
  * Bento-style image gallery with a large hero image on the left
  * and a 2x2 grid of smaller images on the right.
  * Click any image to open the full lightbox slideshow.
- * 
+ *
  * Layout (5 images):
  * ┌──────────────┬────────┬────────┐
  * │              │   2    │   3    │
@@ -33,21 +33,21 @@ type EventGalleryProps = {
  */
 export function EventGallery({
   images,
-  alt = 'Event photo',
+  alt = "Event photo",
   maxImages = 5,
 }: EventGalleryProps) {
-  const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  if (images.length === 0) return null
+  if (images.length === 0) return null;
 
-  const displayImages = images.slice(0, maxImages)
-  const remainingCount = images.length - maxImages
+  const displayImages = images.slice(0, maxImages);
+  const remainingCount = images.length - maxImages;
 
   const openLightbox = (index: number) => {
-    setLightboxIndex(index)
-    setLightboxOpen(true)
-  }
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
 
   // Single image - full width
   if (images.length === 1) {
@@ -74,7 +74,7 @@ export function EventGallery({
           onOpenChange={setLightboxOpen}
         />
       </>
-    )
+    );
   }
 
   // Two images - side by side
@@ -107,12 +107,12 @@ export function EventGallery({
           onOpenChange={setLightboxOpen}
         />
       </>
-    )
+    );
   }
 
   // Three or more images: Bento layout - large left, grid right
-  const heroImage = displayImages[0]!
-  const gridImages = displayImages.slice(1, 5) // Max 4 on the right
+  const heroImage = displayImages[0]!;
+  const gridImages = displayImages.slice(1, 5); // Max 4 on the right
 
   return (
     <>
@@ -135,8 +135,9 @@ export function EventGallery({
         {/* 2x2 grid on the right - stretches to fill container height */}
         <div className="grid h-full grid-cols-2 grid-rows-2 gap-2">
           {gridImages.map((src, index) => {
-            const actualIndex = index + 1 // +1 because hero is index 0
-            const isLastWithMore = actualIndex === displayImages.length - 1 && remainingCount > 0
+            const actualIndex = index + 1; // +1 because hero is index 0
+            const isLastWithMore =
+              actualIndex === displayImages.length - 1 && remainingCount > 0;
 
             return (
               <button
@@ -144,8 +145,8 @@ export function EventGallery({
                 type="button"
                 onClick={() => openLightbox(actualIndex)}
                 className={cn(
-                  'relative h-full w-full overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                  isLastWithMore && 'group'
+                  "relative h-full w-full overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  isLastWithMore && "group",
                 )}
               >
                 <Image
@@ -153,8 +154,10 @@ export function EventGallery({
                   alt={`${alt} ${actualIndex + 1}`}
                   fill
                   className={cn(
-                    'object-cover transition-transform duration-300',
-                    isLastWithMore ? 'group-hover:scale-[1.02]' : 'hover:scale-[1.02]'
+                    "object-cover transition-transform duration-300",
+                    isLastWithMore
+                      ? "group-hover:scale-[1.02]"
+                      : "hover:scale-[1.02]",
                   )}
                   sizes="(max-width: 768px) 25vw, 200px"
                 />
@@ -167,7 +170,7 @@ export function EventGallery({
                   </div>
                 )}
               </button>
-            )
+            );
           })}
         </div>
       </div>
@@ -179,5 +182,5 @@ export function EventGallery({
         onOpenChange={setLightboxOpen}
       />
     </>
-  )
+  );
 }

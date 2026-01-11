@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { cn } from '@workspace/ui/lib/utils'
+import { cn } from "@workspace/ui/lib/utils";
 
 type GoogleSignInButtonProps = {
-  onClick?: () => void
-  disabled?: boolean
-  className?: string
-  text?: string
-}
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
+  text?: string;
+};
 
 // Official Google "G" logo SVG
 function GoogleLogo() {
@@ -36,14 +36,14 @@ function GoogleLogo() {
       />
       <path fill="none" d="M0 0h48v48H0z" />
     </svg>
-  )
+  );
 }
 
 export function GoogleSignInButton({
   onClick,
   disabled = false,
   className,
-  text = 'Sign in with Google',
+  text = "Sign in with Google",
 }: GoogleSignInButtonProps) {
   return (
     <button
@@ -52,27 +52,27 @@ export function GoogleSignInButton({
       disabled={disabled}
       className={cn(
         // Base styles matching Google's guidelines
-        'relative flex h-10 w-full items-center justify-center gap-3 overflow-hidden rounded border bg-white px-3 text-sm font-medium text-[#1f1f1f] transition-all',
+        "relative flex h-10 w-full items-center justify-center gap-3 overflow-hidden rounded border bg-white px-3 text-sm font-medium text-[#1f1f1f] transition-all",
         // Border color
-        'border-[#747775]',
+        "border-[#747775]",
         // Hover state
-        'hover:shadow-[0_1px_2px_0_rgba(60,64,67,0.30),0_1px_3px_1px_rgba(60,64,67,0.15)]',
+        "hover:shadow-[0_1px_2px_0_rgba(60,64,67,0.30),0_1px_3px_1px_rgba(60,64,67,0.15)]",
         // Focus state
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2',
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2",
         // Active state
-        'active:bg-[#f8f8f8]',
+        "active:bg-[#f8f8f8]",
         // Disabled state
-        'disabled:cursor-default disabled:border-[#1f1f1f1f] disabled:bg-[#ffffff61] disabled:opacity-60',
-        className
+        "disabled:cursor-default disabled:border-[#1f1f1f1f] disabled:bg-[#ffffff61] disabled:opacity-60",
+        className,
       )}
     >
       {/* State overlay for hover/focus/active effects */}
       <span className="pointer-events-none absolute inset-0 bg-[#303030] opacity-0 transition-opacity hover:opacity-[0.08] active:opacity-[0.12]" />
-      
+
       <GoogleLogo />
       <span className="flex-grow overflow-hidden text-ellipsis whitespace-nowrap font-medium">
         {text}
       </span>
     </button>
-  )
+  );
 }

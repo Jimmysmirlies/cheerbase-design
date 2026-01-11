@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
 /**
  * WalkthroughPopover
- * 
+ *
  * A reusable component for creating interactive walkthroughs and tutorials.
  * Features:
  * - Dark overlay with backdrop blur to focus attention
@@ -10,7 +10,7 @@
  * - LocalStorage persistence to remember if user has seen the walkthrough
  * - Auto-positioning based on trigger element
  * - Smooth animations
- * 
+ *
  * Usage:
  * ```tsx
  * <WalkthroughPopover
@@ -25,54 +25,58 @@
  * ```
  */
 
-import { useState, useEffect, useRef, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
-import { XIcon } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from '@workspace/ui/shadcn/popover'
-import { Button } from '@workspace/ui/shadcn/button'
-import { cn } from '@workspace/ui/lib/utils'
+import { useState, useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { XIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/shadcn/popover";
+import { Button } from "@workspace/ui/shadcn/button";
+import { cn } from "@workspace/ui/lib/utils";
 
 export type WalkthroughStep = {
-  icon?: ReactNode
-  label: string
-}
+  icon?: ReactNode;
+  label: string;
+};
 
 export type WalkthroughPopoverProps = {
   /** Unique key for localStorage persistence */
-  storageKey: string
+  storageKey: string;
   /** Title of the walkthrough popover */
-  title: string
+  title: string;
   /** Description text */
-  description: string
+  description: string;
   /** Optional list of steps/features to highlight */
-  steps?: WalkthroughStep[]
+  steps?: WalkthroughStep[];
   /** Custom content to render instead of/after steps */
-  children: ReactNode
+  children: ReactNode;
   /** Custom content for the popover body (replaces default description + steps) */
-  popoverContent?: ReactNode
+  popoverContent?: ReactNode;
   /** Side of the trigger to show the popover */
-  side?: 'top' | 'right' | 'bottom' | 'left'
+  side?: "top" | "right" | "bottom" | "left";
   /** Alignment of the popover */
-  align?: 'start' | 'center' | 'end'
+  align?: "start" | "center" | "end";
   /** Offset from the trigger element */
-  sideOffset?: number
+  sideOffset?: number;
   /** Text for the dismiss button */
-  dismissText?: string
+  dismissText?: string;
   /** Delay before showing the walkthrough (ms) */
-  delay?: number
+  delay?: number;
   /** Whether to show the walkthrough (controlled mode) */
-  open?: boolean
+  open?: boolean;
   /** Callback when walkthrough is dismissed */
-  onDismiss?: () => void
+  onDismiss?: () => void;
   /** Whether to persist the "seen" state to localStorage */
-  persist?: boolean
+  persist?: boolean;
   /** Class name for the trigger wrapper */
-  triggerClassName?: string
+  triggerClassName?: string;
   /** Whether the trigger should have highlight styling when popover is open */
-  highlightTrigger?: boolean
+  highlightTrigger?: boolean;
   /** Custom highlight styles for the trigger */
-  highlightClassName?: string
-}
+  highlightClassName?: string;
+};
 
 export function WalkthroughPopover({
   storageKey,
@@ -81,10 +85,10 @@ export function WalkthroughPopover({
   steps,
   children,
   popoverContent,
-  side = 'bottom',
-  align = 'end',
+  side = "bottom",
+  align = "end",
   sideOffset = 12,
-  dismissText = 'Got it',
+  dismissText = "Got it",
   delay = 800,
   open: controlledOpen,
   onDismiss,
@@ -93,76 +97,84 @@ export function WalkthroughPopover({
   highlightTrigger = true,
   highlightClassName,
 }: WalkthroughPopoverProps) {
-  const isControlled = controlledOpen !== undefined
-  const [internalOpen, setInternalOpen] = useState(false)
-  const [triggerPosition, setTriggerPosition] = useState<{ top: number; right: number; left: number; bottom: number } | null>(null)
-  const triggerRef = useRef<HTMLDivElement>(null)
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [triggerPosition, setTriggerPosition] = useState<{
+    top: number;
+    right: number;
+    left: number;
+    bottom: number;
+  } | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
-  const isOpen = isControlled ? controlledOpen : internalOpen
+  const isOpen = isControlled ? controlledOpen : internalOpen;
 
   // Track the trigger's position for when we portal it
   useEffect(() => {
     const updatePosition = () => {
       if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect()
+        const rect = triggerRef.current.getBoundingClientRect();
         setTriggerPosition({
           top: rect.top,
           right: window.innerWidth - rect.right,
           left: rect.left,
           bottom: rect.bottom,
-        })
+        });
       }
-    }
+    };
 
-    updatePosition()
-    window.addEventListener('resize', updatePosition)
-    window.addEventListener('scroll', updatePosition)
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition);
     return () => {
-      window.removeEventListener('resize', updatePosition)
-      window.removeEventListener('scroll', updatePosition)
-    }
-  }, [])
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, []);
 
   // Check localStorage and show walkthrough if not seen
   useEffect(() => {
-    if (isControlled) return
+    if (isControlled) return;
 
-    const hasSeen = persist ? localStorage.getItem(storageKey) : false
+    const hasSeen = persist ? localStorage.getItem(storageKey) : false;
     if (!hasSeen) {
-      const timer = setTimeout(() => setInternalOpen(true), delay)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setInternalOpen(true), delay);
+      return () => clearTimeout(timer);
     }
-  }, [storageKey, delay, persist, isControlled])
+  }, [storageKey, delay, persist, isControlled]);
 
   const dismiss = () => {
     if (isControlled) {
-      onDismiss?.()
+      onDismiss?.();
     } else {
-      setInternalOpen(false)
+      setInternalOpen(false);
       if (persist) {
-        localStorage.setItem(storageKey, 'true')
+        localStorage.setItem(storageKey, "true");
       }
-      onDismiss?.()
+      onDismiss?.();
     }
-  }
+  };
 
-  const defaultHighlightClassName = 'ring-2 ring-white/50 ring-offset-2 ring-offset-transparent'
+  const defaultHighlightClassName =
+    "ring-2 ring-white/50 ring-offset-2 ring-offset-transparent";
 
   const triggerContent = (
     <div
       ref={triggerRef}
       className={cn(
-        'inline-flex transition-all duration-300',
-        isOpen && highlightTrigger && (highlightClassName || defaultHighlightClassName),
-        triggerClassName
+        "inline-flex transition-all duration-300",
+        isOpen &&
+          highlightTrigger &&
+          (highlightClassName || defaultHighlightClassName),
+        triggerClassName,
       )}
     >
       {children}
     </div>
-  )
+  );
 
   const popover = (
-    <Popover open={isOpen} onOpenChange={open => !open && dismiss()}>
+    <Popover open={isOpen} onOpenChange={(open) => !open && dismiss()}>
       <PopoverTrigger asChild>{triggerContent}</PopoverTrigger>
       <PopoverContent
         side={side}
@@ -181,19 +193,21 @@ export function WalkthroughPopover({
               <XIcon className="size-4" />
             </button>
           </div>
-          
+
           {popoverContent ? (
             popoverContent
           ) : (
             <>
               <p className="text-xs text-muted-foreground">{description}</p>
-              
+
               {steps && steps.length > 0 && (
                 <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
                   {steps.map((step, index) => (
                     <div key={index} className="flex items-center gap-2">
                       {step.icon ? (
-                        <span className="flex size-5 items-center justify-center">{step.icon}</span>
+                        <span className="flex size-5 items-center justify-center">
+                          {step.icon}
+                        </span>
                       ) : null}
                       <span>{step.label}</span>
                     </div>
@@ -202,32 +216,35 @@ export function WalkthroughPopover({
               )}
             </>
           )}
-          
+
           <Button size="sm" onClick={dismiss} className="mt-1">
             {dismissText}
           </Button>
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 
   // When walkthrough is showing, portal both overlay and content for proper z-index layering
-  if (isOpen && typeof document !== 'undefined' && triggerPosition) {
+  if (isOpen && typeof document !== "undefined" && triggerPosition) {
     // Calculate the fixed position based on side/align
-    let fixedStyle: React.CSSProperties = {}
-    
-    if (side === 'bottom' || side === 'top') {
-      fixedStyle = { top: triggerPosition.top, right: triggerPosition.right }
-    } else if (side === 'left') {
-      fixedStyle = { top: triggerPosition.top, left: triggerPosition.left }
+    let fixedStyle: React.CSSProperties = {};
+
+    if (side === "bottom" || side === "top") {
+      fixedStyle = { top: triggerPosition.top, right: triggerPosition.right };
+    } else if (side === "left") {
+      fixedStyle = { top: triggerPosition.top, left: triggerPosition.left };
     } else {
-      fixedStyle = { top: triggerPosition.top, right: triggerPosition.right }
+      fixedStyle = { top: triggerPosition.top, right: triggerPosition.right };
     }
 
     return (
       <>
         {/* Placeholder to maintain layout space */}
-        <div ref={triggerRef} className="inline-flex opacity-0 pointer-events-none">
+        <div
+          ref={triggerRef}
+          className="inline-flex opacity-0 pointer-events-none"
+        >
           {children}
         </div>
         {createPortal(
@@ -243,70 +260,72 @@ export function WalkthroughPopover({
               {popover}
             </div>
           </>,
-          document.body
+          document.body,
         )}
       </>
-    )
+    );
   }
 
-  return popover
+  return popover;
 }
 
 /**
  * Hook to manage walkthrough state programmatically
  */
-export function useWalkthrough(storageKey: string, options?: { persist?: boolean }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const persist = options?.persist ?? true
+export function useWalkthrough(
+  storageKey: string,
+  options?: { persist?: boolean },
+) {
+  const [isOpen, setIsOpen] = useState(false);
+  const persist = options?.persist ?? true;
 
   useEffect(() => {
-    const hasSeen = persist ? localStorage.getItem(storageKey) : false
+    const hasSeen = persist ? localStorage.getItem(storageKey) : false;
     if (!hasSeen) {
-      setIsOpen(true)
+      setIsOpen(true);
     }
-  }, [storageKey, persist])
+  }, [storageKey, persist]);
 
   const dismiss = () => {
-    setIsOpen(false)
+    setIsOpen(false);
     if (persist) {
-      localStorage.setItem(storageKey, 'true')
+      localStorage.setItem(storageKey, "true");
     }
-  }
+  };
 
   const reset = () => {
-    localStorage.removeItem(storageKey)
-    setIsOpen(true)
-  }
+    localStorage.removeItem(storageKey);
+    setIsOpen(true);
+  };
 
-  const show = () => setIsOpen(true)
+  const show = () => setIsOpen(true);
 
   return {
     isOpen,
     dismiss,
     reset,
     show,
-  }
+  };
 }
 
 /**
  * WalkthroughStepBadge - Helper component for rendering step badges
  */
-export function WalkthroughStepBadge({ 
+export function WalkthroughStepBadge({
   children,
   className,
-}: { 
-  children: ReactNode
-  className?: string
+}: {
+  children: ReactNode;
+  className?: string;
 }) {
   return (
-    <span 
+    <span
       className={cn(
         "flex size-5 items-center justify-center rounded bg-muted font-semibold text-foreground text-xs",
-        className
+        className,
       )}
     >
       {children}
     </span>
-  )
+  );
 }
-

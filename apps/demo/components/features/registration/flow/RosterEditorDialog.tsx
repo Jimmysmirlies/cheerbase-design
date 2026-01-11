@@ -1,10 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 
-import { cn } from '@workspace/ui/lib/utils'
-import { Button } from '@workspace/ui/shadcn/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@workspace/ui/shadcn/dialog'
+import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/shadcn/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,67 +26,82 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@workspace/ui/shadcn/alert-dialog'
-import { Input } from '@workspace/ui/shadcn/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@workspace/ui/shadcn/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@workspace/ui/shadcn/popover'
-import { Calendar } from '@workspace/ui/shadcn/calendar'
+} from "@workspace/ui/shadcn/alert-dialog";
+import { Input } from "@workspace/ui/shadcn/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/shadcn/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/shadcn/popover";
+import { Calendar } from "@workspace/ui/shadcn/calendar";
 
-import { CalendarIcon, Trash2Icon } from 'lucide-react'
+import { CalendarIcon, Trash2Icon } from "lucide-react";
 
-import type { RegistrationMember } from './types'
-import { DEFAULT_ROLE, ROLE_OPTIONS } from './types'
+import type { RegistrationMember } from "./types";
+import { DEFAULT_ROLE, ROLE_OPTIONS } from "./types";
 
 type EditableRosterRow = {
-  name: string
-  dob: string
-  email: string
-  phone: string
-  role: string
-}
+  name: string;
+  dob: string;
+  email: string;
+  phone: string;
+  role: string;
+};
 
-const DATA_COLUMN_KEYS = ['name', 'dob', 'email', 'phone', 'role'] as const
-type DataColumnKey = (typeof DATA_COLUMN_KEYS)[number]
+const DATA_COLUMN_KEYS = ["name", "dob", "email", "phone", "role"] as const;
+type DataColumnKey = (typeof DATA_COLUMN_KEYS)[number];
 
 function parseDobValue(value?: string): Date | undefined {
-  if (!value) return undefined
-  const [year, month, day] = value.split('-').map(part => Number(part))
-  if (!year || !month || !day) return undefined
-  const parsed = new Date(year, month - 1, day)
-  if (Number.isNaN(parsed.getTime())) return undefined
-  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return undefined
-  return parsed
+  if (!value) return undefined;
+  const [year, month, day] = value.split("-").map((part) => Number(part));
+  if (!year || !month || !day) return undefined;
+  const parsed = new Date(year, month - 1, day);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  )
+    return undefined;
+  return parsed;
 }
 
 function formatDobValue(date?: Date): string {
-  if (!date) return ''
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function getOrdinalSuffix(day: number): string {
-  if (day % 100 >= 11 && day % 100 <= 13) return 'th'
+  if (day % 100 >= 11 && day % 100 <= 13) return "th";
   switch (day % 10) {
     case 1:
-      return 'st'
+      return "st";
     case 2:
-      return 'nd'
+      return "nd";
     case 3:
-      return 'rd'
+      return "rd";
     default:
-      return 'th'
+      return "th";
   }
 }
 
 function getDobDisplayLabel(value?: string): string {
-  const date = parseDobValue(value)
-  if (!date) return ''
-  const month = date.toLocaleString('en-US', { month: 'long' })
-  const day = date.getDate()
-  const year = date.getFullYear()
-  return `${month} ${day}${getOrdinalSuffix(day)}, ${year}`
+  const date = parseDobValue(value);
+  if (!date) return "";
+  const month = date.toLocaleString("en-US", { month: "long" });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${month} ${day}${getOrdinalSuffix(day)}, ${year}`;
 }
 
 const COLUMN_BASE_MIN_CH: Record<DataColumnKey, number> = {
@@ -83,55 +110,63 @@ const COLUMN_BASE_MIN_CH: Record<DataColumnKey, number> = {
   email: 24,
   phone: 16,
   role: 10,
-}
+};
 
-function getColumnValueLength(row: EditableRosterRow, key: DataColumnKey): number {
-  const value = row[key]
-  if (!value) return 0
-  if (key === 'dob') {
-    return getDobDisplayLabel(value).length || value.length
+function getColumnValueLength(
+  row: EditableRosterRow,
+  key: DataColumnKey,
+): number {
+  const value = row[key];
+  if (!value) return 0;
+  if (key === "dob") {
+    return getDobDisplayLabel(value).length || value.length;
   }
-  return value.length
+  return value.length;
 }
 
-function calculateColumnMinWidths(rows: EditableRosterRow[]): Record<DataColumnKey, number> {
-  return DATA_COLUMN_KEYS.reduce((acc, key) => {
-    const maxLength = Math.max(
-      COLUMN_BASE_MIN_CH[key],
-      ...rows.map(row => getColumnValueLength(row, key))
-    )
-    acc[key] = maxLength + 4
-    return acc
-  }, {} as Record<DataColumnKey, number>)
+function calculateColumnMinWidths(
+  rows: EditableRosterRow[],
+): Record<DataColumnKey, number> {
+  return DATA_COLUMN_KEYS.reduce(
+    (acc, key) => {
+      const maxLength = Math.max(
+        COLUMN_BASE_MIN_CH[key],
+        ...rows.map((row) => getColumnValueLength(row, key)),
+      );
+      acc[key] = maxLength + 4;
+      return acc;
+    },
+    {} as Record<DataColumnKey, number>,
+  );
 }
 
 function DobCell({
   value,
   onChange,
 }: {
-  value: string
-  onChange: (val: string) => void
+  value: string;
+  onChange: (val: string) => void;
 }) {
-  const [open, setOpen] = useState(false)
-  const parsedDate = parseDobValue(value)
+  const [open, setOpen] = useState(false);
+  const parsedDate = parseDobValue(value);
 
   const handleDobChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.target.value
-    const digitsOnly = input.replace(/\D/g, '')
+    const input = event.target.value;
+    const digitsOnly = input.replace(/\D/g, "");
 
-    let formatted = digitsOnly
+    let formatted = digitsOnly;
     if (digitsOnly.length >= 4) {
-      formatted = digitsOnly.slice(0, 4)
+      formatted = digitsOnly.slice(0, 4);
       if (digitsOnly.length >= 5) {
-        formatted += '-' + digitsOnly.slice(4, 6)
+        formatted += "-" + digitsOnly.slice(4, 6);
       }
       if (digitsOnly.length >= 7) {
-        formatted += '-' + digitsOnly.slice(6, 8)
+        formatted += "-" + digitsOnly.slice(6, 8);
       }
     }
 
-    onChange(formatted)
-  }
+    onChange(formatted);
+  };
 
   return (
     <div className="relative">
@@ -158,11 +193,11 @@ function DobCell({
             mode="single"
             captionLayout="dropdown"
             selected={parsedDate}
-            onSelect={date => {
+            onSelect={(date) => {
               if (date) {
-                onChange(formatDobValue(date))
+                onChange(formatDobValue(date));
               }
-              setOpen(false)
+              setOpen(false);
             }}
             fromYear={new Date().getFullYear() - DOB_YEAR_RANGE}
             toYear={new Date().getFullYear()}
@@ -170,138 +205,167 @@ function DobCell({
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }
 
 function buildEditableRows(members: RegistrationMember[]): EditableRosterRow[] {
-  if (!members?.length) return []
-  return members.map(member => ({
-    name: member.name ?? '',
-    dob: member.dob ?? '',
-    email: member.email ?? '',
-    phone: member.phone ?? '',
+  if (!members?.length) return [];
+  return members.map((member) => ({
+    name: member.name ?? "",
+    dob: member.dob ?? "",
+    email: member.email ?? "",
+    phone: member.phone ?? "",
     role: member.type ?? DEFAULT_ROLE,
-  }))
+  }));
 }
 
 function createEmptyEditableRow(): EditableRosterRow {
   return {
-    name: '',
-    dob: '',
-    email: '',
-    phone: '',
+    name: "",
+    dob: "",
+    email: "",
+    phone: "",
     role: DEFAULT_ROLE,
-  }
+  };
 }
 
-const DOB_YEAR_RANGE = 80
-const ACTIONS_COLUMN_WIDTH = 56
+const DOB_YEAR_RANGE = 80;
+const ACTIONS_COLUMN_WIDTH = 56;
 
 export type RosterEditorDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  members: RegistrationMember[]
-  teamName: string
-  onSave: (members: RegistrationMember[]) => void
-  onDeleteTeam?: () => void
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  members: RegistrationMember[];
+  teamName: string;
+  onSave: (members: RegistrationMember[]) => void;
+  onDeleteTeam?: () => void;
+};
 
-export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSave, onDeleteTeam }: RosterEditorDialogProps) {
-  const normalizedMembers = useMemo(() => buildEditableRows(members), [members])
-  const initialRowsRef = useRef<EditableRosterRow[]>(normalizedMembers)
-  const [rows, setRows] = useState<EditableRosterRow[]>(normalizedMembers)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [rowToRemove, setRowToRemove] = useState<{ index: number; name: string } | null>(null)
-  const columnMinWidths = useMemo(() => calculateColumnMinWidths(rows), [rows])
+export function RosterEditorDialog({
+  open,
+  onOpenChange,
+  members,
+  teamName,
+  onSave,
+  onDeleteTeam,
+}: RosterEditorDialogProps) {
+  const normalizedMembers = useMemo(
+    () => buildEditableRows(members),
+    [members],
+  );
+  const initialRowsRef = useRef<EditableRosterRow[]>(normalizedMembers);
+  const [rows, setRows] = useState<EditableRosterRow[]>(normalizedMembers);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [rowToRemove, setRowToRemove] = useState<{
+    index: number;
+    name: string;
+  } | null>(null);
+  const columnMinWidths = useMemo(() => calculateColumnMinWidths(rows), [rows]);
 
   useEffect(() => {
     if (open) {
-      initialRowsRef.current = normalizedMembers
-      setRows(normalizedMembers)
+      initialRowsRef.current = normalizedMembers;
+      setRows(normalizedMembers);
     }
-  }, [open, normalizedMembers])
+  }, [open, normalizedMembers]);
 
   const handleDeleteTeam = useCallback(() => {
-    setDeleteConfirmOpen(false)
-    onDeleteTeam?.()
-    onOpenChange(false)
-  }, [onDeleteTeam, onOpenChange])
+    setDeleteConfirmOpen(false);
+    onDeleteTeam?.();
+    onOpenChange(false);
+  }, [onDeleteTeam, onOpenChange]);
 
-  const handleCellChange = useCallback((rowIndex: number, columnId: keyof EditableRosterRow, value: string) => {
-    setRows(prev => {
-      if (!prev[rowIndex]) return prev
-      const next = [...prev]
-      next[rowIndex] = {
-        ...next[rowIndex],
-        [columnId]: value,
-      } as EditableRosterRow
-      return next
-    })
-  }, [])
+  const handleCellChange = useCallback(
+    (rowIndex: number, columnId: keyof EditableRosterRow, value: string) => {
+      setRows((prev) => {
+        if (!prev[rowIndex]) return prev;
+        const next = [...prev];
+        next[rowIndex] = {
+          ...next[rowIndex],
+          [columnId]: value,
+        } as EditableRosterRow;
+        return next;
+      });
+    },
+    [],
+  );
 
   // Open confirmation dialog for row removal
-  const promptRemoveRow = useCallback((rowIndex: number, memberName: string) => {
-    setRowToRemove({ index: rowIndex, name: memberName || 'this member' })
-  }, [])
+  const promptRemoveRow = useCallback(
+    (rowIndex: number, memberName: string) => {
+      setRowToRemove({ index: rowIndex, name: memberName || "this member" });
+    },
+    [],
+  );
 
   // Actually remove the row after confirmation
   const confirmRemoveRow = useCallback(() => {
     if (rowToRemove !== null) {
-      setRows(prev => prev.filter((_, index) => index !== rowToRemove.index))
-      setRowToRemove(null)
+      setRows((prev) => prev.filter((_, index) => index !== rowToRemove.index));
+      setRowToRemove(null);
     }
-  }, [rowToRemove])
+  }, [rowToRemove]);
 
   const cancelRemoveRow = useCallback(() => {
-    setRowToRemove(null)
-  }, [])
+    setRowToRemove(null);
+  }, []);
 
   const handleAddRow = useCallback(() => {
-    setRows(prev => [...prev, createEmptyEditableRow()])
-  }, [])
+    setRows((prev) => [...prev, createEmptyEditableRow()]);
+  }, []);
 
   const handleDuplicateLast = useCallback(() => {
-    setRows(prev => {
-      if (!prev.length) return [createEmptyEditableRow()]
-      const last = prev[prev.length - 1]
-      return [...prev, { ...last }] as EditableRosterRow[]
-    })
-  }, [])
+    setRows((prev) => {
+      if (!prev.length) return [createEmptyEditableRow()];
+      const last = prev[prev.length - 1];
+      return [...prev, { ...last }] as EditableRosterRow[];
+    });
+  }, []);
 
   const handleReset = useCallback(() => {
-    setRows(initialRowsRef.current)
-  }, [])
+    setRows(initialRowsRef.current);
+  }, []);
 
-  const hasChanges = useMemo(() => JSON.stringify(initialRowsRef.current) !== JSON.stringify(rows), [rows])
+  const hasChanges = useMemo(
+    () => JSON.stringify(initialRowsRef.current) !== JSON.stringify(rows),
+    [rows],
+  );
 
   const columns = useMemo<ColumnDef<EditableRosterRow>[]>(
     () => [
       {
-        header: 'Name',
-        accessorKey: 'name',
+        header: "Name",
+        accessorKey: "name",
         cell: ({ getValue, row }) => (
           <Input
-            value={getValue<string>() ?? ''}
-            onChange={event => handleCellChange(row.index, 'name', event.target.value)}
+            value={getValue<string>() ?? ""}
+            onChange={(event) =>
+              handleCellChange(row.index, "name", event.target.value)
+            }
             placeholder="Full name"
             className="h-8"
           />
         ),
       },
       {
-        header: 'DOB',
-        accessorKey: 'dob',
+        header: "DOB",
+        accessorKey: "dob",
         cell: ({ getValue, row }) => (
-          <DobCell value={getValue<string>() ?? ''} onChange={val => handleCellChange(row.index, 'dob', val)} />
+          <DobCell
+            value={getValue<string>() ?? ""}
+            onChange={(val) => handleCellChange(row.index, "dob", val)}
+          />
         ),
       },
       {
-        header: 'Email',
-        accessorKey: 'email',
+        header: "Email",
+        accessorKey: "email",
         cell: ({ getValue, row }) => (
           <Input
-            value={getValue<string>() ?? ''}
-            onChange={event => handleCellChange(row.index, 'email', event.target.value)}
+            value={getValue<string>() ?? ""}
+            onChange={(event) =>
+              handleCellChange(row.index, "email", event.target.value)
+            }
             placeholder="name@example.com"
             className="h-8"
             type="email"
@@ -309,12 +373,14 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
         ),
       },
       {
-        header: 'Phone',
-        accessorKey: 'phone',
+        header: "Phone",
+        accessorKey: "phone",
         cell: ({ getValue, row }) => (
           <Input
-            value={getValue<string>() ?? ''}
-            onChange={event => handleCellChange(row.index, 'phone', event.target.value)}
+            value={getValue<string>() ?? ""}
+            onChange={(event) =>
+              handleCellChange(row.index, "phone", event.target.value)
+            }
             placeholder="(555) 555-5555"
             className="h-8"
             type="tel"
@@ -322,36 +388,41 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
         ),
       },
       {
-        header: 'Role',
-        accessorKey: 'role',
+        header: "Role",
+        accessorKey: "role",
         cell: ({ getValue, row }) => {
-          const value = getValue<string>() || DEFAULT_ROLE
+          const value = getValue<string>() || DEFAULT_ROLE;
           return (
-            <Select value={value} onValueChange={nextValue => handleCellChange(row.index, 'role', nextValue)}>
+            <Select
+              value={value}
+              onValueChange={(nextValue) =>
+                handleCellChange(row.index, "role", nextValue)
+              }
+            >
               <SelectTrigger className="h-8 w-full justify-between px-3">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                {ROLE_OPTIONS.map(option => (
+                {ROLE_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          )
+          );
         },
       },
       {
-        id: 'actions',
-        header: '',
+        id: "actions",
+        header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => promptRemoveRow(row.index, row.original.name)} 
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => promptRemoveRow(row.index, row.original.name)}
               aria-label="Remove row"
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
@@ -361,48 +432,54 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
         ),
       },
     ],
-    [handleCellChange, promptRemoveRow]
-  )
+    [handleCellChange, promptRemoveRow],
+  );
 
   const table = useReactTable<EditableRosterRow>({
     data: rows,
     columns,
     getCoreRowModel: getCoreRowModel(),
-  })
+  });
 
   const handleCancel = useCallback(() => {
-    setRows(initialRowsRef.current)
-    onOpenChange(false)
-  }, [onOpenChange])
+    setRows(initialRowsRef.current);
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   const handleSave = useCallback(() => {
-    const sanitizedMembers: RegistrationMember[] = []
+    const sanitizedMembers: RegistrationMember[] = [];
 
-    rows.forEach(row => {
-      const trimmedName = row.name.trim()
-      const trimmedDob = row.dob.trim()
-      const trimmedEmail = row.email.trim()
-      const trimmedPhone = row.phone.trim()
-      const trimmedRole = row.role.trim()
+    rows.forEach((row) => {
+      const trimmedName = row.name.trim();
+      const trimmedDob = row.dob.trim();
+      const trimmedEmail = row.email.trim();
+      const trimmedPhone = row.phone.trim();
+      const trimmedRole = row.role.trim();
 
-      if (!trimmedName && !trimmedEmail && !trimmedPhone && !trimmedDob && !trimmedRole) {
-        return
+      if (
+        !trimmedName &&
+        !trimmedEmail &&
+        !trimmedPhone &&
+        !trimmedDob &&
+        !trimmedRole
+      ) {
+        return;
       }
 
       sanitizedMembers.push({
-        name: trimmedName || 'Unnamed',
+        name: trimmedName || "Unnamed",
         dob: trimmedDob || undefined,
         email: trimmedEmail || undefined,
         phone: trimmedPhone || undefined,
         type: trimmedRole || DEFAULT_ROLE,
-      })
-    })
+      });
+    });
 
-    const normalized = buildEditableRows(sanitizedMembers)
-    initialRowsRef.current = normalized
-    setRows(normalized)
-    onSave(sanitizedMembers)
-  }, [onSave, rows])
+    const normalized = buildEditableRows(sanitizedMembers);
+    initialRowsRef.current = normalized;
+    setRows(normalized);
+    onSave(sanitizedMembers);
+  }, [onSave, rows]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -411,8 +488,9 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
           <DialogHeader className="px-6 pt-6 pb-4">
             <DialogTitle>Edit roster</DialogTitle>
             <DialogDescription>
-              Update lineup details for <span className="font-medium text-foreground">{teamName}</span>. Make inline edits, add
-              rows, or adjust roles as needed.
+              Update lineup details for{" "}
+              <span className="font-medium text-foreground">{teamName}</span>.
+              Make inline edits, add rows, or adjust roles as needed.
             </DialogDescription>
           </DialogHeader>
 
@@ -422,15 +500,32 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
                 <Button type="button" size="sm" onClick={handleAddRow}>
                   Add Member
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={handleDuplicateLast} disabled={!rows.length}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleDuplicateLast}
+                  disabled={!rows.length}
+                >
                   Duplicate last row
                 </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={handleReset} disabled={!hasChanges}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleReset}
+                  disabled={!hasChanges}
+                >
                   Reset changes
                 </Button>
               </div>
-              <span className={cn('text-xs font-medium', hasChanges ? 'text-amber-600' : 'text-muted-foreground')}>
-                {hasChanges ? 'Unsaved changes' : 'All changes saved'}
+              <span
+                className={cn(
+                  "text-xs font-medium",
+                  hasChanges ? "text-amber-600" : "text-muted-foreground",
+                )}
+              >
+                {hasChanges ? "Unsaved changes" : "All changes saved"}
               </span>
             </div>
 
@@ -438,52 +533,82 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
               <div className="h-full min-h-0 overflow-auto">
                 <table className="w-full min-w-[900px] border-collapse">
                   <colgroup>
-                    {DATA_COLUMN_KEYS.map(key => (
+                    {DATA_COLUMN_KEYS.map((key) => (
                       <col
                         key={`data-column-${key}`}
-                        style={{ width: `calc((100% - ${ACTIONS_COLUMN_WIDTH}px) / ${DATA_COLUMN_KEYS.length})` }}
+                        style={{
+                          width: `calc((100% - ${ACTIONS_COLUMN_WIDTH}px) / ${DATA_COLUMN_KEYS.length})`,
+                        }}
                       />
                     ))}
                     <col style={{ width: `${ACTIONS_COLUMN_WIDTH}px` }} />
                   </colgroup>
                   <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wide">
-                    {table.getHeaderGroups().map(headerGroup => (
+                    {table.getHeaderGroups().map((headerGroup) => (
                       <tr key={headerGroup.id}>
-                        {headerGroup.headers.map(header => {
-                          const headerKey = header.column.id as DataColumnKey | 'actions'
+                        {headerGroup.headers.map((header) => {
+                          const headerKey = header.column.id as
+                            | DataColumnKey
+                            | "actions";
                           const style =
-                            headerKey === 'actions'
+                            headerKey === "actions"
                               ? { width: `${ACTIONS_COLUMN_WIDTH}px` }
-                              : { minWidth: `${columnMinWidths[headerKey]}ch` }
+                              : { minWidth: `${columnMinWidths[headerKey]}ch` };
                           return (
-                            <th key={header.id} className="px-3 py-2 text-left" style={style}>
-                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                            <th
+                              key={header.id}
+                              className="px-3 py-2 text-left"
+                              style={style}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
                             </th>
-                          )
+                          );
                         })}
                       </tr>
                     ))}
                   </thead>
                   <tbody>
                     {table.getRowModel().rows.length ? (
-                      table.getRowModel().rows.map(row => (
+                      table.getRowModel().rows.map((row) => (
                         <tr key={row.id} className="border-b">
-                          {row.getVisibleCells().map(cell => {
-                            const cellKey = cell.column.id as DataColumnKey | 'actions'
+                          {row.getVisibleCells().map((cell) => {
+                            const cellKey = cell.column.id as
+                              | DataColumnKey
+                              | "actions";
                             const minWidth =
-                              cellKey === 'actions' ? undefined : `${columnMinWidths[cellKey]}ch`
-                            const style = cellKey === 'actions' ? { width: `${ACTIONS_COLUMN_WIDTH}px` } : { minWidth }
+                              cellKey === "actions"
+                                ? undefined
+                                : `${columnMinWidths[cellKey]}ch`;
+                            const style =
+                              cellKey === "actions"
+                                ? { width: `${ACTIONS_COLUMN_WIDTH}px` }
+                                : { minWidth };
                             return (
-                              <td key={cell.id} className="px-3 py-2 align-top min-w-0" style={style}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              <td
+                                key={cell.id}
+                                className="px-3 py-2 align-top min-w-0"
+                                style={style}
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
                               </td>
-                            )
+                            );
                           })}
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={table.getAllLeafColumns().length} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        <td
+                          colSpan={table.getAllLeafColumns().length}
+                          className="px-4 py-8 text-center text-sm text-muted-foreground"
+                        >
                           Add rows to begin editing this roster.
                         </td>
                       </tr>
@@ -525,8 +650,9 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
           <AlertDialogHeader>
             <AlertDialogTitle>Remove team from registration?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove <span className="font-medium text-foreground">{teamName}</span> from this registration? 
-              This will update your invoice total.
+              Are you sure you want to remove{" "}
+              <span className="font-medium text-foreground">{teamName}</span>{" "}
+              from this registration? This will update your invoice total.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -542,16 +668,25 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
       </AlertDialog>
 
       {/* Remove row confirmation dialog */}
-      <AlertDialog open={rowToRemove !== null} onOpenChange={(open) => !open && cancelRemoveRow()}>
+      <AlertDialog
+        open={rowToRemove !== null}
+        onOpenChange={(open) => !open && cancelRemoveRow()}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove member from roster?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove <span className="font-medium text-foreground">{rowToRemove?.name}</span> from the roster?
+              Are you sure you want to remove{" "}
+              <span className="font-medium text-foreground">
+                {rowToRemove?.name}
+              </span>{" "}
+              from the roster?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelRemoveRow}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelRemoveRow}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmRemoveRow}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -562,5 +697,5 @@ export function RosterEditorDialog({ open, onOpenChange, members, teamName, onSa
         </AlertDialogContent>
       </AlertDialog>
     </Dialog>
-  )
+  );
 }

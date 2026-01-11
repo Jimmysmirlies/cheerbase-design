@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/shadcn/card";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { toast } from "@workspace/ui/shadcn/sonner";
@@ -30,7 +36,11 @@ import { type BrandGradient } from "@/lib/gradients";
 
 export default function SubscriptionPage() {
   const { layout } = useLayoutContextSafe();
-  const { organizer, organizerId, isLoading: organizerLoading } = useOrganizer();
+  const {
+    organizer,
+    organizerId,
+    isLoading: organizerLoading,
+  } = useOrganizer();
   const {
     plan: currentPlan,
     subscription,
@@ -38,7 +48,9 @@ export default function SubscriptionPage() {
     downgradeToFree,
     isLoading: subscriptionLoading,
   } = useOrganizerSubscription();
-  const [organizerGradient, setOrganizerGradient] = useState<BrandGradient | undefined>(undefined);
+  const [organizerGradient, setOrganizerGradient] = useState<
+    BrandGradient | undefined
+  >(undefined);
 
   const activeEventCount = organizerId ? getActiveEventCount(organizerId) : 0;
   const isLoading = organizerLoading || subscriptionLoading;
@@ -48,12 +60,14 @@ export default function SubscriptionPage() {
     const loadGradient = () => {
       if (organizerId) {
         try {
-          const stored = localStorage.getItem(`cheerbase-organizer-settings-${organizerId}`)
+          const stored = localStorage.getItem(
+            `cheerbase-organizer-settings-${organizerId}`,
+          );
           if (stored) {
-            const settings = JSON.parse(stored)
+            const settings = JSON.parse(stored);
             if (settings.gradient) {
-              setOrganizerGradient(settings.gradient)
-              return
+              setOrganizerGradient(settings.gradient);
+              return;
             }
           }
         } catch {
@@ -61,23 +75,29 @@ export default function SubscriptionPage() {
         }
       }
       // Fall back to organizer's default gradient
-      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined)
-    }
+      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
+    };
 
-    loadGradient()
+    loadGradient();
 
     // Listen for settings changes
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
-        setOrganizerGradient(event.detail.gradient as BrandGradient)
+        setOrganizerGradient(event.detail.gradient as BrandGradient);
       }
-    }
+    };
 
-    window.addEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
+    window.addEventListener(
+      "organizer-settings-changed",
+      handleSettingsChange as EventListener,
+    );
     return () => {
-      window.removeEventListener('organizer-settings-changed', handleSettingsChange as EventListener)
-    }
-  }, [organizerId, organizer?.gradient])
+      window.removeEventListener(
+        "organizer-settings-changed",
+        handleSettingsChange as EventListener,
+      );
+    };
+  }, [organizerId, organizer?.gradient]);
 
   const handlePlanChange = (planId: SubscriptionPlanId) => {
     if (planId === currentPlan.id) return;
@@ -106,7 +126,7 @@ export default function SubscriptionPage() {
   if (isLoading) {
     return (
       <section className="flex flex-1 flex-col">
-        {layout === 'A' ? (
+        {layout === "A" ? (
           <PageHeader
             title="Manage Subscription"
             gradient={organizerGradient || organizer?.gradient}
@@ -134,7 +154,7 @@ export default function SubscriptionPage() {
 
   return (
     <section className="flex flex-1 flex-col">
-      {layout === 'A' ? (
+      {layout === "A" ? (
         <PageHeader
           title="Manage Subscription"
           gradient={organizerGradient || organizer?.gradient}
@@ -166,7 +186,6 @@ export default function SubscriptionPage() {
         </div>
       )}
       <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-8 lg:px-8">
-
         {/* Current usage */}
         <Card className="bg-muted/30">
           <CardContent className="py-4">
@@ -232,7 +251,10 @@ export default function SubscriptionPage() {
                   {/* Features */}
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
+                      <li
+                        key={index}
+                        className="flex items-start gap-2 text-sm"
+                      >
                         <CheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
                         <span>{feature}</span>
                       </li>
@@ -242,7 +264,13 @@ export default function SubscriptionPage() {
                   {/* Action button */}
                   <Button
                     className="w-full gap-2"
-                    variant={isCurrentPlan ? "outline" : isPro ? "default" : "secondary"}
+                    variant={
+                      isCurrentPlan
+                        ? "outline"
+                        : isPro
+                          ? "default"
+                          : "secondary"
+                    }
                     disabled={isCurrentPlan}
                     onClick={() => handlePlanChange(plan.id)}
                   >
@@ -277,8 +305,8 @@ export default function SubscriptionPage() {
                     What counts as an &quot;active&quot; event?
                   </strong>{" "}
                   An event is active when it&apos;s published and currently
-                  accepting registrations. Draft events and past events don&apos;t
-                  count toward your limit.
+                  accepting registrations. Draft events and past events
+                  don&apos;t count toward your limit.
                 </p>
                 <p>
                   <strong className="text-foreground">Platform fee:</strong> All
@@ -295,7 +323,7 @@ export default function SubscriptionPage() {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
-                      }
+                      },
                     )}
                   </p>
                 )}
@@ -307,4 +335,3 @@ export default function SubscriptionPage() {
     </section>
   );
 }
-

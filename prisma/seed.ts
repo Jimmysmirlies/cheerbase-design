@@ -1,6 +1,11 @@
 /// <reference types="node" />
 
-import { PrismaClient, MemberRole, PaymentStatus, RegisteredTeamSource } from "@prisma/client";
+import {
+  PrismaClient,
+  MemberRole,
+  PaymentStatus,
+  RegisteredTeamSource,
+} from "@prisma/client";
 
 import { demoTeams } from "../apps/demo/data/clubs/teams.js";
 import { demoRosters } from "../apps/demo/data/clubs/members.js";
@@ -10,7 +15,17 @@ import type { Person } from "../apps/demo/types/club.js";
 const prisma = new PrismaClient();
 const CLUB_OWNER_ID = "club-owner-1";
 
-type WithRole = { role: MemberRole; person: { id: string; firstName: string; lastName: string; dob?: string; email?: string; phone?: string } };
+type WithRole = {
+  role: MemberRole;
+  person: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    dob?: string;
+    email?: string;
+    phone?: string;
+  };
+};
 
 function parseDate(value?: string | null) {
   if (!value) return null;
@@ -51,10 +66,22 @@ async function main() {
   for (const roster of demoRosters) {
     const { teamId } = roster;
     const members: WithRole[] = [
-      ...roster.coaches.map((person: Person) => ({ role: MemberRole.coach, person })),
-      ...roster.athletes.map((person: Person) => ({ role: MemberRole.athlete, person })),
-      ...roster.reservists.map((person: Person) => ({ role: MemberRole.reservist, person })),
-      ...roster.chaperones.map((person: Person) => ({ role: MemberRole.chaperone, person })),
+      ...roster.coaches.map((person: Person) => ({
+        role: MemberRole.coach,
+        person,
+      })),
+      ...roster.athletes.map((person: Person) => ({
+        role: MemberRole.athlete,
+        person,
+      })),
+      ...roster.reservists.map((person: Person) => ({
+        role: MemberRole.reservist,
+        person,
+      })),
+      ...roster.chaperones.map((person: Person) => ({
+        role: MemberRole.chaperone,
+        person,
+      })),
     ];
 
     for (const { person, role } of members) {
@@ -100,10 +127,22 @@ async function main() {
         members: {
           create: (sourceRoster
             ? [
-                ...sourceRoster.coaches.map((person: Person) => ({ role: MemberRole.coach, person })),
-                ...sourceRoster.athletes.map((person: Person) => ({ role: MemberRole.athlete, person })),
-                ...sourceRoster.reservists.map((person: Person) => ({ role: MemberRole.reservist, person })),
-                ...sourceRoster.chaperones.map((person: Person) => ({ role: MemberRole.chaperone, person })),
+                ...sourceRoster.coaches.map((person: Person) => ({
+                  role: MemberRole.coach,
+                  person,
+                })),
+                ...sourceRoster.athletes.map((person: Person) => ({
+                  role: MemberRole.athlete,
+                  person,
+                })),
+                ...sourceRoster.reservists.map((person: Person) => ({
+                  role: MemberRole.reservist,
+                  person,
+                })),
+                ...sourceRoster.chaperones.map((person: Person) => ({
+                  role: MemberRole.chaperone,
+                  person,
+                })),
               ]
             : []
           ).map(({ role, person }) => ({
@@ -132,7 +171,8 @@ async function main() {
         athletes: reg.athletes,
         invoiceTotal: parseMoney(reg.invoiceTotal),
         paymentDeadline: parseDate(reg.paymentDeadline) ?? new Date(),
-        status: reg.status === "paid" ? PaymentStatus.paid : PaymentStatus.pending,
+        status:
+          reg.status === "paid" ? PaymentStatus.paid : PaymentStatus.pending,
         paidAt: parseDate(reg.paidAt),
         createdAt: parseDate(reg.snapshotTakenAt) ?? new Date(),
       },

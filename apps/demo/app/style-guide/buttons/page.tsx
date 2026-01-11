@@ -22,7 +22,8 @@ const buttonExamples: ButtonExample[] = [
   },
   {
     label: "Outline",
-    usage: "Use when the action should blend with the surface while staying available.",
+    usage:
+      "Use when the action should blend with the surface while staying available.",
     render: <Button variant="outline">View Details</Button>,
   },
   {
@@ -32,7 +33,8 @@ const buttonExamples: ButtonExample[] = [
   },
   {
     label: "Ghost (Success)",
-    usage: "Positive inline actions such as inviting a coach or re-sending confirmations.",
+    usage:
+      "Positive inline actions such as inviting a coach or re-sending confirmations.",
     render: <Button variant="ghost-success">Invite Coach</Button>,
   },
   {
@@ -53,21 +55,30 @@ const buttonExamples: ButtonExample[] = [
     label: "Soft Destructive",
     usage: "Gentle warning tone for less critical removals inside modals.",
     render: (
-      <Button className="bg-red-100 text-red-600 hover:bg-red-100/80">Remove Member</Button>
+      <Button className="bg-red-100 text-red-600 hover:bg-red-100/80">
+        Remove Member
+      </Button>
     ),
   },
   {
     label: "Accent",
     usage: "Promotional or brand moment actions using the coral accent color.",
     render: (
-      <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Promote Event</Button>
+      <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
+        Promote Event
+      </Button>
     ),
   },
   {
     label: "Icon Button",
     usage: "Compact control with iconography (use size=icon).",
     render: (
-      <Button size="icon" variant="secondary" aria-label="Add" className="rounded-full">
+      <Button
+        size="icon"
+        variant="secondary"
+        aria-label="Add"
+        className="rounded-full"
+      >
         <PlusIcon className="h-4 w-4" />
       </Button>
     ),
@@ -90,9 +101,7 @@ export default function ButtonsPage() {
       <PageHeader
         title="Button Patterns"
         subtitle="These examples map to shadcn button variants. Pair the purple primary with secondary, ghost, and accent styles to build consistent call-to-action hierarchies."
-        breadcrumbs={[
-          { label: "Brand Guidelines", href: "/style-guide" },
-        ]}
+        breadcrumbs={[{ label: "Brand Guidelines", href: "/style-guide" }]}
       />
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
         <div className="space-y-12">
@@ -111,7 +120,9 @@ export default function ButtonsPage() {
                     <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {button.label}
                     </span>
-                    <p className="text-xs text-muted-foreground">{button.usage}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {button.usage}
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2">{button.render}</div>
                 </article>

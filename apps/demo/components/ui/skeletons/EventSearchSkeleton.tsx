@@ -1,5 +1,5 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { EventCardSkeleton } from './EventCardSkeleton'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { EventCardSkeleton } from "./EventCardSkeleton";
 
 /**
  * Full page skeleton for Event Search page.
@@ -36,5 +36,5 @@ export function EventSearchSkeleton() {
         </section>
       </section>
     </main>
-  )
+  );
 }

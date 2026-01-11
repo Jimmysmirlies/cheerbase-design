@@ -1,29 +1,31 @@
-'use client'
+"use client";
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from "react";
 
-import Image from 'next/image'
+import Image from "next/image";
 
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
-import { FALLBACK_EVENT_IMAGE } from '@/data/events/fallbacks'
-import { cn } from '@workspace/ui/lib/utils'
+import { FALLBACK_EVENT_IMAGE } from "@/data/events/fallbacks";
+import { cn } from "@workspace/ui/lib/utils";
 
 type EventHeroCarouselProps = {
-  images: string[]
-  alt?: string
-}
+  images: string[];
+  alt?: string;
+};
 
 export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
   const gallery = useMemo(() => {
-    const unique = Array.from(new Set(images.filter(Boolean)))
-    return unique.length > 0 ? unique : [FALLBACK_EVENT_IMAGE]
-  }, [images])
+    const unique = Array.from(new Set(images.filter(Boolean)));
+    return unique.length > 0 ? unique : [FALLBACK_EVENT_IMAGE];
+  }, [images]);
 
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const handlePrev = () => setActiveIndex((prev) => (prev === 0 ? prev : prev - 1))
-  const handleNext = () => setActiveIndex((prev) => (prev === gallery.length - 1 ? prev : prev + 1))
+  const handlePrev = () =>
+    setActiveIndex((prev) => (prev === 0 ? prev : prev - 1));
+  const handleNext = () =>
+    setActiveIndex((prev) => (prev === gallery.length - 1 ? prev : prev + 1));
 
   return (
     <section className="bg-background px-4 py-6 sm:px-8">
@@ -34,10 +36,17 @@ export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {gallery.map((src, index) => (
-              <div key={`${src}-${index}`} className="relative aspect-[21/9] w-full shrink-0">
+              <div
+                key={`${src}-${index}`}
+                className="relative aspect-[21/9] w-full shrink-0"
+              >
                 <Image
                   src={src}
-                  alt={alt ? `${alt} photo ${index + 1}` : `Event image ${index + 1}`}
+                  alt={
+                    alt
+                      ? `${alt} photo ${index + 1}`
+                      : `Event image ${index + 1}`
+                  }
                   fill
                   priority={index === 0}
                   sizes="(min-width: 1280px) 1200px, 100vw"
@@ -66,8 +75,8 @@ export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
                   <span
                     key={index}
                     className={cn(
-                      'h-2 w-2 rounded-full bg-white/50 transition-all duration-300',
-                      index === activeIndex && 'w-6 bg-white'
+                      "h-2 w-2 rounded-full bg-white/50 transition-all duration-300",
+                      index === activeIndex && "w-6 bg-white",
                     )}
                     aria-hidden
                   />
@@ -78,7 +87,7 @@ export function EventHeroCarousel({ images, alt }: EventHeroCarouselProps) {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function CarouselArrow({
@@ -87,25 +96,25 @@ function CarouselArrow({
   disabled,
   className,
 }: {
-  direction: 'left' | 'right'
-  onClick: () => void
-  disabled: boolean
-  className?: string
+  direction: "left" | "right";
+  onClick: () => void;
+  disabled: boolean;
+  className?: string;
 }) {
-  const Icon = direction === 'left' ? ChevronLeftIcon : ChevronRightIcon
+  const Icon = direction === "left" ? ChevronLeftIcon : ChevronRightIcon;
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label={direction === 'left' ? 'Previous image' : 'Next image'}
+      aria-label={direction === "left" ? "Previous image" : "Next image"}
       className={cn(
-        'text-white/90 hover:text-white absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 backdrop-blur transition disabled:opacity-40',
-        className
+        "text-white/90 hover:text-white absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 backdrop-blur transition disabled:opacity-40",
+        className,
       )}
     >
       <Icon className="size-5" />
     </button>
-  )
+  );
 }

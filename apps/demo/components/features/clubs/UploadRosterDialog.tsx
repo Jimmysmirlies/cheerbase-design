@@ -10,9 +10,22 @@
  * - For Excel parsing, a real app would use SheetJS; here we focus on CSV.
  */
 import { useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@workspace/ui/shadcn/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@workspace/ui/shadcn/dialog";
 import { Button } from "@workspace/ui/shadcn/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/shadcn/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/shadcn/select";
 import { Card, CardContent } from "@workspace/ui/shadcn/card";
 import { downloadTextFile } from "@/utils/download";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -25,7 +38,14 @@ function parseCsv(text: string): string[][] {
     .map((line) => line.split(",").map((cell) => cell.trim()));
 }
 
-type ColumnKey = "teamName" | "firstName" | "lastName" | "dob" | "email" | "phone" | "role";
+type ColumnKey =
+  | "teamName"
+  | "firstName"
+  | "lastName"
+  | "dob"
+  | "email"
+  | "phone"
+  | "role";
 const requiredColumns: ColumnKey[] = ["firstName", "lastName"];
 
 export default function UploadRosterDialog() {
@@ -43,7 +63,9 @@ export default function UploadRosterDialog() {
     phone: null,
     role: null,
   });
-  const [action, setAction] = useState<"select_existing" | "create_new">("create_new");
+  const [action, setAction] = useState<"select_existing" | "create_new">(
+    "create_new",
+  );
 
   const headers = rows[0] || [];
   const body = rows.slice(1);
@@ -55,14 +77,18 @@ export default function UploadRosterDialog() {
 
   const duplicate = useMemo(() => {
     if (!firstTeamValue) return null;
-    return existingTeams.find((t) => t.name.toLowerCase() === firstTeamValue.toLowerCase()) || null;
+    return (
+      existingTeams.find(
+        (t) => t.name.toLowerCase() === firstTeamValue.toLowerCase(),
+      ) || null
+    );
   }, [existingTeams, firstTeamValue]);
 
   const previewMembers = useMemo(() => {
     return body.map((row) => {
       const read = (key: ColumnKey) => {
         const idx = columnMap[key];
-        return idx != null ? row[idx] ?? "" : "";
+        return idx != null ? (row[idx] ?? "") : "";
       };
       return {
         teamName: read("teamName"),
@@ -85,7 +111,9 @@ export default function UploadRosterDialog() {
     return counts;
   }, [previewMembers]);
 
-  const missingColumns = requiredColumns.filter((key) => columnMap[key] == null);
+  const missingColumns = requiredColumns.filter(
+    (key) => columnMap[key] == null,
+  );
   const canConfirm = rows.length > 1 && missingColumns.length === 0;
 
   const onFile = async (file?: File | null) => {
@@ -97,7 +125,9 @@ export default function UploadRosterDialog() {
     if (!parsed[0]) return;
     const headerRow = parsed[0];
     const infer = (matchers: RegExp[]) => {
-      const idx = headerRow.findIndex((header) => matchers.some((regex) => regex.test(header)));
+      const idx = headerRow.findIndex((header) =>
+        matchers.some((regex) => regex.test(header)),
+      );
       return idx >= 0 ? idx : null;
     };
     setColumnMap({
@@ -111,12 +141,20 @@ export default function UploadRosterDialog() {
     });
   };
 
-  const columnOptions = headers.map((header, idx) => ({ label: header, value: String(idx) }));
+  const columnOptions = headers.map((header, idx) => ({
+    label: header,
+    value: String(idx),
+  }));
 
   const handleTemplateDownload = () => {
-    const headersLine = "Team Name,First Name,Last Name,Date of Birth,Email,Phone,Role";
-    const sampleLine = "Example Team,Alex,Morgan,1990-04-12,alex@example.com,+1 555-0101,Coach";
-    downloadTextFile("team-roster-template.csv", `${headersLine}\n${sampleLine}\n`);
+    const headersLine =
+      "Team Name,First Name,Last Name,Date of Birth,Email,Phone,Role";
+    const sampleLine =
+      "Example Team,Alex,Morgan,1990-04-12,alex@example.com,+1 555-0101,Coach";
+    downloadTextFile(
+      "team-roster-template.csv",
+      `${headersLine}\n${sampleLine}\n`,
+    );
   };
 
   const handleConfirm = () => {
@@ -128,12 +166,16 @@ export default function UploadRosterDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">Upload CSV / Excel</Button>
+        <Button variant="outline" size="sm">
+          Upload CSV / Excel
+        </Button>
       </DialogTrigger>
       <DialogContent className="rounded-3xl p-6">
         <DialogHeader>
           <DialogTitle>Upload roster</DialogTitle>
-          <DialogDescription>Preview and confirm before creating a team.</DialogDescription>
+          <DialogDescription>
+            Preview and confirm before creating a team.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -143,7 +185,12 @@ export default function UploadRosterDialog() {
               accept=".csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               onChange={(e) => onFile(e.target.files?.[0])}
             />
-            <Button variant="ghost" size="sm" type="button" onClick={handleTemplateDownload}>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={handleTemplateDownload}
+            >
               Download template
             </Button>
           </div>
@@ -153,12 +200,14 @@ export default function UploadRosterDialog() {
               {firstTeamValue ? (
                 <div className="rounded-2xl border bg-muted/30 p-3 text-sm">
                   <p>
-                    Detected team: <span className="font-medium">{firstTeamValue}</span>
+                    Detected team:{" "}
+                    <span className="font-medium">{firstTeamValue}</span>
                   </p>
                   {duplicate ? (
                     <div className="mt-2 space-y-2">
                       <p className="text-amber-600">
-                        A team named &ldquo;{firstTeamValue}&rdquo; already exists.
+                        A team named &ldquo;{firstTeamValue}&rdquo; already
+                        exists.
                       </p>
                       <div className="flex gap-2 text-xs">
                         <label className="inline-flex items-center gap-2">
@@ -189,25 +238,43 @@ export default function UploadRosterDialog() {
                 <CardContent className="space-y-3 px-4 py-4">
                   <p className="text-sm font-semibold">Map columns</p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {([
-                      { key: "teamName", label: "Team Name" },
-                      { key: "firstName", label: "First Name", required: true },
-                      { key: "lastName", label: "Last Name", required: true },
-                      { key: "dob", label: "Date of Birth" },
-                      { key: "email", label: "Email" },
-                      { key: "phone", label: "Phone" },
-                      { key: "role", label: "Role" },
-                    ] as Array<{ key: ColumnKey; label: string; required?: boolean }>).map(({ key, label, required }) => (
+                    {(
+                      [
+                        { key: "teamName", label: "Team Name" },
+                        {
+                          key: "firstName",
+                          label: "First Name",
+                          required: true,
+                        },
+                        { key: "lastName", label: "Last Name", required: true },
+                        { key: "dob", label: "Date of Birth" },
+                        { key: "email", label: "Email" },
+                        { key: "phone", label: "Phone" },
+                        { key: "role", label: "Role" },
+                      ] as Array<{
+                        key: ColumnKey;
+                        label: string;
+                        required?: boolean;
+                      }>
+                    ).map(({ key, label, required }) => (
                       <div key={key} className="space-y-1 text-xs">
                         <p className="font-medium text-muted-foreground">
-                          {label} {required ? <span className="text-red-500">*</span> : null}
+                          {label}{" "}
+                          {required ? (
+                            <span className="text-red-500">*</span>
+                          ) : null}
                         </p>
                         <Select
-                          value={columnMap[key] != null ? String(columnMap[key]) : "unassigned"}
+                          value={
+                            columnMap[key] != null
+                              ? String(columnMap[key])
+                              : "unassigned"
+                          }
                           onValueChange={(value) =>
                             setColumnMap((prev) => ({
                               ...prev,
-                              [key]: value === "unassigned" ? null : Number(value),
+                              [key]:
+                                value === "unassigned" ? null : Number(value),
                             }))
                           }
                         >
@@ -215,9 +282,14 @@ export default function UploadRosterDialog() {
                             <SelectValue placeholder="Choose column" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            <SelectItem value="unassigned">
+                              Unassigned
+                            </SelectItem>
                             {columnOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -228,7 +300,10 @@ export default function UploadRosterDialog() {
                   </div>
                   {missingColumns.length > 0 ? (
                     <p className="text-xs text-amber-600">
-                      Select columns for: {missingColumns.map((key) => key.replace(/([A-Z])/g, " $1")).join(", ")}
+                      Select columns for:{" "}
+                      {missingColumns
+                        .map((key) => key.replace(/([A-Z])/g, " $1"))
+                        .join(", ")}
                     </p>
                   ) : null}
                 </CardContent>
@@ -240,7 +315,10 @@ export default function UploadRosterDialog() {
                     <thead className="bg-muted/50 text-muted-foreground">
                       <tr>
                         {headers.map((h) => (
-                          <th key={h} className="px-3 py-2 text-left font-medium">
+                          <th
+                            key={h}
+                            className="px-3 py-2 text-left font-medium"
+                          >
                             {h}
                           </th>
                         ))}
@@ -275,14 +353,25 @@ export default function UploadRosterDialog() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Upload a CSV with columns like Team Name, First Name, Last Name, Role, Email, and Phone.</p>
+            <p className="text-sm text-muted-foreground">
+              Upload a CSV with columns like Team Name, First Name, Last Name,
+              Role, Email, and Phone.
+            </p>
           )}
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
-            <Button type="button" onClick={handleConfirm} disabled={!canConfirm}>
+            <Button
+              type="button"
+              onClick={handleConfirm}
+              disabled={!canConfirm}
+            >
               Confirm
             </Button>
           </div>

@@ -1,17 +1,17 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { cn } from '@workspace/ui/lib/utils'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 
 type SectionSkeletonProps = {
   /** Whether to show a divider line above the section */
-  showDivider?: boolean
+  showDivider?: boolean;
   /** Number of content items/cards to show */
-  itemCount?: number
+  itemCount?: number;
   /** Layout for items */
-  layout?: 'list' | 'grid'
+  layout?: "list" | "grid";
   /** Grid columns (only used when layout is 'grid') */
-  columns?: 2 | 3 | 4
-  className?: string
-}
+  columns?: 2 | 3 | 4;
+  className?: string;
+};
 
 /**
  * Skeleton for section content with heading and items.
@@ -20,18 +20,18 @@ type SectionSkeletonProps = {
 export function SectionSkeleton({
   showDivider = true,
   itemCount = 3,
-  layout = 'list',
+  layout = "list",
   columns = 3,
   className,
 }: SectionSkeletonProps) {
   const gridColClasses = {
-    2: 'sm:grid-cols-2',
-    3: 'sm:grid-cols-2 lg:grid-cols-3',
-    4: 'sm:grid-cols-2 lg:grid-cols-4',
-  }
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-2 lg:grid-cols-3",
+    4: "sm:grid-cols-2 lg:grid-cols-4",
+  };
 
   return (
-    <div className={cn('flex flex-col gap-4 px-1', className)}>
+    <div className={cn("flex flex-col gap-4 px-1", className)}>
       <div className="flex flex-col gap-4">
         {showDivider && <div className="h-px w-full bg-border" />}
         <div className="flex items-center justify-between">
@@ -41,8 +41,8 @@ export function SectionSkeleton({
       </div>
       <div
         className={cn(
-          layout === 'grid' && `grid gap-4 ${gridColClasses[columns]}`,
-          layout === 'list' && 'flex flex-col gap-3'
+          layout === "grid" && `grid gap-4 ${gridColClasses[columns]}`,
+          layout === "list" && "flex flex-col gap-3",
         )}
       >
         {Array.from({ length: itemCount }).map((_, i) => (
@@ -61,5 +61,5 @@ export function SectionSkeleton({
         ))}
       </div>
     </div>
-  )
+  );
 }

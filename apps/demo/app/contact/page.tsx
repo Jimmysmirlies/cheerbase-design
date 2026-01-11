@@ -1,6 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/shadcn/card";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Textarea } from "@workspace/ui/shadcn/textarea";
@@ -13,7 +18,9 @@ export default function ContactPage() {
         <div>
           <p className="text-primary text-sm font-semibold">Contact Us</p>
           <h1 className="heading-2">We’d love to hear from you</h1>
-          <p className="text-muted-foreground text-sm">Send a note and our team will respond within one business day.</p>
+          <p className="text-muted-foreground text-sm">
+            Send a note and our team will respond within one business day.
+          </p>
         </div>
         <Card>
           <CardHeader>

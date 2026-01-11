@@ -50,7 +50,10 @@ async function fetchClubData(clubOwnerId: string): Promise<ClubData> {
 }
 
 // Merge API data with localStorage data for non-demo users
-function mergeWithLocalStorage(apiData: ClubData, clubOwnerId: string): ClubData {
+function mergeWithLocalStorage(
+  apiData: ClubData,
+  clubOwnerId: string,
+): ClubData {
   // Demo users get API data as-is
   if (clubOwnerId === DEMO_CLUB_OWNER_ID) {
     return apiData;
@@ -71,7 +74,7 @@ function mergeWithLocalStorage(apiData: ClubData, clubOwnerId: string): ClubData
 export function useClubData(clubOwnerId?: string) {
   const isDemo = clubOwnerId === DEMO_CLUB_OWNER_ID;
   const cached = clubOwnerId && isDemo ? demoDataCache.get(clubOwnerId) : null;
-  
+
   const [state, setState] = useState<HookState>(() => {
     if (!clubOwnerId) return { status: "idle", data: null, error: null };
     if (cached) return { status: "success", data: cached, error: null };
@@ -105,7 +108,9 @@ export function useClubData(clubOwnerId?: string) {
 
     let cancelled = false;
     setState((prev) =>
-      prev.status === "success" && prev.data ? prev : { status: "loading", data: null, error: null }
+      prev.status === "success" && prev.data
+        ? prev
+        : { status: "loading", data: null, error: null },
     );
 
     loadData(clubOwnerId)
@@ -125,7 +130,7 @@ export function useClubData(clubOwnerId?: string) {
   // Refresh function to reload data (useful after creating/updating teams)
   const refresh = useCallback(() => {
     if (!clubOwnerId) return;
-    
+
     loadData(clubOwnerId)
       .then((data) => {
         setState({ status: "success", data, error: null });

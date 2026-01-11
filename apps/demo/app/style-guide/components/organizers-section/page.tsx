@@ -38,39 +38,65 @@ export default function OrganizersSectionComponentPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Prop</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">organizers</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">Organizer[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Array of organizer objects</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      Organizer[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Array of organizer objects
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">id</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">Optional section anchor ID</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Optional section anchor ID
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">title</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">Section heading</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Section heading
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">subtitle</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">Section subheading</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Section subheading
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">ctaHref</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">CTA button link</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      CTA button link
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">ctaLabel</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">CTA button text</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      CTA button text
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -87,7 +113,10 @@ export default function OrganizersSectionComponentPage() {
               <p>This section composes the following components:</p>
               <ul className="list-disc list-inside space-y-1 mt-2">
                 <li>
-                  <Link href="/style-guide/components/organizer-card" className="text-primary hover:underline">
+                  <Link
+                    href="/style-guide/components/organizer-card"
+                    className="text-primary hover:underline"
+                  >
                     OrganizerCard
                   </Link>
                 </li>

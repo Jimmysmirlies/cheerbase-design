@@ -22,7 +22,9 @@ export default function EventCardComponentPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Default</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Default
+                </p>
                 <EventCard
                   date="Nov 14, 2025"
                   href="#"
@@ -35,7 +37,9 @@ export default function EventCardComponentPage() {
                 />
               </div>
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Compact</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Compact
+                </p>
                 <EventCard
                   date="Jul 19, 2025"
                   href="#"
@@ -62,54 +66,92 @@ export default function EventCardComponentPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Prop</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">image</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Event cover image URL</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Event cover image URL
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">title</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Event name</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Event name
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">organizer</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Organizer name</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Organizer name
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">date</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Event date display</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Event date display
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">location</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Venue and city</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Venue and city
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">teams</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Team count display (e.g., &quot;32 / 48 teams&quot;)</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Team count display (e.g., &quot;32 / 48 teams&quot;)
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">fee</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">Optional registration fee</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Optional registration fee
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">href</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Link destination</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Link destination
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">size</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">&quot;default&quot; | &quot;compact&quot;</td>
-                    <td className="px-4 py-3 text-muted-foreground">Card size variant</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      &quot;default&quot; | &quot;compact&quot;
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Card size variant
+                    </td>
                   </tr>
                 </tbody>
               </table>

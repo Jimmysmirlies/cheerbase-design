@@ -2,17 +2,16 @@
  * Billing & Subscription Types
  */
 
-import type { SubscriptionPlanId } from '@/lib/platform-pricing'
+import type { SubscriptionPlanId } from "@/lib/platform-pricing";
 
-export type { SubscriptionPlanId }
+export type { SubscriptionPlanId };
 
 /** Represents an organizer's subscription state (mock/localStorage-backed). */
 export type OrganizerSubscription = {
   /** The current plan ID. */
-  planId: SubscriptionPlanId
+  planId: SubscriptionPlanId;
   /** ISO date when the subscription started. */
-  startedAt: string
+  startedAt: string;
   /** ISO date when the subscription renews (null for free plan). */
-  renewsAt: string | null
-}
-
+  renewsAt: string | null;
+};

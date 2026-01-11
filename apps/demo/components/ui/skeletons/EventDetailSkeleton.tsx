@@ -1,5 +1,5 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { EventCardSkeleton } from './EventCardSkeleton'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { EventCardSkeleton } from "./EventCardSkeleton";
 
 /**
  * Full page skeleton for Event Detail page.
@@ -51,7 +51,10 @@ export function EventDetailSkeleton() {
               <Skeleton className="h-6 w-40 rounded" />
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-4 rounded-lg border border-border/60 p-4">
+                  <div
+                    key={i}
+                    className="flex gap-4 rounded-lg border border-border/60 p-4"
+                  >
                     <Skeleton className="size-10 rounded-full" />
                     <div className="flex-1 space-y-2">
                       <Skeleton className="h-4 w-32 rounded" />
@@ -116,5 +119,5 @@ export function EventDetailSkeleton() {
         </div>
       </div>
     </main>
-  )
+  );
 }

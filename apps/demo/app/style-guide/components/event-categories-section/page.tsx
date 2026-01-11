@@ -22,7 +22,9 @@ export default function EventCategoriesSectionComponentPage() {
               <p className="text-lg font-semibold">Example</p>
             </div>
             <div className="overflow-hidden rounded-3xl border border-border">
-              <EventCategoriesSection categories={eventCategories.slice(0, 1)} />
+              <EventCategoriesSection
+                categories={eventCategories.slice(0, 1)}
+              />
             </div>
           </div>
 
@@ -38,19 +40,29 @@ export default function EventCategoriesSectionComponentPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Prop</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">categories</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">EventCategory[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Array of category objects with events</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      EventCategory[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Array of category objects with events
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">id</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string?</td>
-                    <td className="px-4 py-3 text-muted-foreground">Optional section anchor ID</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Optional section anchor ID
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -67,26 +79,42 @@ export default function EventCategoriesSectionComponentPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold">Property</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Property
+                    </th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">title</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Category heading</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Category heading
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">subtitle</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Category description</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Category description
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">events</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">Event[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Events in this category</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      Event[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Events in this category
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -103,7 +131,10 @@ export default function EventCategoriesSectionComponentPage() {
               <p>This section composes the following components:</p>
               <ul className="list-disc list-inside space-y-1 mt-2">
                 <li>
-                  <Link href="/style-guide/components/event-card" className="text-primary hover:underline">
+                  <Link
+                    href="/style-guide/components/event-card"
+                    className="text-primary hover:underline"
+                  >
                     EventCard
                   </Link>
                 </li>

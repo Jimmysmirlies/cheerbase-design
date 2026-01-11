@@ -1,21 +1,24 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { cn } from '@workspace/ui/lib/utils'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 
 type OrganizerCardSkeletonProps = {
-  showActions?: boolean
-  className?: string
-}
+  showActions?: boolean;
+  className?: string;
+};
 
 /**
  * Skeleton for OrganizerCard component.
  * Matches the organizer info card with avatar, stats, and action buttons.
  */
-export function OrganizerCardSkeleton({ showActions = true, className }: OrganizerCardSkeletonProps) {
+export function OrganizerCardSkeleton({
+  showActions = true,
+  className,
+}: OrganizerCardSkeletonProps) {
   return (
     <div
       className={cn(
-        'rounded-md border border-border/70 bg-card/60 p-5',
-        className
+        "rounded-md border border-border/70 bg-card/60 p-5",
+        className,
       )}
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -50,5 +53,5 @@ export function OrganizerCardSkeleton({ showActions = true, className }: Organiz
         )}
       </div>
     </div>
-  )
+  );
 }

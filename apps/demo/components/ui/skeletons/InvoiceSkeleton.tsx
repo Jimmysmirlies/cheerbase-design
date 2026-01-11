@@ -1,20 +1,23 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { cn } from '@workspace/ui/lib/utils'
-import { Card, CardContent } from '@workspace/ui/shadcn/card'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
+import { Card, CardContent } from "@workspace/ui/shadcn/card";
 
 type InvoiceSkeletonProps = {
   /** Number of line items to show */
-  lineItems?: number
-  className?: string
-}
+  lineItems?: number;
+  className?: string;
+};
 
 /**
  * Skeleton for invoice/payment card sidebar.
  * Shows line items, totals, and action button placeholders.
  */
-export function InvoiceSkeleton({ lineItems = 3, className }: InvoiceSkeletonProps) {
+export function InvoiceSkeleton({
+  lineItems = 3,
+  className,
+}: InvoiceSkeletonProps) {
   return (
-    <Card className={cn('border-border/70 bg-card py-6', className)}>
+    <Card className={cn("border-border/70 bg-card py-6", className)}>
       <CardContent className="flex flex-col gap-4 px-6 py-0">
         {/* Line items */}
         <div className="flex flex-col gap-4">
@@ -58,5 +61,5 @@ export function InvoiceSkeleton({ lineItems = 3, className }: InvoiceSkeletonPro
         <Skeleton className="mx-auto h-3.5 w-32 rounded" />
       </CardContent>
     </Card>
-  )
+  );
 }

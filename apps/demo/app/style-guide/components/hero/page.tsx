@@ -22,7 +22,8 @@ const heroExampleSlides: HeroSlide[] = [
     id: "style-guide-hero-2",
     eyebrow: "Alternate slide",
     headline: "Swap imagery or messaging per slide without layout shifts.",
-    description: "Slides animate with transforms so each card feels tactile as it enters view.",
+    description:
+      "Slides animate with transforms so each card feels tactile as it enters view.",
     highlights: [
       "Masked edges hint at additional slides",
       "Spacing scales from mobile to desktop",
@@ -68,14 +69,20 @@ export default function HeroComponentPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Prop</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">slides</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">HeroSlide[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Array of slide objects</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      HeroSlide[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Array of slide objects
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -92,51 +99,91 @@ export default function HeroComponentPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold">Property</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Property
+                    </th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">id</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Unique identifier</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Unique identifier
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">eyebrow</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Small text above headline</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Small text above headline
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">headline</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Main heading text</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Main heading text
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">description</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Supporting copy</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Supporting copy
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">highlights</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Bullet points</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Bullet points
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">image</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Image URL</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Image URL
+                    </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 font-mono text-xs">primaryAction</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">Action</td>
-                    <td className="px-4 py-3 text-muted-foreground">Primary CTA button</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      primaryAction
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      Action
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Primary CTA button
+                    </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 font-mono text-xs">secondaryActions</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">Action[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Optional secondary buttons</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      secondaryActions
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      Action[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Optional secondary buttons
+                    </td>
                   </tr>
                 </tbody>
               </table>

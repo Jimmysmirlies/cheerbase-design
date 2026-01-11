@@ -1,9 +1,9 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { cn } from '@workspace/ui/lib/utils'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 
 type TeamCardSkeletonProps = {
-  className?: string
-}
+  className?: string;
+};
 
 /**
  * Skeleton for TeamCard component.
@@ -13,8 +13,8 @@ export function TeamCardSkeleton({ className }: TeamCardSkeletonProps) {
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded-md border border-border/70 bg-card/60',
-        className
+        "w-full overflow-hidden rounded-md border border-border/70 bg-card/60",
+        className,
       )}
     >
       <div className="flex items-center gap-4 p-5">
@@ -32,5 +32,5 @@ export function TeamCardSkeleton({ className }: TeamCardSkeletonProps) {
         <Skeleton className="size-9 rounded-md" />
       </div>
     </div>
-  )
+  );
 }

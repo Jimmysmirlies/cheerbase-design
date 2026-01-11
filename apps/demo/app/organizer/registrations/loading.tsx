@@ -1,4 +1,4 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
 
 export default function OrganizerRegistrationsLoading() {
   return (
@@ -25,7 +25,10 @@ export default function OrganizerRegistrationsLoading() {
         </div>
         {/* Rows */}
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 border-b border-border/40 p-4 last:border-b-0">
+          <div
+            key={i}
+            className="flex items-center gap-4 border-b border-border/40 p-4 last:border-b-0"
+          >
             {[1, 2, 3, 4, 5].map((j) => (
               <Skeleton key={j} className="h-5 rounded flex-1" />
             ))}
@@ -43,5 +46,5 @@ export default function OrganizerRegistrationsLoading() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -7,13 +7,11 @@ export {
   DataTableCell,
   type DataTableProps,
   type DataTableRowProps,
-} from './DataTable'
+} from "./DataTable";
 
 export {
   DataTableColumnHeader,
   type DataTableColumnHeaderProps,
   type SortDirection,
   type FilterOption,
-} from './DataTableColumnHeader'
-
-
+} from "./DataTableColumnHeader";

@@ -20,7 +20,6 @@ import {
   formatFollowers,
   formatHostingDuration,
 } from "@/data/events/organizers";
-import { divisionPricingDefaults } from "@/data/divisions";
 import { buildEventGalleryImages } from "./image-gallery";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
@@ -123,15 +122,7 @@ export default async function EventPage({ params }: EventPageProps) {
     ? new Date(event.registrationDeadline)
     : dayBefore;
 
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const sevenDays = 7 * msPerDay;
-
-  type RegistrationPhase =
-    | "early-bird"
-    | "early-bird-ending"
-    | "regular"
-    | "closing-soon"
-    | "closed";
+  type RegistrationPhase = "early-bird" | "regular" | "closed";
 
   // Build all timeline phases
   type TimelinePhase = {
@@ -142,42 +133,17 @@ export default async function EventPage({ params }: EventPageProps) {
     show: boolean;
   };
 
-  const formatCountdown = (target: Date) => {
-    const diffMs = Math.max(0, target.getTime() - now.getTime());
-    const totalMinutes = Math.floor(diffMs / (1000 * 60));
-    const days = Math.floor(totalMinutes / (60 * 24));
-    const hours = Math.floor((totalMinutes - days * 24 * 60) / 60);
-    const mins = totalMinutes - days * 24 * 60 - hours * 60;
-    return `${days} days ${hours} hrs ${mins} mins`;
-  };
-
   const msUntilEarlyBird = earlyBirdDeadline
     ? earlyBirdDeadline.getTime() - now.getTime()
     : null;
-  const earlyBirdEnded = !!earlyBirdDeadline && now > earlyBirdDeadline;
   const earlyBirdActive =
     !!earlyBirdDeadline && !!msUntilEarlyBird && msUntilEarlyBird > 0;
-  const earlyBirdWithinSeven =
-    !!msUntilEarlyBird && msUntilEarlyBird > 0 && msUntilEarlyBird < sevenDays;
 
   const msUntilClose = registrationDeadline.getTime() - now.getTime();
   const registrationOpen = msUntilClose > 0;
-  const registrationWithinSeven = registrationOpen && msUntilClose < sevenDays;
 
   // Dynamic card content based on current state
   const getEarlyBirdCard = () => {
-    if (earlyBirdEnded) {
-      return {
-        title: "Early Bird Pricing",
-        subtitle: `Ended ${formatTimelineDate(earlyBirdDeadline!)}`,
-      };
-    }
-    if (earlyBirdWithinSeven) {
-      return {
-        title: "Early Bird Pricing Ends Soon",
-        subtitle: `Closes ${formatTimelineDate(earlyBirdDeadline!)}`,
-      };
-    }
     return {
       title: "Early Bird Pricing",
       subtitle: `Ends ${formatTimelineDate(earlyBirdDeadline!)}`,
@@ -185,33 +151,15 @@ export default async function EventPage({ params }: EventPageProps) {
   };
 
   const getRegistrationCard = () => {
-    if (registrationWithinSeven) {
-      return {
-        title: "Registration Closes Soon",
-        subtitle: `Open for ${formatCountdown(registrationDeadline)}`,
-      };
-    }
     return {
       title: "Registration Open",
-      subtitle: `Open for ${formatCountdown(registrationDeadline)}`,
+      subtitle: `Ends ${formatTimelineDate(registrationDeadline)}`,
     };
   };
 
   const getClosedCard = () => {
-    if (!registrationOpen) {
-      return {
-        title: "Registration Closed",
-        subtitle: formatTimelineDate(registrationDeadline),
-      };
-    }
-    if (registrationWithinSeven) {
-      return {
-        title: "Registration Closes Soon",
-        subtitle: formatTimelineDate(registrationDeadline),
-      };
-    }
     return {
-      title: "Registration Closes",
+      title: "Registration Closed",
       subtitle: formatTimelineDate(registrationDeadline),
     };
   };
@@ -316,26 +264,21 @@ export default async function EventPage({ params }: EventPageProps) {
         day: "numeric",
       })
     : "Early Bird";
+  // Build pricing rows using the actual division names from the event
   const divisionsForPricing = event.availableDivisions ?? [];
-  const pricingRowsMap = divisionsForPricing.reduce((map, division) => {
-    const defaults =
-      divisionPricingDefaults[
-        division.name as keyof typeof divisionPricingDefaults
-      ];
-    const label = defaults?.label ?? division.name;
-    if (map.has(label)) {
-      return map;
-    }
-    const before = defaults?.before ?? division.earlyBird?.price ?? null;
-    const after = defaults?.after ?? division.regular?.price ?? null;
-    map.set(label, {
+  const pricingRowsArray = divisionsForPricing.map((division) => {
+    // Use actual division name as the label
+    const label = division.name;
+    // Use event-specific pricing
+    const before = division.earlyBird?.price ?? division.regular?.price ?? null;
+    const after = division.regular?.price ?? null;
+    return {
       label,
+      subtitle: "", // Division names are self-descriptive
       before: formatAmount(before),
       after: formatAmount(after),
-    });
-    return map;
-  }, new Map<string, { label: string; before: string; after: string }>());
-  const pricingRowsArray = Array.from(pricingRowsMap.values());
+    };
+  });
 
   // "Prep Pack": downloadable resources for coaches and admins.
   const documents = [

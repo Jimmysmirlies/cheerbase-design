@@ -3,6 +3,7 @@
 This document describes the current static data model used by the demo app in `apps/demo`.
 
 It focuses on:
+
 - Events and ticket pricing
 - Divisions (catalog vs. ticketing)
 - Clubs (teams, rosters)
@@ -25,8 +26,8 @@ export type Event = {
   type: "Championship" | "Friendly Competition";
   date: string;
   location: string;
-  teams: string;              // "32 / 48 teams" (display only)
-  fee: string;                // event-level fee summary
+  teams: string; // "32 / 48 teams" (display only)
+  fee: string; // event-level fee summary
   image: string;
   slots: {
     filled: number;
@@ -34,7 +35,7 @@ export type Event = {
     statusLabel?: string;
   };
   registrationFeePercent?: number; // platform/organizer fee %
-  pricePerParticipant: string;     // human-readable summary
+  pricePerParticipant: string; // human-readable summary
   description: string;
   tags?: string[];
   gallery?: string[];
@@ -43,10 +44,12 @@ export type Event = {
 ```
 
 **Notes**
+
 - No standalone “marketing division” field; each event lists multiple divisions via `availableDivisions`.
 - `type` is constrained to `"Championship"` or `"Friendly Competition"`.
 
 **Helpers:**
+
 - `findEventById(id)` and `listEvents()` in `apps/demo/data/events/categories.ts`
 - `featuredEvents` and `heroSlides` in `apps/demo/data/events/featured.ts` and `hero-slides.ts`
 
@@ -59,10 +62,10 @@ export type Event = {
 
 ```ts
 export type DivisionPricing = {
-  name: string;            // from divisionFullNames (via eventDivisionNames helper)
+  name: string; // from divisionFullNames (via eventDivisionNames helper)
   earlyBird?: {
     price: number;
-    deadline: string;      // ISO date (YYYY-MM-DD)
+    deadline: string; // ISO date (YYYY-MM-DD)
   };
   regular: {
     price: number;
@@ -71,6 +74,7 @@ export type DivisionPricing = {
 ```
 
 **Notes**
+
 - `availableDivisions` is the source for the registration division dropdown and pricing.
 - Names should align to `divisionFullNames` (canonical catalog strings) via `eventDivisionNames` to ensure team eligibility filters work.
 
@@ -78,22 +82,25 @@ export type DivisionPricing = {
 
 ## Division Catalog (competition structure)
 
-**Types & Source:**  
-- `DivisionCategory`, `DivisionTier` in `apps/demo/data/divisions.ts`  
+**Types & Source:**
+
+- `DivisionCategory`, `DivisionTier` in `apps/demo/data/divisions.ts`
 - Flattened registration-facing lists in `apps/demo/data/registration/divisions.ts`
 
 ```ts
 export type DivisionTier = {
-  name: string;      // e.g. "U16"
-  levels: string[];  // e.g. ["1", "2", "2ST", "3", ...]
+  name: string; // e.g. "U16"
+  levels: string[]; // e.g. ["1", "2", "2ST", "3", ...]
 };
 
 export type DivisionCategory = {
-  name: string;      // e.g. "All Star Cheer"
+  name: string; // e.g. "All Star Cheer"
   tiers: DivisionTier[];
 };
 
-export const divisionCatalog: DivisionCategory[] = [/* ... */];
+export const divisionCatalog: DivisionCategory[] = [
+  /* ... */
+];
 
 export const divisionIndex: Record<string, string[]> = {
   // key: `${category.name} - ${tier.name}`
@@ -126,6 +133,7 @@ export const allDivisions: string[] = [
 ```
 
 These strings are used for:
+
 - `Team.division` (should be a value from `divisionFullNames`)
 - `Registration.division`
 - Division selection when creating/editing teams
@@ -141,16 +149,17 @@ These strings are used for:
 ```ts
 export const eventDivisionNames = {
   // All values come from divisionFullNames (Category - Tier - Level)
-  worlds: 'All Star Cheer - Open - 4',
-  chaperone: 'All Star Cheer - Paracheer (adapted or specialized) - 1',
-  stuntIndyDuo: 'Specialty - Stunt - All Divisions - All Levels',
-  prepNovice: 'Initiation/Prep Cheer - U12 Prep - 1',
-  allStarScholastic: 'Scolaire Cheer - Secondaire Juvenile - 3',
-  adaptive: 'ICU Cheer - Adaptive Abilities - Advanced',
+  worlds: "All Star Cheer - Open - 4",
+  chaperone: "All Star Cheer - Paracheer (adapted or specialized) - 1",
+  stuntIndyDuo: "Specialty - Stunt - All Divisions - All Levels",
+  prepNovice: "Initiation/Prep Cheer - U12 Prep - 1",
+  allStarScholastic: "Scolaire Cheer - Secondaire Juvenile - 3",
+  adaptive: "ICU Cheer - Adaptive Abilities - Advanced",
 } as const;
 ```
 
 **Usage:**
+
 - Referenced in `apps/demo/data/events/categories.ts` as `availableDivisions[].name`.
 - All values are canonical `divisionFullNames` strings, so pre-made teams only see divisions they’re eligible for.
 
@@ -175,7 +184,7 @@ export type Person = {
 export type Team = {
   id: string;
   name: string;
-  division: string;  // value from allDivisions[] / divisionFullNames
+  division: string; // value from allDivisions[] / divisionFullNames
   size: number;
   coedCount: number;
 };
@@ -201,17 +210,17 @@ export type TeamRoster = {
 ```ts
 export type Registration = {
   id: string;
-  eventId: string;        // links to Event.id
+  eventId: string; // links to Event.id
   eventName: string;
   organizer: string;
   eventDate: string;
   location: string;
-  division: string;       // competition division string
+  division: string; // competition division string
   teamId: string;
   athletes: number;
   invoiceTotal: string;
   paymentDeadline: string;
-  status?: 'pending' | 'paid';
+  status?: "pending" | "paid";
   paidAt?: string;
   snapshotTakenAt?: string;
   snapshotSourceTeamId?: string;
@@ -231,7 +240,7 @@ Key props:
 ```ts
 type RegistrationFlowProps = {
   divisionPricing: DivisionPricing[]; // from event.availableDivisions
-  teams: TeamOption[];                // simplified Team[]
+  teams: TeamOption[]; // simplified Team[]
   rosters?: TeamRoster[];
   initialEntries?: RegistrationEntry[];
   // plus finalizeConfig, flags, etc.
@@ -239,6 +248,7 @@ type RegistrationFlowProps = {
 ```
 
 Internal mappings:
+
 - `divisionOptions`: set of `divisionPricing.name` → used for the division dropdown.
 - `divisionPriceMap`: `name` → per-athlete price (prefers `regular.price`, falls back to `earlyBird.price`).
 - Totals: participants, cost (before taxes), team count.
@@ -252,14 +262,17 @@ Internal mappings:
 - Each row uses canonical division strings (via `eventDivisionNames`) sourced from `divisionFullNames`.
 
 - **Event → RegistrationFlow**
+
   - `event.availableDivisions` → `RegistrationFlow.divisionPricing`
   - `divisionPricing.name` drives the division select in the registration UI.
 
 - **Event → Registration**
+
   - `Event.id` → `Registration.eventId`
   - `Registration` stores historical snapshots of pricing & rosters (demo only).
 
 - **DivisionCatalog → Registration Divisions → Team / Registration**
+
   - `divisionCatalog` → `divisionCategories` / `allDivisions`
   - `Team.division` and `Registration.division` are strings from `allDivisions`.
 

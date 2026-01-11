@@ -21,7 +21,9 @@ export default function QuickFilterRailComponentPage() {
             </div>
             <div className="space-y-6">
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Default (first active)</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Default (first active)
+                </p>
                 <div className="rounded-3xl border border-border bg-card/60 p-6">
                   <QuickFilterRail
                     filters={[
@@ -34,7 +36,9 @@ export default function QuickFilterRailComponentPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Middle active</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Middle active
+                </p>
                 <div className="rounded-3xl border border-border bg-card/60 p-6">
                   <QuickFilterRail
                     filters={[
@@ -61,14 +65,20 @@ export default function QuickFilterRailComponentPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Prop</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">filters</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">FilterItem[]</td>
-                    <td className="px-4 py-3 text-muted-foreground">Array of filter options</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      FilterItem[]
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Array of filter options
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -85,26 +95,42 @@ export default function QuickFilterRailComponentPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold">Property</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Property
+                    </th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Description
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">label</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Display text</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Display text
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">href</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">string</td>
-                    <td className="px-4 py-3 text-muted-foreground">Link destination</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      string
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Link destination
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 font-mono text-xs">active</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">boolean?</td>
-                    <td className="px-4 py-3 text-muted-foreground">Whether this filter is selected</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      boolean?
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      Whether this filter is selected
+                    </td>
                   </tr>
                 </tbody>
               </table>

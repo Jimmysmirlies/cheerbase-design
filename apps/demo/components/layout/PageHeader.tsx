@@ -1,119 +1,131 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import Link from "next/link";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
-import { cn } from '@workspace/ui/lib/utils'
+import { cn } from "@workspace/ui/lib/utils";
 
-import { brandGradients, noiseTexture, type BrandGradient } from '@/lib/gradients'
+import {
+  brandGradients,
+  noiseTexture,
+  type BrandGradient,
+} from "@/lib/gradients";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
 type BreadcrumbItem = {
-  label: string
-  href?: string
-}
+  label: string;
+  href?: string;
+};
 
 type CountdownConfig = {
-  targetDate: string | Date
-  label?: string // Default: "Registration Closes"
-}
+  targetDate: string | Date;
+  label?: string; // Default: "Registration Closes"
+};
 
 type MetadataItem = {
-  label: string
-  value: ReactNode
-}
+  label: string;
+  value: ReactNode;
+};
 
 type PageHeaderProps = {
   // Core
-  title: string
-  gradient?: BrandGradient
+  title: string;
+  gradient?: BrandGradient;
 
   // Slots - clear naming for where content appears
   /** Content in top-right corner (e.g., layout toggle, back link) */
-  topRightAction?: ReactNode
+  topRightAction?: ReactNode;
   /** Action button(s) inline with title (e.g., "Edit Event" button) */
-  titleAction?: ReactNode
+  titleAction?: ReactNode;
   /** Badge displayed next to title (e.g., "Beta", "Draft") */
-  titleBadge?: ReactNode
+  titleBadge?: ReactNode;
 
   // Eyebrow area (above title) - use ONE of these
   /** Formatted date displayed above title */
-  dateLabel?: string | Date
+  dateLabel?: string | Date;
   /** Breadcrumb navigation above title */
-  breadcrumbs?: BreadcrumbItem[]
+  breadcrumbs?: BreadcrumbItem[];
   /** Custom eyebrow content (use when dateLabel/breadcrumbs don't fit) */
-  eyebrow?: ReactNode
+  eyebrow?: ReactNode;
+
+  // Below title meta line (date + location)
+  /** Location displayed below title (e.g., "Palais des congrès, Montreal, QC") */
+  locationLabel?: string;
 
   // Optional sections
-  subtitle?: string
+  subtitle?: string;
   /** Key-value metadata displayed below title */
-  metadata?: MetadataItem[]
-  metadataColumns?: number
+  metadata?: MetadataItem[];
+  metadataColumns?: number;
 
   // Countdown timer
-  countdown?: CountdownConfig
+  countdown?: CountdownConfig;
 
   // Visual options
-  hideBorder?: boolean
-}
+  hideBorder?: boolean;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SECOND_IN_MS = 1000
-const MINUTE_IN_MS = 60 * SECOND_IN_MS
-const HOUR_IN_MS = 60 * MINUTE_IN_MS
-const DAY_IN_MS = 24 * HOUR_IN_MS
+const SECOND_IN_MS = 1000;
+const MINUTE_IN_MS = 60 * SECOND_IN_MS;
+const HOUR_IN_MS = 60 * MINUTE_IN_MS;
+const DAY_IN_MS = 24 * HOUR_IN_MS;
 
 type CountdownDisplay =
   | {
-      state: 'future'
-      segments: { days: number; hours: number; seconds: number }
+      state: "future";
+      segments: { days: number; hours: number; seconds: number };
     }
-  | { state: 'past' }
+  | { state: "past" };
 
 function getCountdown(targetDate?: string | Date): CountdownDisplay | null {
-  if (!targetDate) return null
-  const target = new Date(targetDate)
-  if (Number.isNaN(target.getTime())) return null
+  if (!targetDate) return null;
+  const target = new Date(targetDate);
+  if (Number.isNaN(target.getTime())) return null;
 
-  const now = new Date()
-  const diffMs = target.getTime() - now.getTime()
-  if (diffMs <= 0) return { state: 'past' }
+  const now = new Date();
+  const diffMs = target.getTime() - now.getTime();
+  if (diffMs <= 0) return { state: "past" };
 
-  const days = Math.floor(diffMs / DAY_IN_MS)
-  const remainingAfterDays = diffMs % DAY_IN_MS
-  const hours = Math.floor(remainingAfterDays / HOUR_IN_MS)
-  const remainingAfterHours = remainingAfterDays % HOUR_IN_MS
-  const seconds = Math.floor((remainingAfterHours % MINUTE_IN_MS) / SECOND_IN_MS)
+  const days = Math.floor(diffMs / DAY_IN_MS);
+  const remainingAfterDays = diffMs % DAY_IN_MS;
+  const hours = Math.floor(remainingAfterDays / HOUR_IN_MS);
+  const remainingAfterHours = remainingAfterDays % HOUR_IN_MS;
+  const seconds = Math.floor(
+    (remainingAfterHours % MINUTE_IN_MS) / SECOND_IN_MS,
+  );
 
-  return { state: 'future', segments: { days, hours, seconds } }
+  return { state: "future", segments: { days, hours, seconds } };
 }
 
 function formatDateLabel(date: string | Date): string {
-  const dateObj = new Date(date)
-  if (Number.isNaN(dateObj.getTime())) return ''
-  return dateObj.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  const dateObj = new Date(date);
+  if (Number.isNaN(dateObj.getTime())) return "";
+  return dateObj.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-function createGradientStyle(variant: BrandGradient = 'primary'): CSSProperties {
-  const gradient = brandGradients[variant]
+function createGradientStyle(
+  variant: BrandGradient = "primary",
+): CSSProperties {
+  const gradient = brandGradients[variant];
   return {
-    backgroundColor: 'hsla(0,0%,100%,1)',
-    backgroundImage: [noiseTexture, gradient.css].join(','),
-    backgroundRepeat: 'repeat, no-repeat',
-    backgroundSize: 'auto, auto',
-    backgroundBlendMode: 'soft-light, normal',
-  }
+    backgroundColor: "hsla(0,0%,100%,1)",
+    backgroundImage: [noiseTexture, gradient.css].join(","),
+    backgroundRepeat: "repeat, no-repeat",
+    backgroundSize: "auto, auto",
+    backgroundBlendMode: "soft-light, normal",
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,13 +134,14 @@ function createGradientStyle(variant: BrandGradient = 'primary'): CSSProperties 
 
 export function PageHeader({
   title,
-  gradient = 'teal',
+  gradient = "teal",
   topRightAction,
   titleAction,
   titleBadge,
   dateLabel,
   breadcrumbs,
   eyebrow,
+  locationLabel,
   subtitle,
   metadata,
   metadataColumns = 3,
@@ -136,24 +149,24 @@ export function PageHeader({
   hideBorder,
 }: PageHeaderProps) {
   // Countdown state (client-only to avoid hydration mismatch)
-  const [countdownDisplay, setCountdownDisplay] = useState<CountdownDisplay | null>(null)
+  const [countdownDisplay, setCountdownDisplay] =
+    useState<CountdownDisplay | null>(null);
 
   useEffect(() => {
-    if (!countdown?.targetDate) return
+    if (!countdown?.targetDate) return;
 
-    setCountdownDisplay(getCountdown(countdown.targetDate))
+    setCountdownDisplay(getCountdown(countdown.targetDate));
     const interval = window.setInterval(() => {
-      setCountdownDisplay(getCountdown(countdown.targetDate))
-    }, 1000)
+      setCountdownDisplay(getCountdown(countdown.targetDate));
+    }, 1000);
 
-    return () => window.clearInterval(interval)
-  }, [countdown?.targetDate])
+    return () => window.clearInterval(interval);
+  }, [countdown?.targetDate]);
 
-  // Determine eyebrow content (priority: eyebrow > dateLabel > breadcrumbs)
+  // Determine eyebrow content (priority: eyebrow > breadcrumbs)
+  // Note: dateLabel now appears below title with locationLabel
   const eyebrowContent = eyebrow ? (
     eyebrow
-  ) : dateLabel ? (
-    <div>{formatDateLabel(dateLabel)}</div>
   ) : breadcrumbs?.length ? (
     <nav className="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
       {breadcrumbs.map((item, idx) => (
@@ -168,30 +181,41 @@ export function PageHeader({
           ) : (
             <span>{item.label}</span>
           )}
-          {idx < breadcrumbs.length - 1 && <span className="text-white/60">/</span>}
+          {idx < breadcrumbs.length - 1 && (
+            <span className="text-white/60">/</span>
+          )}
         </div>
       ))}
     </nav>
-  ) : null
+  ) : null;
+
+  // Build meta line items (date and location below title)
+  const metaLineItems: string[] = [];
+  if (dateLabel) {
+    metaLineItems.push(formatDateLabel(dateLabel));
+  }
+  if (locationLabel) {
+    metaLineItems.push(locationLabel);
+  }
 
   // Countdown segments
   const countdownSegments =
-    countdownDisplay?.state === 'future'
+    countdownDisplay?.state === "future"
       ? [
-          { label: 'Days', value: countdownDisplay.segments.days },
-          { label: 'Hours', value: countdownDisplay.segments.hours },
-          { label: 'Secs', value: countdownDisplay.segments.seconds },
+          { label: "Days", value: countdownDisplay.segments.days },
+          { label: "Hours", value: countdownDisplay.segments.hours },
+          { label: "Secs", value: countdownDisplay.segments.seconds },
         ]
-      : null
+      : null;
 
-  const showCountdown = countdown && countdownDisplay
-  const countdownLabel = countdown?.label ?? 'Registration Closes'
+  const showCountdown = countdown && countdownDisplay;
+  const countdownLabel = countdown?.label ?? "Registration Closes";
 
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden backdrop-blur-sm',
-        !hideBorder && 'border-b border-border/70'
+        "relative w-full overflow-hidden backdrop-blur-sm",
+        !hideBorder && "border-b border-border/70",
       )}
       style={createGradientStyle(gradient)}
     >
@@ -202,7 +226,7 @@ export function PageHeader({
         {/* Main content area */}
         <div className="flex flex-col justify-end gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            {/* Left: eyebrow + title */}
+            {/* Left: eyebrow + title + meta line */}
             <div className="flex flex-1 flex-col gap-2">
               {eyebrowContent && (
                 <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/80">
@@ -216,12 +240,17 @@ export function PageHeader({
                 </div>
                 {titleAction}
               </div>
+              {metaLineItems.length > 0 && (
+                <p className="body-small text-white/80">
+                  {metaLineItems.join("  ·  ")}
+                </p>
+              )}
             </div>
 
             {/* Right: countdown */}
             {showCountdown && (
               <div className="flex w-full flex-col items-end gap-4 sm:flex-row sm:items-end sm:justify-end sm:gap-6 lg:w-auto lg:flex-col">
-                {countdownDisplay.state === 'past' ? (
+                {countdownDisplay.state === "past" ? (
                   <div className="text-right text-sm font-semibold uppercase tracking-[0.2em] text-white">
                     Event Passed
                   </div>
@@ -232,9 +261,12 @@ export function PageHeader({
                     </span>
                     <div className="grid grid-flow-col items-start gap-4">
                       {countdownSegments.map((segment) => (
-                        <div key={segment.label} className="flex flex-col items-center">
+                        <div
+                          key={segment.label}
+                          className="flex flex-col items-center"
+                        >
                           <span className="heading-2 leading-none">
-                            {segment.value.toString().padStart(2, '0')}
+                            {segment.value.toString().padStart(2, "0")}
                           </span>
                           <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/60">
                             {segment.label}
@@ -252,16 +284,25 @@ export function PageHeader({
           {subtitle && <p className="text-base text-white/85">{subtitle}</p>}
 
           {/* Divider before metadata */}
-          {(subtitle || metadata?.length) && <div className="h-px w-full bg-white/30" />}
+          {(subtitle || metadata?.length) && (
+            <div className="h-px w-full bg-white/30" />
+          )}
 
           {/* Metadata grid */}
           {metadata?.length ? (
-            <div className={`grid gap-8 text-sm text-white sm:grid-cols-${metadataColumns}`}>
+            <div
+              className={`grid gap-8 text-sm text-white sm:grid-cols-${metadataColumns}`}
+            >
               {metadata.map((item, idx) => (
-                <div key={`${item.label}-${idx}`} className="flex flex-col gap-2">
+                <div
+                  key={`${item.label}-${idx}`}
+                  className="flex flex-col gap-2"
+                >
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-white/80">{item.label}</span>
-                    <span className="text-right font-semibold">{item.value}</span>
+                    <span className="text-right font-semibold">
+                      {item.value}
+                    </span>
                   </div>
                   <div className="h-px w-full bg-white/30" />
                 </div>
@@ -271,5 +312,5 @@ export function PageHeader({
         </div>
       </header>
     </div>
-  )
+  );
 }

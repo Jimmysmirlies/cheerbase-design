@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * OrganizersSection
@@ -52,7 +52,9 @@ export default function OrganizersSection({
         <div className="mx-auto max-w-7xl space-y-6 px-6">
           <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                {title}
+              </h2>
               <p className="text-sm text-muted-foreground">{subtitle}</p>
             </div>
             <Link

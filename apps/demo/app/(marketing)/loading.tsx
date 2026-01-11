@@ -1,5 +1,5 @@
-import { Skeleton } from '@workspace/ui/shadcn/skeleton'
-import { EventCardSkeleton } from '@/components/ui'
+import { Skeleton } from "@workspace/ui/shadcn/skeleton";
+import { EventCardSkeleton } from "@/components/ui";
 
 export default function MarketingLoading() {
   return (
@@ -52,7 +52,10 @@ export default function MarketingLoading() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 rounded-lg border border-border/60 p-4">
+            <div
+              key={i}
+              className="flex items-center gap-4 rounded-lg border border-border/60 p-4"
+            >
               <Skeleton className="size-12 rounded-lg" />
               <div className="space-y-2">
                 <Skeleton className="h-5 w-28 rounded" />
@@ -63,5 +66,5 @@ export default function MarketingLoading() {
         </div>
       </section>
     </main>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { CreditCardIcon } from 'lucide-react'
-import { Button } from '@workspace/ui/shadcn/button'
-import { PaymentMethodsDialog } from './PaymentMethods'
+import { useState } from "react";
+import { CreditCardIcon } from "lucide-react";
+import { Button } from "@workspace/ui/shadcn/button";
+import { PaymentMethodsDialog } from "./PaymentMethods";
 
 export function PaymentButton() {
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   return (
     <>
@@ -16,7 +16,10 @@ export function PaymentButton() {
           Pay Now
         </Button>
       </div>
-      <PaymentMethodsDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} />
+      <PaymentMethodsDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+      />
     </>
-  )
+  );
 }

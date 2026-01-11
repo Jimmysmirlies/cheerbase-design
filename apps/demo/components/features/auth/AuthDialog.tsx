@@ -9,7 +9,13 @@
  */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/shadcn/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/shadcn/dialog";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
@@ -17,7 +23,12 @@ import { toast } from "@workspace/ui/shadcn/sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { GoogleSignInButton } from "@/components/ui/GoogleSignInButton";
 import { ShieldCheckIcon, UsersIcon } from "lucide-react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@workspace/ui/shadcn/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/shadcn/card";
 
 export type AuthDialogProps = {
   open: boolean;
@@ -26,13 +37,20 @@ export type AuthDialogProps = {
   onJoinClick?: () => void;
 };
 
-export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: AuthDialogProps) {
+export function AuthDialog({
+  open,
+  onOpenChange,
+  onDemoLogin,
+  onJoinClick,
+}: AuthDialogProps) {
   const router = useRouter();
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
   const [showRoleSelection, setShowRoleSelection] = useState(false);
 
   const closeDialog = () => {
@@ -48,18 +66,19 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    if (errors.email) setErrors(prev => ({ ...prev, email: undefined }));
+    if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-    if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
+    if (errors.password)
+      setErrors((prev) => ({ ...prev, password: undefined }));
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
-    
+
     // Validate fields
     const newErrors: { email?: string; password?: string } = {};
     if (!email.trim()) {
@@ -68,16 +87,16 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
     if (!password.trim()) {
       newErrors.password = "Password is required";
     }
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const result = await signIn({ email, password });
-      
+
       if (result.success) {
         toast.success("Welcome back!");
         closeDialog();
@@ -87,7 +106,10 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
         }, 300);
       } else {
         // Show inline error based on the error type
-        if (result.error?.toLowerCase().includes("email") || result.error?.toLowerCase().includes("account")) {
+        if (
+          result.error?.toLowerCase().includes("email") ||
+          result.error?.toLowerCase().includes("account")
+        ) {
           setErrors({ email: result.error });
         } else if (result.error?.toLowerCase().includes("password")) {
           setErrors({ password: result.error });
@@ -109,35 +131,47 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(v) : closeDialog())}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => (v ? onOpenChange(v) : closeDialog())}
+    >
       <DialogContent className="rounded-md p-8">
         <div className="space-y-8">
           <DialogHeader className="space-y-3 text-center">
             <span
               className="mx-auto heading-2 bg-clip-text text-transparent"
               style={{
-                backgroundImage: "linear-gradient(160deg, #0D9488 0%, #0891B2 50.22%, #06B6D4 100%)",
+                backgroundImage:
+                  "linear-gradient(160deg, #0D9488 0%, #0891B2 50.22%, #06B6D4 100%)",
               }}
             >
               cheerbase
             </span>
-            <DialogTitle className="heading-2 text-center">Welcome back 👋</DialogTitle>
+            <DialogTitle className="heading-2 text-center">
+              Welcome back 👋
+            </DialogTitle>
           </DialogHeader>
 
           <form className="grid gap-6" onSubmit={handleLogin}>
             {/* Section 1: Input fields */}
             <div className="grid gap-4">
               <div className="grid gap-1 text-left">
-                <Label className={`${errors.email ? "text-destructive" : "text-muted-foreground"}`}>
+                <Label
+                  className={`${errors.email ? "text-destructive" : "text-muted-foreground"}`}
+                >
                   Email Address
                 </Label>
-                <Input 
-                  placeholder="you@example.com" 
+                <Input
+                  placeholder="you@example.com"
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
                   disabled={isLoading}
-                  className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={
+                    errors.email
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : ""
+                  }
                   aria-invalid={!!errors.email}
                 />
                 {errors.email && (
@@ -145,16 +179,22 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
                 )}
               </div>
               <div className="grid gap-1 text-left">
-                <Label className={`${errors.password ? "text-destructive" : "text-muted-foreground"}`}>
+                <Label
+                  className={`${errors.password ? "text-destructive" : "text-muted-foreground"}`}
+                >
                   Password
                 </Label>
-                <Input 
-                  placeholder="Enter your password" 
+                <Input
+                  placeholder="Enter your password"
                   type="password"
                   value={password}
                   onChange={handlePasswordChange}
                   disabled={isLoading}
-                  className={errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={
+                    errors.password
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : ""
+                  }
                   aria-invalid={!!errors.password}
                 />
                 {errors.password && (
@@ -175,7 +215,11 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 No account yet?{" "}
-                <button className="font-semibold text-primary underline-offset-4 hover:underline" onClick={handleJoinClick} type="button">
+                <button
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
+                  onClick={handleJoinClick}
+                  type="button"
+                >
                   Join Cheerbase
                 </button>
               </p>
@@ -217,7 +261,9 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
                     <UsersIcon className="text-primary size-5" />
                     Club Owner
                   </CardTitle>
-                  <CardDescription>Manage teams, rosters, and register for competitions.</CardDescription>
+                  <CardDescription>
+                    Manage teams, rosters, and register for competitions.
+                  </CardDescription>
                 </CardHeader>
               </Card>
             </button>
@@ -235,7 +281,10 @@ export function AuthDialog({ open, onOpenChange, onDemoLogin, onJoinClick }: Aut
                     <ShieldCheckIcon className="text-primary size-5" />
                     Organizer
                   </CardTitle>
-                  <CardDescription>Manage events, registrations, and payouts from a dedicated portal.</CardDescription>
+                  <CardDescription>
+                    Manage events, registrations, and payouts from a dedicated
+                    portal.
+                  </CardDescription>
                 </CardHeader>
               </Card>
             </button>

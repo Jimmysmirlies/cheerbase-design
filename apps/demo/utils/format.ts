@@ -4,7 +4,11 @@ export function formatFriendlyDate(value?: string | Date): string {
   if (Number.isNaN(parsed.getTime())) {
     return typeof value === "string" ? value : value.toISOString();
   }
-  return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return parsed.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function formatPhoneNumber(value?: string) {

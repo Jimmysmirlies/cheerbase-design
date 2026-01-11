@@ -6,7 +6,10 @@ import { demoRegistrations } from "@/data/clubs/registrations";
 export type MemberRole = "coach" | "athlete" | "reservist" | "chaperone";
 export type RegisteredTeamSource = "club_team" | "upload";
 
-export type RegisteredMemberDTO = Person & { role: MemberRole; personId?: string | null };
+export type RegisteredMemberDTO = Person & {
+  role: MemberRole;
+  personId?: string | null;
+};
 
 export type RegisteredTeamDTO = {
   id: string;
@@ -68,8 +71,14 @@ export async function getClubData(clubOwnerId?: string): Promise<ClubData> {
     const members: RegisteredMemberDTO[] = [
       ...roster.coaches.map((p) => ({ ...p, role: "coach" as MemberRole })),
       ...roster.athletes.map((p) => ({ ...p, role: "athlete" as MemberRole })),
-      ...roster.reservists.map((p) => ({ ...p, role: "reservist" as MemberRole })),
-      ...roster.chaperones.map((p) => ({ ...p, role: "chaperone" as MemberRole })),
+      ...roster.reservists.map((p) => ({
+        ...p,
+        role: "reservist" as MemberRole,
+      })),
+      ...roster.chaperones.map((p) => ({
+        ...p,
+        role: "chaperone" as MemberRole,
+      })),
     ];
     return {
       id: `rt-${roster.teamId}`,
@@ -91,25 +100,33 @@ export async function getClubData(clubOwnerId?: string): Promise<ClubData> {
     return {
       id: reg.id,
       clubOwnerId: DEMO_CLUB_OWNER_ID,
-    eventId: reg.eventId,
-    eventName: reg.eventName,
-    organizer: reg.organizer,
-    eventDate: new Date(reg.eventDate).toISOString(),
-    location: reg.location,
-    division: reg.division,
+      eventId: reg.eventId,
+      eventName: reg.eventName,
+      organizer: reg.organizer,
+      eventDate: new Date(reg.eventDate).toISOString(),
+      location: reg.location,
+      division: reg.division,
       teamId: reg.teamId,
       registeredTeamId,
       registeredTeam: registeredTeamMap.get(registeredTeamId) ?? null,
       athletes: reg.athletes,
       invoiceTotal: Number(reg.invoiceTotal),
-      paymentDeadline: reg.paymentDeadline ? new Date(reg.paymentDeadline).toISOString() : undefined,
-      registrationDeadline: reg.registrationDeadline ? new Date(reg.registrationDeadline).toISOString() : undefined,
-      snapshotTakenAt: reg.snapshotTakenAt ? new Date(reg.snapshotTakenAt).toISOString() : undefined,
+      paymentDeadline: reg.paymentDeadline
+        ? new Date(reg.paymentDeadline).toISOString()
+        : undefined,
+      registrationDeadline: reg.registrationDeadline
+        ? new Date(reg.registrationDeadline).toISOString()
+        : undefined,
+      snapshotTakenAt: reg.snapshotTakenAt
+        ? new Date(reg.snapshotTakenAt).toISOString()
+        : undefined,
       snapshotSourceTeamId: reg.snapshotSourceTeamId,
       snapshotRosterHash: reg.snapshotRosterHash,
       status: reg.status ?? "pending",
       paidAt: reg.paidAt ? new Date(reg.paidAt).toISOString() : null,
-      createdAt: reg.snapshotTakenAt ? new Date(reg.snapshotTakenAt).toISOString() : undefined,
+      createdAt: reg.snapshotTakenAt
+        ? new Date(reg.snapshotTakenAt).toISOString()
+        : undefined,
     };
   });
 

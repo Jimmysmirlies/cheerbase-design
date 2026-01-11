@@ -7,9 +7,16 @@ type ColorSwatchProps = {
   usage?: string;
 };
 
-export function ColorSwatch({ name, token, textToken, usage }: ColorSwatchProps) {
+export function ColorSwatch({
+  name,
+  token,
+  textToken,
+  usage,
+}: ColorSwatchProps) {
   const tokenLabel = token.replace("var(", "").replace(")", "");
-  const textLabel = textToken ? textToken.replace("var(", "").replace(")", "") : undefined;
+  const textLabel = textToken
+    ? textToken.replace("var(", "").replace(")", "")
+    : undefined;
 
   return (
     <article className="flex flex-col gap-4">
