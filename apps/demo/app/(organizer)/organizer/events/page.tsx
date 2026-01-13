@@ -55,10 +55,10 @@ import {
 import { type BrandGradient } from "@/lib/gradients";
 import { CardSkeleton } from "@/components/ui";
 import {
-  OrganizerEventCard,
   getRegistrationStatus,
   type OrganizerEventCardProps,
 } from "@/components/ui/cards/OrganizerEventCard";
+import { EventCardV2 } from "@/components/ui/cards/EventCardV2";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 
 type EventRow = OrganizerEventCardProps & { eventDate: Date };
@@ -460,9 +460,9 @@ function EventsContent({
   collapsed: Record<string, boolean>;
   setCollapsed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }) {
-  // Grid classes: 4 columns at xl breakpoint
+  // Grid classes: responsive columns with 5 at 2xl
   const gridClasses =
-    "grid grid-cols-1 justify-items-start gap-4 pb-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+    "grid grid-cols-2 justify-items-start gap-x-4 gap-y-8 pb-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
   // Transform events into card rows with parsed dates
   const rows = useMemo(() => {
     return events.map((event): EventRow => {
@@ -684,7 +684,7 @@ function EventsContent({
                             variants={fadeInUp}
                             className="h-full w-full"
                           >
-                            <OrganizerEventCard {...row} />
+                            <EventCardV2 {...row} />
                           </motion.div>
                         ))}
                       </motion.div>
@@ -722,7 +722,7 @@ function EventsContent({
                     variants={fadeInUp}
                     className="h-full w-full"
                   >
-                    <OrganizerEventCard {...row} />
+                    <EventCardV2 {...row} />
                   </motion.div>
                 ))}
               </motion.div>
