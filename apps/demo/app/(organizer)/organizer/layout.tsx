@@ -12,17 +12,13 @@ import {
 } from "lucide-react";
 
 import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
-import { GlassSelect } from "@workspace/ui/components/glass-select";
 
 import { Sidebar } from "@/components/layout/Sidebar";
 import { NavBar } from "@/components/layout/NavBar";
 import { FocusModeLayout } from "@/components/layout/FocusModeLayout";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { LayoutProvider } from "@/components/providers/LayoutProvider";
-import {
-  SeasonProvider,
-  useSeason,
-} from "@/components/providers/SeasonProvider";
+import { SeasonProvider } from "@/components/providers/SeasonProvider";
 
 /**
  * Check if the current route is an event editor page.
@@ -70,21 +66,6 @@ const navItems = [
   },
 ];
 
-function SeasonDropdown() {
-  const { selectedSeasonId, setSelectedSeasonId, seasonSelectOptions } =
-    useSeason();
-
-  return (
-    <GlassSelect
-      label="Viewing Season"
-      value={selectedSeasonId}
-      onValueChange={setSelectedSeasonId}
-      options={seasonSelectOptions}
-      triggerClassName="w-full"
-    />
-  );
-}
-
 export default function OrganizerLayout({ children }: { children: ReactNode }) {
   return (
     <SeasonProvider>
@@ -100,6 +81,7 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
   const [navHeight, setNavHeight] = useState(72);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { user, status } = useAuth();
 
   // Check if we're on an editor route (focus mode)
@@ -196,7 +178,7 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
           onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
         />
       </div>
-      <div className="flex w-full">
+      <div className="flex w-full overflow-visible">
         <Sidebar
           active={active}
           navSections={organizerNavSections}
@@ -204,13 +186,14 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
           isOpen={isSidebarOpen}
           isMobile={isMobile}
           onClose={() => setIsSidebarOpen(false)}
-          headerSlot={<SeasonDropdown />}
+          isCollapsed={isSidebarCollapsed}
+          onCollapseChange={setIsSidebarCollapsed}
         />
         <ScrollArea
           className="flex-1"
           style={{ height: `calc(100vh - ${navHeight}px)` }}
         >
-          <main>
+          <main className="p-8">
             <LayoutProvider layout="A">
               {status === "loading" ? null : children}
             </LayoutProvider>

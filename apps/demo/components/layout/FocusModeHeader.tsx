@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Settings2Icon } from "lucide-react";
+import { ArrowLeftIcon, Settings2Icon } from "lucide-react";
 import { Button } from "@workspace/ui/shadcn/button";
 import {
   Tooltip,
@@ -12,17 +12,28 @@ import { brandGradients } from "@/lib/gradients";
 import { useOrganizer } from "@/hooks/useOrganizer";
 
 type FocusModeHeaderProps = {
+  backHref?: string;
   onOpenMobileSettings?: () => void;
 };
 
-export function FocusModeHeader({ onOpenMobileSettings }: FocusModeHeaderProps) {
+export function FocusModeHeader({ backHref, onOpenMobileSettings }: FocusModeHeaderProps) {
   const { organizer } = useOrganizer();
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
       <div className="mx-auto flex h-[68px] w-full items-center justify-center px-6">
-        {/* Spacer for centering on mobile */}
-        <div className="absolute left-6 w-10 lg:hidden" />
+        {/* Back button - left aligned */}
+        <div className="absolute left-6">
+          {backHref ? (
+            <Button variant="ghost" size="icon" className="-ml-2 h-10 w-10" asChild>
+              <Link href={backHref}>
+                <ArrowLeftIcon className="size-4" />
+              </Link>
+            </Button>
+          ) : (
+            <div className="w-10 lg:hidden" />
+          )}
+        </div>
 
         {/* Centered logo with divider and title */}
         <div className="flex items-center gap-4">

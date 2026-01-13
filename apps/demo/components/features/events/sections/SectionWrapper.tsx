@@ -42,13 +42,13 @@ export function SectionWrapper({
     );
   }
 
-  // Editable mode - matches Section component layout (py-12 gap-6)
+  // Editable mode - matches Section component layout (py-8 gap-6)
   return (
     <motion.div variants={fadeInUp}>
       <div id={id}>
         {showDivider && <div className="h-px w-full bg-border" />}
 
-        <div className="flex flex-col gap-6 py-12">
+        <div className="flex flex-col gap-6 py-8">
           <div className="flex items-center justify-between">
             <p className="heading-4">{title}</p>
             {titleRight}

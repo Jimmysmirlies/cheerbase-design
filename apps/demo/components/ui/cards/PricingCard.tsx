@@ -1,6 +1,9 @@
 "use client";
 
+import type React from "react";
+import { motion } from "framer-motion";
 import { cn } from "@workspace/ui/lib/utils";
+import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 export type PricingCardProps = {
   /** Division or tier label (e.g., "Senior / Open") */
@@ -13,6 +16,8 @@ export type PricingCardProps = {
   originalPrice?: string;
   /** Unit label (e.g., "/ athlete", "/ team") */
   unit?: string;
+  /** Brand gradient key for the price text */
+  gradient?: BrandGradient;
   /** Additional CSS classes */
   className?: string;
 };
@@ -30,33 +35,87 @@ export function PricingCard({
   price,
   originalPrice,
   unit = "/ athlete",
+  gradient,
   className,
 }: PricingCardProps) {
   const showOriginalPrice = originalPrice && originalPrice !== price;
 
+  // Get gradient styling
+  const gradientConfig = gradient ? brandGradients[gradient] : null;
+  const gradientCss = gradientConfig?.css;
+  const firstGradientColor = gradientCss?.match(/#[0-9A-Fa-f]{6}/)?.[0];
+
+  const priceGradientStyle: React.CSSProperties | undefined = gradient
+    ? {
+        backgroundImage: gradientCss,
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        color: "transparent",
+      }
+    : undefined;
+
   return (
-    <div
+    <motion.div
       className={cn(
-        "rounded-lg border border-border/60 bg-card p-5",
+        "relative rounded-lg border p-5 overflow-hidden cursor-pointer",
+        !gradient && "border-border/60 bg-card",
         className
       )}
+      style={
+        gradient && firstGradientColor
+          ? { borderColor: `${firstGradientColor}50` }
+          : undefined
+      }
+      whileHover={{
+        y: -2,
+        boxShadow: gradient && firstGradientColor
+          ? `0 8px 20px -6px ${firstGradientColor}25`
+          : "0 8px 20px -6px rgba(0, 0, 0, 0.1)",
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+      }}
     >
-      <div className="flex flex-col gap-1">
-        <p className="body-small font-semibold text-foreground">{label}</p>
-        {subtitle && (
-          <p className="body-small text-muted-foreground">{subtitle}</p>
-        )}
-      </div>
-      <div className="mt-4 flex items-baseline gap-2">
-        <span className="heading-4 font-semibold text-foreground">{price}</span>
-        {showOriginalPrice && (
-          <span className="body-text text-muted-foreground line-through">
-            {originalPrice}
+      {/* Gradient background overlay */}
+      {gradient && gradientCss && (
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: gradientCss,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+          initial={{ opacity: 0.03 }}
+          whileHover={{ opacity: 0.06 }}
+          transition={{ duration: 0.2 }}
+        />
+      )}
+      <div className="relative z-10">
+        <div className="flex flex-col gap-1">
+          <p className="body-small font-semibold text-foreground">{label}</p>
+          {subtitle && (
+            <p className="body-small text-muted-foreground">{subtitle}</p>
+          )}
+        </div>
+        <div className="mt-4 flex items-baseline gap-2">
+          <span
+            className={cn("heading-3 font-bold", !gradient && "text-foreground")}
+            style={priceGradientStyle}
+          >
+            {price}
           </span>
-        )}
-        <span className="body-small text-muted-foreground">{unit}</span>
+          {showOriginalPrice && (
+            <span className="body-text text-muted-foreground line-through">
+              {originalPrice}
+            </span>
+          )}
+          <span className="body-small text-muted-foreground">{unit}</span>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

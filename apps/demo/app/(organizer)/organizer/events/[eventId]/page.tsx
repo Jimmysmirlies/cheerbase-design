@@ -99,10 +99,9 @@ export default function OrganizerEventViewPage() {
 
   if (status === "loading" || !event) {
     return (
-      <section className="flex min-h-screen flex-1 flex-col gap-6 py-8">
-        <div className="mx-auto w-full max-w-7xl px-4 lg:px-8">
-          <div className="h-8 w-32 animate-pulse rounded bg-muted" />
-        </div>
+      <section className="mx-auto w-full max-w-7xl">
+        <div className="h-10 w-64 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-96 animate-pulse rounded bg-muted mt-2" />
       </section>
     );
   }

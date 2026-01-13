@@ -49,6 +49,7 @@ import {
 } from "@/data/events/selectors";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Section } from "@/components/layout/Section";
+import { SeasonDropdown } from "@/components/layout/SeasonDropdown";
 import { useSeason } from "@/components/providers/SeasonProvider";
 import { type BrandGradient } from "@/lib/gradients";
 import { fadeInUp } from "@/lib/animations";
@@ -405,11 +406,12 @@ export default function OrganizerInvoicesPage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-          <PageTitle title="Invoices" gradient={gradientValue} />
+      <section className="mx-auto w-full max-w-7xl">
+        <PageTitle title="Invoices" gradient={gradientValue} />
+        <div className="pt-6">
+          <SeasonDropdown />
         </div>
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 lg:px-8">
+        <div className="flex flex-col gap-4 pt-8">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />
@@ -422,11 +424,12 @@ export default function OrganizerInvoicesPage() {
 
   if (!overview) {
     return (
-      <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-          <PageTitle title="Invoices" gradient={gradientValue} />
+      <section className="mx-auto w-full max-w-7xl">
+        <PageTitle title="Invoices" gradient={gradientValue} />
+        <div className="pt-6">
+          <SeasonDropdown />
         </div>
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 lg:px-8">
+        <div className="flex flex-col gap-4 pt-8">
           <Card className="border-dashed border-border/70">
             <CardHeader>
               <p className="text-base font-semibold">No Data Available</p>
@@ -443,12 +446,17 @@ export default function OrganizerInvoicesPage() {
   const hasOverdue = overview.overdueAmount > 0;
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-        <PageTitle title="Invoices" gradient={gradientValue} />
+    <section className="mx-auto w-full max-w-7xl">
+      {/* Header */}
+      <PageTitle title="Invoices" gradient={gradientValue} />
+
+      {/* Season Dropdown */}
+      <div className="pt-6">
+        <SeasonDropdown />
       </div>
 
-      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8">
+      {/* Content Area */}
+      <div className="pt-8">
         {/* Statistics Section */}
         <motion.div
           variants={fadeInUp}
@@ -456,7 +464,7 @@ export default function OrganizerInvoicesPage() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <Section title="Statistics" showDivider={false}>
+          <Section title="Statistics">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

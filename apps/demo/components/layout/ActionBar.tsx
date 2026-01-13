@@ -103,12 +103,10 @@ export function ActionBar({
     return (
       <div
         className={cn(
-          "mx-auto w-full px-4 lg:px-8",
-          maxWidth === "default" && "max-w-7xl",
+          "flex w-full items-center justify-between gap-4",
           className,
         )}
       >
-        <div className="flex w-full items-center justify-between gap-4">
           {/* Left side: Tabs or custom content */}
           <div className="flex min-w-0 flex-1 items-center gap-3">
             {hasTabs && onTabChange && activeTab ? (
@@ -131,7 +129,6 @@ export function ActionBar({
               {actions}
             </div>
           )}
-        </div>
       </div>
     );
   }

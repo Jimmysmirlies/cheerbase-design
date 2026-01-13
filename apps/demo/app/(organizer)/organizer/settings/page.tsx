@@ -25,9 +25,8 @@ import {
 } from "@workspace/ui/shadcn/dialog";
 import {
   CheckIcon,
-  CreditCardIcon,
-  PencilIcon,
   SparklesIcon,
+  SquareArrowOutUpRightIcon,
 } from "lucide-react";
 
 import { useOrganizer } from "@/hooks/useOrganizer";
@@ -181,9 +180,9 @@ export default function OrganizerSettingsPage() {
 
   if (isLoading || subscriptionLoading) {
     return (
-      <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 lg:px-8">
-          <div className="h-10 w-32 animate-pulse rounded bg-muted" />
+      <section className="mx-auto w-full max-w-7xl">
+        <div className="h-10 w-32 animate-pulse rounded bg-muted" />
+        <div className="flex flex-col gap-8 pt-8">
           <div className="h-64 animate-pulse rounded-lg bg-muted" />
         </div>
       </section>
@@ -193,17 +192,18 @@ export default function OrganizerSettingsPage() {
   const gradientOptions = getGradientOptions();
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-        <h1
-          className="heading-2 bg-clip-text text-transparent"
-          style={{ backgroundImage: gradient.css }}
-        >
-          Settings
-        </h1>
-      </div>
+    <section className="mx-auto w-full max-w-7xl">
+      {/* Header */}
+      <h1
+        className="heading-2 bg-clip-text text-transparent"
+        style={{ backgroundImage: gradient.css }}
+      >
+        Settings
+      </h1>
+
+      {/* Content Area */}
       <motion.div
-        className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 lg:px-8"
+        className="pt-8"
         variants={staggerSections}
         initial="hidden"
         animate="visible"
@@ -213,16 +213,14 @@ export default function OrganizerSettingsPage() {
           <Section
             title="Organization Profile"
             description="Your organization's public profile information."
-            showDivider={false}
             titleRight={
-              <Button
+              <button
                 onClick={openEditDialog}
-                variant="outline"
-                className="gap-2"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline hover:text-primary/80"
               >
-                <PencilIcon className="size-4" />
                 Edit Profile
-              </Button>
+                <SquareArrowOutUpRightIcon className="size-3.5" />
+              </button>
             }
           >
             <div className="space-y-4 text-sm">
@@ -355,12 +353,13 @@ export default function OrganizerSettingsPage() {
             title="Billing & Subscription"
             description="Manage your subscription plan and billing details."
             titleRight={
-              <Button asChild variant="outline" className="gap-2">
-                <Link href="/organizer/settings/subscription">
-                  <CreditCardIcon className="size-4" />
-                  Manage Subscription
-                </Link>
-              </Button>
+              <Link
+                href="/organizer/settings/subscription"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline hover:text-primary/80"
+              >
+                Manage Subscription
+                <SquareArrowOutUpRightIcon className="size-3.5" />
+              </Link>
             }
           >
             <div className="space-y-4 text-sm">

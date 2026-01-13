@@ -197,6 +197,7 @@ export function PricingSection({
   onUpdate,
   pricingRows: propPricingRows,
   pricingDeadlineLabel,
+  organizerGradient,
 }: PricingSectionProps) {
   const earlyBirdEnabled = eventData.earlyBirdEnabled ?? false;
   const divisions = eventData.availableDivisions || [];
@@ -213,6 +214,7 @@ export function PricingSection({
           subtitle: row.subtitle,
           price: row.before,
           originalPrice: earlyBirdEnabled ? row.after : undefined,
+          gradient: organizerGradient,
         }))}
       />
     );

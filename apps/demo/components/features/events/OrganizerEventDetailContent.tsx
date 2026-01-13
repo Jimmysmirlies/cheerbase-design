@@ -48,6 +48,7 @@ import {
   type RegistrationStatus,
 } from "@/data/events/analytics";
 import { fadeInUp } from "@/lib/animations";
+import { Section } from "@/components/layout/Section";
 
 type OrganizerEventDetailContentProps = {
   /** Event data object */
@@ -351,7 +352,7 @@ function EventRegistrationsTab({
 
   if (!overview) {
     return (
-      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8">
+      <Section title="Registrations" showDivider={false}>
         <Card className="border-dashed border-border/70">
           <CardHeader>
             <p className="text-base font-semibold">No Registrations Yet</p>
@@ -360,18 +361,17 @@ function EventRegistrationsTab({
             Registrations will appear here once teams register for this event.
           </CardContent>
         </Card>
-      </div>
+      </Section>
     );
   }
 
   const hasOverdue = overview.overdueAmount > 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col px-4 lg:px-8">
+    <>
       {/* Statistics Section */}
       <motion.div variants={fadeInUp} initial="hidden" animate="visible">
-        <div className="flex flex-col gap-6 py-12">
-          <p className="heading-4">Statistics</p>
+        <Section title="Statistics" showDivider={false}>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -450,15 +450,14 @@ function EventRegistrationsTab({
               </CardContent>
             </Card>
           </div>
-        </div>
+        </Section>
       </motion.div>
 
       {/* Registrations Table Section */}
       <motion.div variants={fadeInUp} initial="hidden" animate="visible">
-        <div className="h-px w-full bg-border" />
-        <div className="flex flex-col gap-6 py-12">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="heading-4">Registrations</p>
+        <Section
+          title="Registrations"
+          titleRight={
             <div className="flex items-center gap-3">
               {hasActiveFilters && (
                 <Button
@@ -494,8 +493,8 @@ function EventRegistrationsTab({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </div>
-
+          }
+        >
           {/* Table */}
           <DataTable>
             <DataTableHeader>
@@ -617,24 +616,20 @@ function EventRegistrationsTab({
               {filteredData.length < tableData.length && " (filtered)"}
             </p>
           )}
-        </div>
+        </Section>
       </motion.div>
-    </div>
+    </>
   );
 }
 
 function EventSettingsTab({ eventId }: { eventId: string }) {
   void eventId;
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 lg:px-8">
-      <div className="h-px w-full bg-border" />
-      <div className="flex flex-col gap-6 py-12">
-        <p className="heading-4">Settings</p>
-        <p className="body-text text-muted-foreground">
-          Event settings content will be displayed here.
-        </p>
-      </div>
-    </div>
+    <Section title="Settings" showDivider={false}>
+      <p className="body-text text-muted-foreground">
+        Event settings content will be displayed here.
+      </p>
+    </Section>
   );
 }
 
@@ -694,24 +689,23 @@ export function OrganizerEventDetailContent({
   };
 
   return (
-    <section className="flex flex-1 flex-col py-8">
-      <div className="flex flex-col gap-6">
-        {/* PageTitle with date/location below title */}
-        <div className="mx-auto w-full max-w-7xl px-4 lg:px-8">
-          <PageTitle
-            title={event.name}
-            gradient={gradientKey}
-            dateLabel={formatDateLabel(event.date)}
-            locationLabel={event.location}
-            actions={
-              <Button variant="default" onClick={handleEdit}>
-                <PencilIcon className="mr-2 size-4" />
-                Edit Event
-              </Button>
-            }
-          />
-        </div>
+    <section className="mx-auto w-full max-w-7xl">
+      {/* Header - no padding */}
+      <PageTitle
+        title={event.name}
+        gradient={gradientKey}
+        dateLabel={formatDateLabel(event.date)}
+        locationLabel={event.location}
+        actions={
+          <Button variant="default" onClick={handleEdit}>
+            <PencilIcon className="mr-2 size-4" />
+            Edit Event
+          </Button>
+        }
+      />
 
+      {/* Action Bar - pt-6 (24px) */}
+      <div className="pt-6">
         <OrganizerEventActionBar
           eventId={event.id}
           eventOrganizerName={event.organizer}
@@ -723,44 +717,45 @@ export function OrganizerEventDetailContent({
         />
       </div>
 
-      {activeTab === "event-page" && (
-        <UnifiedEventDetailBody
-          eventData={{
-            id: event.id,
-            name: event.name,
-            date: event.date,
-            description: event.description,
-            organizer: event.organizer,
-            location: event.location,
-          }}
-          organizerGradient={organizerGradient}
-          organizerFollowers={organizerFollowers}
-          organizerEventsCount={organizerEventsCount}
-          organizerHostingDuration={organizerHostingDuration}
-          layout="A"
-          hideRegistration
-          showOverviewDivider
-          showOrganizerCardAtTop
-          displayProps={{
-            galleryImages,
-            eventDateParts,
-            venueName,
-            cityState,
-            registrationDeadlineISO,
-            registrationClosed,
-            timelinePhases,
-            pricingDeadlineLabel,
-            pricingRows,
-            documents,
-          }}
-        />
-      )}
+      {/* Tab Content */}
+      <div>
+        {activeTab === "event-page" && (
+          <UnifiedEventDetailBody
+            eventData={{
+              id: event.id,
+              name: event.name,
+              date: event.date,
+              description: event.description,
+              organizer: event.organizer,
+              location: event.location,
+            }}
+            organizerGradient={organizerGradient}
+            organizerFollowers={organizerFollowers}
+            organizerEventsCount={organizerEventsCount}
+            organizerHostingDuration={organizerHostingDuration}
+            layout="A"
+            hideRegistration
+            displayProps={{
+              galleryImages,
+              eventDateParts,
+              venueName,
+              cityState,
+              registrationDeadlineISO,
+              registrationClosed,
+              timelinePhases,
+              pricingDeadlineLabel,
+              pricingRows,
+              documents,
+            }}
+          />
+        )}
 
-      {activeTab === "registrations" && (
-        <EventRegistrationsTab eventId={event.id} organizerId={organizerId} />
-      )}
+        {activeTab === "registrations" && (
+          <EventRegistrationsTab eventId={event.id} organizerId={organizerId} />
+        )}
 
-      {activeTab === "settings" && <EventSettingsTab eventId={event.id} />}
+        {activeTab === "settings" && <EventSettingsTab eventId={event.id} />}
+      </div>
     </section>
   );
 }

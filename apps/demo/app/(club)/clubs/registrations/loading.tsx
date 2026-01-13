@@ -4,7 +4,7 @@ export default function RegistrationsLoading() {
   return (
     <section className="flex flex-1 flex-col">
       <PageHeaderSkeleton showBreadcrumb />
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
+      <div className="page-container page-section space-y-8">
         {/* Filter tabs skeleton */}
         <div className="flex items-center gap-2">
           {[1, 2, 3, 4].map((i) => (

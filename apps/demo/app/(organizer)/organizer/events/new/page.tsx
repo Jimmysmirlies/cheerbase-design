@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { EventEditorProvider } from "@/components/providers/EventEditorProvider";
-import { EventEditorV2 } from "@/components/features/events/editor/EventEditorV2";
+import { EventEditor } from "@/components/features/events/editor/EventEditor";
 import type { Event } from "@/types/events";
 
 export default function NewEventPage() {
@@ -50,7 +50,7 @@ export default function NewEventPage() {
 
   return (
     <EventEditorProvider mode="create" initialEvent={initialEvent}>
-      <EventEditorV2 />
+      <EventEditor />
     </EventEditorProvider>
   );
 }

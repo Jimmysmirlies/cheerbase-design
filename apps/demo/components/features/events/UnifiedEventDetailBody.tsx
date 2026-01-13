@@ -12,7 +12,6 @@ import { Section } from "@/components/layout/Section";
 import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
 import { EventTableOfContents } from "@/components/features/events/EventTableOfContents";
-import { EventSectionBadges } from "@/components/features/events/EventSectionBadges";
 import { EmptyStateButton } from "@/components/ui/buttons/EmptyStateButton";
 import type { Event } from "@/types/events";
 import type { BrandGradient } from "@/lib/gradients";
@@ -185,44 +184,20 @@ export function UnifiedEventDetailBody({
 
   return (
     <>
-      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8">
-        <div
-          className={`grid gap-10 ${hideRegistration ? "" : "lg:grid-cols-[1fr_320px]"}`}
-        >
+      <div
+        className={`grid gap-10 ${hideRegistration ? "" : "lg:grid-cols-[1fr_320px]"}`}
+      >
           <motion.article
             className="min-w-0 overflow-hidden"
             variants={staggerSections}
             initial="hidden"
             animate="visible"
           >
-            {/* Organizer Card at top (for organizer view) */}
-            {showOrganizerCardAtTop && (
-              <motion.div variants={fadeInUp}>
-                <div className="py-12">
-                  <OrganizerCard
-                    name={event.organizer}
-                    gradient={organizerGradient}
-                    followers={organizerFollowers}
-                    eventsCount={organizerEventsCount}
-                    hostingDuration={organizerHostingDuration}
-                    showActions={false}
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {/* Section Navigation Badges - always on mobile, Layout B on desktop too, hidden in editor */}
-            {!editable && (
-              <div className={layout === "B" ? "" : "lg:hidden"}>
-                <EventSectionBadges />
-              </div>
-            )}
-
             {/* Overview Section */}
             <SectionWrapper
               id="overview"
               title="Overview"
-              showDivider={showOverviewDivider || layout === "B"}
+              showDivider={showOverviewDivider || layout === "B" || editable}
               isEditing={editingSection === "overview"}
               onStartEdit={editable ? () => handleStartEdit("overview") : undefined}
               onSave={handleSaveSection}
@@ -549,7 +524,6 @@ export function UnifiedEventDetailBody({
               </div>
             </motion.div>
           )}
-        </div>
       </div>
 
       {/* Mobile Sticky Footer CTA */}

@@ -46,7 +46,7 @@ import {
   isEventInSeason,
 } from "@/data/events/selectors";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { ActionBar } from "@/components/layout/ActionBar";
+import { SeasonDropdown } from "@/components/layout/SeasonDropdown";
 import {
   useSeason,
   type SeasonOption,
@@ -197,53 +197,42 @@ export default function OrganizerEventsPage() {
 
   if (isLoading || subscriptionLoading) {
     return (
-      <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-          <PageTitle title="Events" gradient={organizerGradient} />
-        </div>
-        <ActionBar
-          variant="unstyled"
+      <section className="mx-auto w-full max-w-7xl">
+        <PageTitle
+          title="Events"
+          gradient={organizerGradient}
           actions={
-            <Button size="sm" disabled>
-              <PlusIcon className="size-4 mr-2" />
-              New Event
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button disabled>
+                <PlusIcon className="size-4 mr-2" />
+                New Event
+              </Button>
+              <div className="h-6 w-px bg-border" />
+              <div className="relative inline-flex shrink-0 items-center rounded-md border border-border bg-background p-1 opacity-50">
+                <div className="h-9 w-9 rounded-md bg-muted" />
+                <div className="h-9 w-9 rounded-md" />
+              </div>
+            </div>
           }
         />
-        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <CardSkeleton key={i} rows={3} showMedia />
-            ))}
-          </div>
+        <div className="pt-6">
+          <SeasonDropdown />
+        </div>
+        <div className="flex flex-col gap-4 pt-8">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <CardSkeleton key={i} rows={3} showMedia />
+          ))}
         </div>
       </section>
     );
   }
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-        <PageTitle title="Events" gradient={organizerGradient} />
-      </div>
-
-      <ActionBar
-        variant="unstyled"
-        leftContent={
-          viewMode === "all" ? (
-            <PageTabs
-              tabs={[
-                { id: "upcoming", label: "Upcoming" },
-                { id: "past", label: "Past" },
-                { id: "drafts", label: "Drafts" },
-              ]}
-              value={allEventsBucket}
-              onValueChange={(value) =>
-                setAllEventsBucket(value as "upcoming" | "past" | "drafts")
-              }
-            />
-          ) : undefined
-        }
+    <section className="mx-auto w-full max-w-7xl">
+      {/* Header - no padding */}
+      <PageTitle
+        title="Events"
+        gradient={organizerGradient}
         actions={
           <div className="flex items-center gap-3">
             <TooltipProvider delayDuration={120}>
@@ -316,27 +305,38 @@ export default function OrganizerEventsPage() {
         }
       />
 
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-        <motion.div
-          className="w-full"
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <EventsContent
-            events={allEvents}
-            season={selectedSeason}
-            selectedSeasonId={selectedSeasonId}
-            isAllSeasons={isAllSeasons}
-            plan={plan}
-            atLimit={atLimit}
-            viewMode={viewMode}
-            allEventsBucket={allEventsBucket}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
+      {/* Season Filter - pt-6 (24px) */}
+      <div className="pt-6">
+        <SeasonDropdown />
+      </div>
+
+      {/* Content Area - pt-8 (32px), internal gap-4 (16px) */}
+      <div className="flex flex-col gap-4 pt-8">
+        {viewMode === "all" && (
+          <PageTabs
+            tabs={[
+              { id: "upcoming", label: "Upcoming" },
+              { id: "past", label: "Past" },
+              { id: "drafts", label: "Drafts" },
+            ]}
+            value={allEventsBucket}
+            onValueChange={(value) =>
+              setAllEventsBucket(value as "upcoming" | "past" | "drafts")
+            }
           />
-        </motion.div>
+        )}
+        <EventsContent
+          events={allEvents}
+          season={selectedSeason}
+          selectedSeasonId={selectedSeasonId}
+          isAllSeasons={isAllSeasons}
+          plan={plan}
+          atLimit={atLimit}
+          viewMode={viewMode}
+          allEventsBucket={allEventsBucket}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+        />
       </div>
 
       {/* New Event Setup Modal */}

@@ -7,24 +7,24 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/shadcn/sheet";
+import { Button } from "@workspace/ui/shadcn/button";
+import { Badge } from "@workspace/ui/shadcn/badge";
 import { FocusModeHeader } from "@/components/layout/FocusModeHeader";
 import { useEventEditor } from "@/components/providers/EventEditorProvider";
 import { useFocusModeSettings } from "@/hooks/useFocusModeSettings";
 import { useEventDisplayProps } from "@/hooks/useEventDisplayProps";
 import { UnifiedEventDetailBody } from "@/components/features/events/UnifiedEventDetailBody";
+import { EventTitleHeader } from "@/components/features/events/EventTitleHeader";
 import { EventSettingsSidebar } from "./EventSettingsSidebar";
-import { EditorActionBar } from "./EditorActionBar";
 
-export function EventEditorV2() {
+export function EventEditor() {
   const {
     eventData,
     updateEventData,
     saveSection,
     publishEvent,
-    discardChanges,
     organizerGradient,
     eventId,
-    isDirty,
     isPublished,
     isPublishing,
   } = useEventEditor();
@@ -68,36 +68,59 @@ export function EventEditorV2() {
     publishEvent();
   }, [publishEvent]);
 
-  const handleDiscard = useCallback(() => {
-    if (isPublished) {
-      discardChanges();
-    }
-  }, [isPublished, discardChanges]);
+  // Header content shared between loading and loaded states
+  const headerContent = eventData.name ? (
+    <div className="pb-8">
+      <EventTitleHeader
+      name={eventData.name}
+      date={eventData.date}
+      location={eventData.location}
+      gradient={organizerGradient}
+      badge={
+        isPublished ? (
+          <Badge variant="outline" className="border-green-500 text-green-600">
+            Published
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-muted-foreground">
+            Draft
+          </Badge>
+        )
+      }
+      actions={
+        <Button onClick={handlePublish} disabled={isPublishing}>
+          {isPublishing
+            ? "Saving..."
+            : isPublished
+              ? "Update Event"
+              : "Publish Event"}
+        </Button>
+      }
+    />
+    </div>
+  ) : null;
 
   // Wait for hydration to avoid flash
   if (!isHydrated) {
     return (
       <>
-        <FocusModeHeader />
-        <EditorActionBar
-          eventId={eventId}
-          isDraft={!isPublished}
-          isDirty={isDirty}
-          isPublishing={isPublishing}
-          onPublish={handlePublish}
-          onDiscard={isPublished ? handleDiscard : undefined}
-        />
-        <div className="h-[calc(100vh-68px-57px)] overflow-y-auto py-8">
-          <UnifiedEventDetailBody
-            eventData={eventData}
-            onUpdate={updateEventData}
-            onSave={handleSave}
-            organizerGradient={organizerGradient}
-            editable
-            hideRegistration
-            layout="A"
-            displayProps={displayProps}
-          />
+        <FocusModeHeader backHref={`/organizer/events/${eventId}`} />
+        <div className="h-[calc(100vh-68px)] overflow-y-auto scrollbar-hide">
+          <main className="p-8">
+            <section className="mx-auto w-full max-w-7xl">
+              {headerContent}
+              <UnifiedEventDetailBody
+                eventData={eventData}
+                onUpdate={updateEventData}
+                onSave={handleSave}
+                organizerGradient={organizerGradient}
+                editable
+                hideRegistration
+                layout="A"
+                displayProps={displayProps}
+              />
+            </section>
+          </main>
         </div>
       </>
     );
@@ -106,38 +129,38 @@ export function EventEditorV2() {
   return (
     <>
       <FocusModeHeader
+        backHref={`/organizer/events/${eventId}`}
         onOpenMobileSettings={isMobile ? () => setMobileSheetOpen(true) : undefined}
       />
 
-      <EditorActionBar
-        eventId={eventId}
-        isDraft={!isPublished}
-        isDirty={isDirty}
-        isPublishing={isPublishing}
-        onPublish={handlePublish}
-        onDiscard={isPublished ? handleDiscard : undefined}
-      />
+      <div className="flex h-[calc(100vh-68px)]">
+        {/* Main content area */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <main className="p-8">
+            <section className="mx-auto w-full max-w-7xl">
+              {headerContent}
+              <UnifiedEventDetailBody
+                eventData={eventData}
+                onUpdate={updateEventData}
+                onSave={handleSave}
+                organizerGradient={organizerGradient}
+                editable
+                hideRegistration
+                layout="A"
+                displayProps={displayProps}
+              />
+            </section>
+          </main>
+        </div>
 
-      <div className="h-[calc(100vh-68px-57px)] overflow-y-auto py-8">
-        <UnifiedEventDetailBody
-          eventData={eventData}
-          onUpdate={updateEventData}
-          onSave={handleSave}
-          organizerGradient={organizerGradient}
-          editable
-          hideRegistration
-          layout="A"
-          displayProps={displayProps}
-        />
+        {/* Desktop: Right sidebar - pushes content */}
+        {!isMobile && (
+          <EventSettingsSidebar
+            collapsed={!sidebarOpen}
+            onToggleCollapse={toggleSidebar}
+          />
+        )}
       </div>
-
-      {/* Desktop: Right sidebar - fixed to right edge, hidden on mobile */}
-      {!isMobile && (
-        <EventSettingsSidebar
-          collapsed={!sidebarOpen}
-          onToggleCollapse={toggleSidebar}
-        />
-      )}
 
       {/* Mobile: Sheet for settings */}
       {isMobile && (

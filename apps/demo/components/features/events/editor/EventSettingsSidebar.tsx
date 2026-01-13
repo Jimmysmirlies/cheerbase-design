@@ -260,13 +260,13 @@ export function EventSettingsSidebar({
     </>
   );
 
-  // Desktop sidebar - animated collapse
+  // Desktop sidebar - pushes content, animated collapse
   if (isDesktop) {
     return (
       <>
         <aside
           className={cn(
-            "fixed right-0 top-[68px] z-20 flex h-[calc(100vh-68px)] flex-col border-l border-sidebar-border bg-sidebar transition-[width] duration-200 ease-linear",
+            "flex h-full shrink-0 flex-col border-l border-sidebar-border bg-sidebar transition-[width] duration-200 ease-out",
             collapsed ? "w-14" : "w-80"
           )}
         >
@@ -302,8 +302,10 @@ export function EventSettingsSidebar({
           >
             {/* Registration Section */}
             <div className="space-y-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Registration
+              <h3 className="heading-3">Event Settings</h3>
+              <p className="text-sm text-muted-foreground">
+                Configure when registration opens and closes. This does not
+                affect the event date.
               </p>
 
               <div className="space-y-2">
@@ -358,8 +360,10 @@ export function EventSettingsSidebar({
       <aside className="space-y-6 overflow-y-auto">
         {/* Registration Section */}
         <div className="space-y-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Registration
+          <h3 className="heading-3">Event Settings</h3>
+          <p className="text-sm text-muted-foreground">
+            Configure when registration opens and closes. This does not affect
+            the event date.
           </p>
 
           <div className="space-y-2">

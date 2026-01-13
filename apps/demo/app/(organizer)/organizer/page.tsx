@@ -138,90 +138,89 @@ export default function OrganizerHomePage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 lg:px-8">
-          <div className="h-10 w-64 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-96 animate-pulse rounded bg-muted" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />
-            ))}
-          </div>
+      <section className="mx-auto w-full max-w-7xl">
+        <div className="h-10 w-64 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-96 animate-pulse rounded bg-muted mt-2" />
+        <div className="grid gap-4 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />
+          ))}
         </div>
       </section>
     );
   }
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pt-8 lg:px-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <h1
-              className="heading-2 bg-clip-text text-transparent"
-              style={{ backgroundImage: gradient.css }}
-            >
-              {organizer?.name ?? "Organizer"} Dashboard
-            </h1>
-            <Badge variant="secondary">Beta</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            View a snapshot of active events, pending registrations, and revenue
-            overview.
-          </p>
+    <section className="mx-auto w-full max-w-7xl">
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <h1
+            className="heading-2 bg-clip-text text-transparent"
+            style={{ backgroundImage: gradient.css }}
+          >
+            {organizer?.name ?? "Organizer"} Dashboard
+          </h1>
+          <Badge variant="secondary">Beta</Badge>
         </div>
-
-        {/* Attention Required (below header, above stats) */}
-        {(hasAttentionItems || lowFillEvents.length > 0) && (
-          <div className="space-y-3">
-            {paymentHealth && paymentHealth.overdueCount > 0 && (
-              <Link href="/organizer/invoices" className="block">
-                <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangleIcon className="size-5 text-amber-600 dark:text-amber-400" />
-                    <div>
-                      <p className="font-medium text-amber-800 dark:text-amber-200">
-                        {paymentHealth.overdueCount} payment
-                        {paymentHealth.overdueCount !== 1 ? "s" : ""} overdue
-                      </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300">
-                        {formatCurrency(paymentHealth.overdueAmount)} total
-                        outstanding
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRightIcon className="size-5 text-amber-600 dark:text-amber-400" />
-                </div>
-              </Link>
-            )}
-            {lowFillEvents.map((event) => (
-              <Link
-                key={event.eventId}
-                href={`/organizer/events/${event.eventId}`}
-                className="block"
-              >
-                <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangleIcon className="size-5 text-red-600 dark:text-red-400" />
-                    <div>
-                      <p className="font-medium text-red-800 dark:text-red-200">
-                        {event.eventName} has low registration
-                      </p>
-                      <p className="text-sm text-red-700 dark:text-red-300">
-                        Only {event.fillRate.toFixed(0)}% filled (
-                        {event.filledSlots}/{event.totalSlots} teams)
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRightIcon className="size-5 text-red-600 dark:text-red-400" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <p className="text-sm text-muted-foreground">
+          View a snapshot of active events, pending registrations, and revenue
+          overview.
+        </p>
       </div>
+
+      {/* Attention Required (below header, above stats) */}
+      {(hasAttentionItems || lowFillEvents.length > 0) && (
+        <div className="space-y-3 pt-6">
+          {paymentHealth && paymentHealth.overdueCount > 0 && (
+            <Link href="/organizer/invoices" className="block">
+              <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+                <div className="flex items-center gap-3">
+                  <AlertTriangleIcon className="size-5 text-amber-600 dark:text-amber-400" />
+                  <div>
+                    <p className="font-medium text-amber-800 dark:text-amber-200">
+                      {paymentHealth.overdueCount} payment
+                      {paymentHealth.overdueCount !== 1 ? "s" : ""} overdue
+                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      {formatCurrency(paymentHealth.overdueAmount)} total
+                      outstanding
+                    </p>
+                  </div>
+                </div>
+                <ArrowRightIcon className="size-5 text-amber-600 dark:text-amber-400" />
+              </div>
+            </Link>
+          )}
+          {lowFillEvents.map((event) => (
+            <Link
+              key={event.eventId}
+              href={`/organizer/events/${event.eventId}`}
+              className="block"
+            >
+              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
+                <div className="flex items-center gap-3">
+                  <AlertTriangleIcon className="size-5 text-red-600 dark:text-red-400" />
+                  <div>
+                    <p className="font-medium text-red-800 dark:text-red-200">
+                      {event.eventName} has low registration
+                    </p>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      Only {event.fillRate.toFixed(0)}% filled (
+                      {event.filledSlots}/{event.totalSlots} teams)
+                    </p>
+                  </div>
+                </div>
+                <ArrowRightIcon className="size-5 text-red-600 dark:text-red-400" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Content Area */}
       <motion.div
-        className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 lg:px-8"
+        className="flex flex-col gap-8 pt-8"
         variants={staggerSections}
         initial="hidden"
         animate="visible"

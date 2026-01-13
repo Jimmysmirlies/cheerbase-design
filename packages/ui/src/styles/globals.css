@@ -66,6 +66,24 @@
   --glass-light-blue: oklch(0.946 0.033 307.174);
   --glass-light-green: oklch(0.946 0.033 307.174);
   --glass-light-yellow: oklch(0.946 0.033 307.174);
+
+  /* Spacing system (Airbnb-matching) */
+  --page-padding-x: 1.5rem;      /* 24px - mobile */
+  --page-padding-y: 2rem;        /* 32px */
+  --section-gap: 2rem;           /* 32px */
+  --content-max-width: 80rem;    /* 1280px */
+}
+
+@media (min-width: 744px) {
+  :root {
+    --page-padding-x: 2.5rem;    /* 40px - tablet */
+  }
+}
+
+@media (min-width: 1128px) {
+  :root {
+    --page-padding-x: 5rem;      /* 80px - desktop */
+  }
 }
 
 .dark {
@@ -382,6 +400,15 @@
     letter-spacing: 0.05em;
   }
 
+  /* Hide scrollbar while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
   .dropdown-fade-in {
     opacity: 0;
     animation: dropdown-fade-in 0.35s ease forwards;
@@ -396,5 +423,26 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* Page container - consistent responsive padding */
+  .page-container {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--page-padding-x);
+    padding-right: var(--page-padding-x);
+  }
+
+  /* Page section - adds vertical padding */
+  .page-section {
+    padding-top: var(--page-padding-y);
+    padding-bottom: var(--page-padding-y);
+  }
+
+  /* Page header - top section with title */
+  .page-header {
+    padding-top: var(--page-padding-y);
   }
 }

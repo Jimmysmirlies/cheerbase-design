@@ -1,5 +1,18 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ColorSwatch } from "@workspace/ui/components/color-swatch";
+import { brandGradients, type BrandGradient } from "@/lib/gradients";
+
+const gradientUsage: Record<BrandGradient, string> = {
+  primary: "Default brand gradient. Featured content, primary headers, hero sections.",
+  teal: "Fresh, modern accents. Health, wellness, or secondary brand moments.",
+  blue: "Trust and stability. Informational content, links, professional contexts.",
+  mustard: "Warmth and energy. Highlights, warnings (non-destructive), premium tiers.",
+  red: "Passion and urgency. Featured events, competition highlights, deadlines.",
+  orange: "Enthusiasm and creativity. Call-to-actions, promotional content.",
+  green: "Success and growth. Confirmations, positive metrics, eco-friendly themes.",
+  indigo: "Depth and sophistication. Premium features, advanced settings.",
+  purple: "Creativity and luxury. Special events, VIP content, unique offerings.",
+};
 
 const colors = [
   {
@@ -169,6 +182,63 @@ export default function ColorsPage() {
                   usage={color.usage}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Brand Gradients */}
+          <div className="flex flex-col gap-4 px-1">
+            <div className="flex flex-col gap-1">
+              <p className="text-lg font-semibold">Brand Gradients</p>
+              <p className="body-small text-muted-foreground">
+                Constrained gradient palette for brand expression. Use
+                semantically to differentiate categories, tiers, or entities.
+              </p>
+            </div>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {(Object.keys(brandGradients) as BrandGradient[]).map((key) => {
+                const gradient = brandGradients[key];
+                // Extract hex colors from the CSS gradient string
+                const hexColors =
+                  gradient.css.match(/#[0-9A-Fa-f]{6}/g) || [];
+
+                return (
+                  <article key={key} className="flex flex-col gap-3">
+                    {/* Full gradient preview */}
+                    <div
+                      className="h-20 w-full rounded-xl border border-border/60"
+                      style={{ backgroundImage: gradient.css }}
+                      aria-label={`${gradient.name} gradient`}
+                    />
+
+                    {/* Individual color stops */}
+                    <div className="flex gap-2">
+                      {hexColors.map((hex, index) => (
+                        <div key={index} className="flex-1 flex flex-col gap-1">
+                          <div
+                            className="h-10 w-full rounded-lg border border-border/60"
+                            style={{ backgroundColor: hex }}
+                            aria-label={`Color stop ${index + 1}: ${hex}`}
+                          />
+                          <p className="body-small text-muted-foreground text-center font-mono">
+                            {hex}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Gradient info */}
+                    <div className="space-y-1 px-1 text-left text-xs text-muted-foreground">
+                      <p className="font-semibold text-foreground">
+                        {gradient.name}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        Token: {key}
+                      </p>
+                      <p>Usage: {gradientUsage[key]}</p>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </div>

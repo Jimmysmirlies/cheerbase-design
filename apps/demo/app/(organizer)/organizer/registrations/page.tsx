@@ -111,15 +111,12 @@ export default function OrganizerRegistrationsPage() {
 
   if (isLoading) {
     return (
-      <section className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-          <PageTitle
-            title="Registrations"
-            gradient={organizerGradient || organizer?.gradient}
-          />
-        </div>
-        <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
-          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+      <section className="mx-auto w-full max-w-7xl">
+        <PageTitle
+          title="Registrations"
+          gradient={organizerGradient || organizer?.gradient}
+        />
+        <div className="flex flex-col gap-4 pt-8">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
@@ -136,14 +133,15 @@ export default function OrganizerRegistrationsPage() {
   }
 
   return (
-    <section className="flex flex-1 flex-col">
-      <div className="mx-auto w-full max-w-7xl px-4 pt-8 lg:px-8">
-        <PageTitle
-          title="Registrations"
-          gradient={organizerGradient || organizer?.gradient}
-        />
-      </div>
-      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 lg:px-8">
+    <section className="mx-auto w-full max-w-7xl">
+      {/* Header */}
+      <PageTitle
+        title="Registrations"
+        gradient={organizerGradient || organizer?.gradient}
+      />
+
+      {/* Content Area */}
+      <div className="flex flex-col gap-8 pt-8">
         {/* Summary Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>

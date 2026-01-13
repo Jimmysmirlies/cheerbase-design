@@ -63,6 +63,7 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
   const [navHeight, setNavHeight] = useState(72);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const active = useMemo(() => {
     if (!pathname) return "teams";
@@ -127,7 +128,7 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
           onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
         />
       </div>
-      <div className="flex w-full">
+      <div className="flex w-full overflow-visible">
         <Sidebar
           active={active}
           navSections={clubNavSections}
@@ -135,6 +136,8 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
           isOpen={isSidebarOpen}
           isMobile={isMobile}
           onClose={() => setIsSidebarOpen(false)}
+          isCollapsed={isSidebarCollapsed}
+          onCollapseChange={setIsSidebarCollapsed}
         />
         <div className="flex-1">{children}</div>
       </div>

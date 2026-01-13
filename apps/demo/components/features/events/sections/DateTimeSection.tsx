@@ -1,13 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { ClockIcon } from "lucide-react";
+import { ClockIcon, PlusIcon } from "lucide-react";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Input } from "@workspace/ui/shadcn/input";
-import {
-  DateRangePicker,
-  type DateRange,
-} from "@workspace/ui/shadcn/date-range-picker";
+import { Button } from "@workspace/ui/shadcn/button";
 import { brandGradients } from "@/lib/gradients";
 import type { Event, EventScheduleDay } from "@/types/events";
 import type { BaseSectionProps } from "./types";
@@ -36,21 +33,6 @@ export type DateTimeSectionProps = BaseSectionProps & {
   /** Pre-computed schedule days for multi-day events */
   scheduleDays?: ScheduleDayParts[];
 };
-
-function parseDate(dateString?: string): Date | undefined {
-  if (!dateString) return undefined;
-  const parsed = new Date(dateString);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
-}
-
-function formatDateForStorage(date: Date | undefined): string {
-  if (!date) return "";
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function computeDateParts(dateString?: string) {
   if (!dateString) {
@@ -109,22 +91,9 @@ export function DateTimeSection({
     });
   }, [propScheduleDays, eventData.schedule]);
 
-  // Parse date range for edit mode
-  const dateRange = useMemo<DateRange | undefined>(() => {
-    const from = parseDate(eventData.date);
-    const to = parseDate(eventData.endDate);
-    if (!from) return undefined;
-    return { from, to };
-  }, [eventData.date, eventData.endDate]);
-
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    onUpdate?.({
-      date: formatDateForStorage(range?.from),
-      endDate: range?.to ? formatDateForStorage(range.to) : undefined,
-    });
-  };
-
   const gradient = brandGradients[organizerGradient];
+  const gradientCss = gradient.css;
+  const firstGradientColor = gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
 
   // VIEW MODE
   if (mode === "view") {
@@ -135,11 +104,22 @@ export function DateTimeSection({
           {scheduleDays.map((scheduleDay, index) => (
             <div key={index} className="flex items-center gap-4">
               <div
-                className="flex size-16 flex-col items-center justify-center rounded-xl text-white overflow-hidden"
-                style={{ backgroundImage: gradient?.css }}
+                className="relative flex size-16 flex-col items-center justify-center rounded-lg overflow-hidden border"
+                style={{ borderColor: `${firstGradientColor}50` }}
               >
-                <span className="label leading-none pt-1">{scheduleDay.month}</span>
-                <span className="heading-3 leading-none pb-0.5">
+                {/* Gradient background overlay */}
+                <div
+                  className="absolute inset-0 opacity-[0.06]"
+                  style={{
+                    backgroundImage: gradientCss,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+                <span className="relative z-10 text-[11px] font-medium uppercase tracking-wide leading-none pt-1 text-foreground">
+                  {scheduleDay.month}
+                </span>
+                <span className="relative z-10 text-2xl font-semibold leading-none pb-0.5 text-foreground">
                   {scheduleDay.day}
                 </span>
               </div>
@@ -172,11 +152,23 @@ export function DateTimeSection({
 
     return (
       <div className="flex items-center gap-4">
-        <div className="flex size-16 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground overflow-hidden">
-          <span className="text-[11px] font-medium uppercase tracking-wide leading-none pt-1">
+        <div
+          className="relative flex size-16 flex-col items-center justify-center rounded-lg overflow-hidden border"
+          style={{ borderColor: `${firstGradientColor}50` }}
+        >
+          {/* Gradient background overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage: gradientCss,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <span className="relative z-10 text-[11px] font-medium uppercase tracking-wide leading-none pt-1 text-foreground">
             {eventDateParts.month}
           </span>
-          <span className="text-2xl font-semibold leading-none pb-0.5">
+          <span className="relative z-10 text-2xl font-semibold leading-none pb-0.5 text-foreground">
             {eventDateParts.day}
           </span>
         </div>
@@ -194,65 +186,120 @@ export function DateTimeSection({
     );
   }
 
-  // EDIT MODE
+  // EDIT MODE - Multi-day schedule
+  // Initialize with one empty day if no schedule exists
+  const scheduleData =
+    eventData.schedule && eventData.schedule.length > 0
+      ? eventData.schedule
+      : [{ date: "", label: "", startTime: "08:00", endTime: "18:00" }];
+
+  const handleAddDay = () => {
+    const newDay: EventScheduleDay = {
+      date: "",
+      label: "",
+      startTime: "08:00",
+      endTime: "18:00",
+    };
+    onUpdate?.({ schedule: [...scheduleData, newDay] });
+  };
+
+  const handleRemoveDay = (index: number) => {
+    const updated = scheduleData.filter((_, i) => i !== index);
+    onUpdate?.({ schedule: updated });
+  };
+
+  const handleUpdateDay = (index: number, updates: Partial<EventScheduleDay>) => {
+    const updated = scheduleData.map((day, i) =>
+      i === index ? { ...day, ...updates } : day
+    );
+    onUpdate?.({ schedule: updated });
+  };
+
   return (
-    <div className="flex flex-col gap-4 pt-2">
-      {/* Event Date Range */}
-      <div className="space-y-2">
-        <Label>Event Date *</Label>
-        <DateRangePicker
-          date={dateRange}
-          onDateChange={handleDateRangeChange}
-          placeholder="Select event date(s)"
-          className="w-full"
-        />
-        <p className="text-xs text-muted-foreground">
-          Select a single day or a date range for multi-day events
-        </p>
-      </div>
+    <div className="flex flex-col gap-6 pt-2">
+      {scheduleData.map((day, index) => (
+        <div key={index} className="rounded-lg border border-border/60 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <span className="body-text text-muted-foreground">Day {index + 1}</span>
+            {scheduleData.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemoveDay(index)}
+                className="text-muted-foreground hover:text-foreground h-auto p-0"
+              >
+                Remove
+              </Button>
+            )}
+          </div>
 
-      {/* Start Time */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="start-time">Start Time</Label>
-          <Input
-            id="start-time"
-            type="time"
-            value={eventData.startTime || ""}
-            onChange={(e) => onUpdate?.({ startTime: e.target.value })}
-            className="w-full"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="end-time">End Time</Label>
-          <Input
-            id="end-time"
-            type="time"
-            value={eventData.endTime || ""}
-            onChange={(e) => onUpdate?.({ endTime: e.target.value })}
-            className="w-full"
-          />
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={day.date}
+                onChange={(e) => handleUpdateDay(index, { date: e.target.value })}
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Label (optional)</Label>
+              <Input
+                value={day.label}
+                onChange={(e) => handleUpdateDay(index, { label: e.target.value })}
+                placeholder="e.g., Preliminary Rounds"
+                className="w-full"
+              />
+            </div>
+          </div>
 
-      {/* Timezone */}
-      <div className="space-y-2">
-        <Label htmlFor="timezone">Timezone</Label>
-        <Input
-          id="timezone"
-          value={eventData.timezone || "EST"}
-          onChange={(e) => onUpdate?.({ timezone: e.target.value })}
-          placeholder="e.g., EST, PST, UTC"
-          className="w-full"
-        />
-      </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Start Time</Label>
+              <div className="relative">
+                <Input
+                  type="time"
+                  value={day.startTime}
+                  onChange={(e) => handleUpdateDay(index, { startTime: e.target.value })}
+                  className="w-full pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{ colorScheme: "light" }}
+                />
+                <ClockIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>End Time</Label>
+              <div className="relative">
+                <Input
+                  type="time"
+                  value={day.endTime}
+                  onChange={(e) => handleUpdateDay(index, { endTime: e.target.value })}
+                  className="w-full pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{ colorScheme: "light" }}
+                />
+                <ClockIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <Button
+        variant="ghost"
+        onClick={handleAddDay}
+        className="w-fit text-primary hover:text-primary/80 p-0 h-auto"
+      >
+        <PlusIcon className="size-4 mr-1" />
+        Add Day
+      </Button>
     </div>
   );
 }
 
 /** Check if section has data to display */
 DateTimeSection.hasData = (eventData: Partial<Event>): boolean => {
-  return !!eventData.date;
+  return !!eventData.date || (eventData.schedule && eventData.schedule.length > 0) || false;
 };
 
 /** Empty state configuration */

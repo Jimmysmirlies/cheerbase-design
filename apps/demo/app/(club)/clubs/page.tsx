@@ -168,7 +168,7 @@ function ClubsPageInner() {
             : undefined
         }
       />
-      <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 lg:px-8 min-w-0">
+      <div className="page-container page-section space-y-12 min-w-0">
         <motion.div
           className="w-full min-w-0"
           variants={fadeInUp}

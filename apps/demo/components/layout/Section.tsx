@@ -27,7 +27,7 @@ type SectionProps = {
  *
  * Pattern inspired by Airbnb's listing pages:
  * - Border at top
- * - 48px (py-12) vertical padding above and below content
+ * - 32px (py-8) vertical padding above and below content
  * - 24px (gap-6) between title and content
  *
  * Used across organizer pages (settings, invoices) and event detail pages.
@@ -46,7 +46,7 @@ export function Section({
     <div id={id} className={className}>
       {showDivider && <div className="h-px w-full bg-border" />}
 
-      <div className="flex flex-col gap-6 py-12">
+      <div className="flex flex-col gap-6 py-8">
         {titleRight ? (
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
