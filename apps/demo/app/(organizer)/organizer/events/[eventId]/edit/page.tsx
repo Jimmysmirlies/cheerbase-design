@@ -3,6 +3,8 @@
 import { useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useOrganizer } from "@/hooks/useOrganizer";
+import { useOrganizerEventDrafts } from "@/hooks/useOrganizerEventDrafts";
 import { EventEditorProvider } from "@/components/providers/EventEditorProvider";
 import { EventEditor } from "@/components/features/events/editor/EventEditor";
 import { findEventById } from "@/data/events";
@@ -11,6 +13,8 @@ export default function EditEventPage() {
   const router = useRouter();
   const params = useParams();
   const { user, status } = useAuth();
+  const { organizerId } = useOrganizer();
+  const { getDraft } = useOrganizerEventDrafts(organizerId ?? undefined);
 
   const eventId =
     typeof params?.eventId === "string"
@@ -19,9 +23,12 @@ export default function EditEventPage() {
 
   const event = useMemo(() => {
     if (!eventId) return null;
-    // Get base/published event - let the provider handle draft merging
-    return findEventById(eventId);
-  }, [eventId]);
+    // First check static/published events
+    const staticEvent = findEventById(eventId);
+    if (staticEvent) return staticEvent;
+    // Fall back to draft storage for new events
+    return getDraft(eventId) ?? null;
+  }, [eventId, getDraft]);
 
   useEffect(() => {
     if (status === "loading") return;

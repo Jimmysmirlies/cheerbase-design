@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Sheet,
   SheetContent,
@@ -9,6 +10,7 @@ import {
 } from "@workspace/ui/shadcn/sheet";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Badge } from "@workspace/ui/shadcn/badge";
+import { toast } from "@workspace/ui/shadcn/sonner";
 import { FocusModeHeader } from "@/components/layout/FocusModeHeader";
 import { useEventEditor } from "@/components/providers/EventEditorProvider";
 import { useFocusModeSettings } from "@/hooks/useFocusModeSettings";
@@ -16,17 +18,19 @@ import { useEventDisplayProps } from "@/hooks/useEventDisplayProps";
 import { UnifiedEventDetailBody } from "@/components/features/events/UnifiedEventDetailBody";
 import { EventTitleHeader } from "@/components/features/events/EventTitleHeader";
 import { EventSettingsSidebar } from "./EventSettingsSidebar";
+import { UnsavedChangesModal } from "./UnsavedChangesModal";
 
 export function EventEditor() {
+  const router = useRouter();
   const {
     eventData,
     updateEventData,
     saveSection,
     publishEvent,
     organizerGradient,
-    eventId,
     isPublished,
     isPublishing,
+    isDirty,
   } = useEventEditor();
 
   const { sidebarOpen, toggleSidebar, isHydrated } = useFocusModeSettings();
@@ -36,6 +40,8 @@ export function EventEditor() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -68,6 +74,37 @@ export function EventEditor() {
     publishEvent();
   }, [publishEvent]);
 
+  // Handle back button - intercept if there are unsaved changes
+  const handleBack = useCallback(() => {
+    if (isDirty) {
+      setShowUnsavedModal(true);
+    } else {
+      router.push("/organizer/events");
+    }
+  }, [isDirty, router]);
+
+  // Save draft and navigate back
+  const handleSaveDraft = useCallback(async () => {
+    setIsSavingDraft(true);
+    try {
+      await saveSection(eventData);
+      toast.success("Draft saved");
+      router.push("/organizer/events");
+    } catch (error) {
+      toast.error("Failed to save draft");
+      console.error(error);
+    } finally {
+      setIsSavingDraft(false);
+      setShowUnsavedModal(false);
+    }
+  }, [eventData, saveSection, router]);
+
+  // Discard changes and navigate back
+  const handleDiscard = useCallback(() => {
+    setShowUnsavedModal(false);
+    router.push("/organizer/events");
+  }, [router]);
+
   // Header content shared between loading and loaded states
   const headerContent = eventData.name ? (
     <div className="pb-8">
@@ -88,13 +125,22 @@ export function EventEditor() {
         )
       }
       actions={
-        <Button onClick={handlePublish} disabled={isPublishing}>
-          {isPublishing
-            ? "Saving..."
-            : isPublished
-              ? "Update Event"
-              : "Publish Event"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSaveDraft}
+            disabled={isSavingDraft}
+          >
+            {isSavingDraft ? "Saving..." : "Save Draft"}
+          </Button>
+          <Button onClick={handlePublish} disabled={isPublishing}>
+            {isPublishing
+              ? "Saving..."
+              : isPublished
+                ? "Update Event"
+                : "Publish Event"}
+          </Button>
+        </div>
       }
     />
     </div>
@@ -104,7 +150,7 @@ export function EventEditor() {
   if (!isHydrated) {
     return (
       <>
-        <FocusModeHeader backHref={`/organizer/events/${eventId}`} />
+        <FocusModeHeader onBack={handleBack} />
         <div className="h-[calc(100vh-68px)] overflow-y-auto scrollbar-hide">
           <main className="p-8">
             <section className="mx-auto w-full max-w-7xl">
@@ -129,7 +175,7 @@ export function EventEditor() {
   return (
     <>
       <FocusModeHeader
-        backHref={`/organizer/events/${eventId}`}
+        onBack={handleBack}
         onOpenMobileSettings={isMobile ? () => setMobileSheetOpen(true) : undefined}
       />
 
@@ -175,6 +221,14 @@ export function EventEditor() {
           </SheetContent>
         </Sheet>
       )}
+
+      {/* Unsaved changes confirmation modal */}
+      <UnsavedChangesModal
+        open={showUnsavedModal}
+        onOpenChange={setShowUnsavedModal}
+        onDiscard={handleDiscard}
+        onSaveDraft={handleSaveDraft}
+      />
     </>
   );
 }

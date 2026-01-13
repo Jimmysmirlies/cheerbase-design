@@ -13,10 +13,12 @@ import { useOrganizer } from "@/hooks/useOrganizer";
 
 type FocusModeHeaderProps = {
   backHref?: string;
+  /** Callback for back button click - if provided, intercepts navigation */
+  onBack?: () => void;
   onOpenMobileSettings?: () => void;
 };
 
-export function FocusModeHeader({ backHref, onOpenMobileSettings }: FocusModeHeaderProps) {
+export function FocusModeHeader({ backHref, onBack, onOpenMobileSettings }: FocusModeHeaderProps) {
   const { organizer } = useOrganizer();
 
   return (
@@ -24,7 +26,16 @@ export function FocusModeHeader({ backHref, onOpenMobileSettings }: FocusModeHea
       <div className="mx-auto flex h-[68px] w-full items-center justify-center px-6">
         {/* Back button - left aligned */}
         <div className="absolute left-6">
-          {backHref ? (
+          {onBack ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-ml-2 h-10 w-10"
+              onClick={onBack}
+            >
+              <ArrowLeftIcon className="size-4" />
+            </Button>
+          ) : backHref ? (
             <Button variant="ghost" size="icon" className="-ml-2 h-10 w-10" asChild>
               <Link href={backHref}>
                 <ArrowLeftIcon className="size-4" />

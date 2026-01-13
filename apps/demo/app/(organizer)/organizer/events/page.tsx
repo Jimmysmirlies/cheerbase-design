@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Label } from "@workspace/ui/shadcn/label";
+import { DatePicker } from "@workspace/ui/shadcn/date-picker";
 import { GlassSelect } from "@workspace/ui/components/glass-select";
 import { PageTabs } from "@/components/ui/controls/PageTabs";
 import { Alert, AlertDescription } from "@workspace/ui/shadcn/alert";
@@ -88,6 +89,9 @@ export default function OrganizerEventsPage() {
     "Championship" | "Friendly Competition"
   >("Championship");
   const [newEventCapacity, setNewEventCapacity] = useState<string>("");
+  const [newEventRegOpens, setNewEventRegOpens] = useState<Date | undefined>(
+    undefined
+  );
 
   // Load organizer gradient from settings or default
   useEffect(() => {
@@ -160,6 +164,15 @@ export default function OrganizerEventsPage() {
   >("upcoming");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
+  // Helper to format Date to ISO string (YYYY-MM-DD)
+  const formatDateToISO = (date: Date | undefined): string | undefined => {
+    if (!date) return undefined;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   // Handler to create new event - saves draft immediately
   const handleNewEventContinue = () => {
     if (!organizerId) return;
@@ -182,6 +195,7 @@ export default function OrganizerEventsPage() {
       image: "",
       teams: capacity > 0 ? `0 / ${capacity} teams` : "0 / 0 teams",
       updatedAt: new Date().toISOString(),
+      registrationStartDate: formatDateToISO(newEventRegOpens),
     };
     saveDraft(draftEvent);
 
@@ -193,6 +207,7 @@ export default function OrganizerEventsPage() {
     setNewEventName("");
     setNewEventType("Championship");
     setNewEventCapacity("");
+    setNewEventRegOpens(undefined);
   };
 
   if (isLoading || subscriptionLoading) {
@@ -390,6 +405,17 @@ export default function OrganizerEventsPage() {
                 Set a team slot limit to restrict the number of registrants.
               </p>
             </div>
+            <div className="space-y-2">
+              <Label>Registration Opens</Label>
+              <DatePicker
+                date={newEventRegOpens}
+                onDateChange={setNewEventRegOpens}
+                placeholder="Select date"
+              />
+              <p className="text-xs text-muted-foreground">
+                When teams can start registering for this event.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -462,12 +488,15 @@ function EventsContent({
   }, [events]);
 
   // Filter rows by selected season
+  // Always include draft events regardless of season (they may not have dates set)
   const filteredRows = useMemo(() => {
     if (isAllSeasons || !season) {
       return rows;
     }
-    return rows.filter((row) =>
-      isEventInSeason(row.eventDate, season.start, season.end),
+    return rows.filter(
+      (row) =>
+        row.status === "draft" ||
+        isEventInSeason(row.eventDate, season.start, season.end),
     );
   }, [rows, season, isAllSeasons]);
 

@@ -223,7 +223,6 @@ export function UnifiedEventDetailBody({
                 <EmptyStateButton
                   title={OverviewSection.emptyTitle}
                   description={OverviewSection.emptyDescription}
-                  onClick={() => handleStartEdit("overview")}
                 />
               }
             />
@@ -286,7 +285,6 @@ export function UnifiedEventDetailBody({
                   <EmptyStateButton
                     title={PricingSection.emptyTitle}
                     description={PricingSection.emptyDescription}
-                    onClick={() => handleStartEdit("pricing")}
                   />
                 }
               />
@@ -324,7 +322,6 @@ export function UnifiedEventDetailBody({
                 <EmptyStateButton
                   title={DateTimeSection.emptyTitle}
                   description={DateTimeSection.emptyDescription}
-                  onClick={() => handleStartEdit("date-time")}
                 />
               }
             />
@@ -361,7 +358,6 @@ export function UnifiedEventDetailBody({
                 <EmptyStateButton
                   title={LocationSection.emptyTitle}
                   description={LocationSection.emptyDescription}
-                  onClick={() => handleStartEdit("location")}
                 />
               }
             />
@@ -398,7 +394,6 @@ export function UnifiedEventDetailBody({
                   <EmptyStateButton
                     title={TimelineSection.emptyTitle}
                     description={TimelineSection.emptyDescription}
-                    onClick={() => handleStartEdit("registration")}
                   />
                 }
               />
@@ -435,7 +430,6 @@ export function UnifiedEventDetailBody({
                 <EmptyStateButton
                   title={GallerySection.emptyTitle}
                   description={GallerySection.emptyDescription}
-                  onClick={() => handleStartEdit("gallery")}
                 />
               }
             />
@@ -486,7 +480,6 @@ export function UnifiedEventDetailBody({
                 <EmptyStateButton
                   title={DocumentsSection.emptyTitle}
                   description={DocumentsSection.emptyDescription}
-                  onClick={() => handleStartEdit("documents")}
                 />
               }
             />

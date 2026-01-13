@@ -95,7 +95,6 @@ export function SectionWrapper({
                   <EmptyStateButton
                     title={`Add ${title.toLowerCase()}`}
                     description={`Configure ${title.toLowerCase()} for your event`}
-                    onClick={onStartEdit}
                   />
                 )
               )}
