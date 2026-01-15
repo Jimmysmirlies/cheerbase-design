@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
-import { OrganizerCard } from "@/components/ui";
+import { OrganizerGlassCard } from "@/components/ui";
 
 export default function OrganizerCardComponentPage() {
   return (
@@ -20,25 +20,25 @@ export default function OrganizerCardComponentPage() {
               <p className="text-lg font-semibold">Examples</p>
             </div>
             <div className="flex flex-wrap gap-4 rounded-3xl border border-border bg-card/60 p-6">
-              <OrganizerCard
+              <OrganizerGlassCard
                 accentGradient="from-rose-400 via-rose-500 to-rose-600"
                 name="Cheer Elite Events"
                 region="National"
                 visibility="Public"
               />
-              <OrganizerCard
+              <OrganizerGlassCard
                 accentGradient="from-indigo-400 via-indigo-500 to-indigo-600"
                 name="Spirit Sports Co."
                 region="Southeast"
                 visibility="Public"
               />
-              <OrganizerCard
+              <OrganizerGlassCard
                 accentGradient="from-emerald-400 via-emerald-500 to-emerald-600"
                 name="West Coast Cheer"
                 region="Pacific"
                 visibility="Public"
               />
-              <OrganizerCard
+              <OrganizerGlassCard
                 accentGradient="from-amber-400 via-amber-500 to-amber-600"
                 name="Southern Spirit"
                 region="Southwest"

@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Label } from "@workspace/ui/shadcn/label";
 import { ImageIcon, XIcon, UploadIcon } from "lucide-react";
-import { EventGallery } from "@/components/ui/gallery/EventGallery";
+import { EventGallery } from "@/components/ui/EventGallery";
 import type { Event } from "@/types/events";
 import type { BaseSectionProps } from "./types";
 

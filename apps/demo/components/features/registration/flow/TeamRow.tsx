@@ -34,7 +34,7 @@ import type {
 } from "./types";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { RosterEditorDialog } from "./RosterEditorDialog";
-import { AvatarCluster } from "@/components/ui/avatars/AvatarCluster";
+import { AvatarCluster } from "@/components/ui/AvatarCluster";
 
 // Design Token: Role-based avatar color palette
 const ROLE_AVATAR_COLORS: Record<

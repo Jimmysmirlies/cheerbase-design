@@ -7,7 +7,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { Skeleton } from "@workspace/ui/shadcn/skeleton";
-import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
+import { GradientAvatar } from "@/components/ui/GradientAvatar";
 import {
   DataTable,
   DataTableHeader,

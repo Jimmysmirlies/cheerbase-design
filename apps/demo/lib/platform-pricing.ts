@@ -38,7 +38,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlanId, SubscriptionPlan> =
   {
     free: {
       id: "free",
-      name: "Free",
+      name: "Beginner",
       priceCents: 0,
       priceLabel: "$0",
       billingPeriod: null,

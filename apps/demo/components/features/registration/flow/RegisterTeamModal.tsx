@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
 
-import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
+import { GradientAvatar } from "@/components/ui/GradientAvatar";
 
 import type { RegistrationEntry, TeamOption } from "./types";
 

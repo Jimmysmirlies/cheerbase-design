@@ -29,7 +29,7 @@ import {
   getGradientOptions,
   type BrandGradient,
 } from "@/lib/gradients";
-import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
+import { GradientAvatar } from "@/components/ui/GradientAvatar";
 
 type ClubSettings = {
   name: string;

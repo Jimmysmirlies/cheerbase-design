@@ -5,7 +5,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   GradientAvatar,
   type AvatarSize,
-} from "@/components/ui/avatars/GradientAvatar";
+} from "@/components/ui/GradientAvatar";
 import type { BrandGradient } from "@/lib/gradients";
 
 type OrganizerProfileCardProps = {

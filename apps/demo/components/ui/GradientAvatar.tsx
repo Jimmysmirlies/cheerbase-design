@@ -14,7 +14,7 @@ const sizeClasses = {
 
 export type AvatarSize = keyof typeof sizeClasses;
 
-type GradientAvatarProps = {
+export type GradientAvatarProps = {
   /** The name to derive the initial from */
   name: string;
   /** Size of the avatar */

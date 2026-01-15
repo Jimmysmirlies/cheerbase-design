@@ -19,6 +19,8 @@ import {
   ListIcon,
   BellIcon,
   PlusSquareIcon,
+  SquareIcon,
+  ZapIcon,
 } from "lucide-react";
 
 import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
@@ -116,6 +118,13 @@ const guideNavSections = [
         nickname: "guide-hero",
       },
       {
+        key: "icon-box",
+        label: "Icon Box",
+        icon: <SquareIcon className="size-4" />,
+        href: "/style-guide/components/icon-box",
+        nickname: "guide-icon-box",
+      },
+      {
         key: "organizer-card",
         label: "Organizer Card",
         icon: <UsersIcon className="size-4" />,
@@ -128,6 +137,13 @@ const guideNavSections = [
         icon: <LayoutGridIcon className="size-4" />,
         href: "/style-guide/components/organizers-section",
         nickname: "guide-organizers-section",
+      },
+      {
+        key: "quick-action-card",
+        label: "Quick Action Card",
+        icon: <ZapIcon className="size-4" />,
+        href: "/style-guide/components/quick-action-card",
+        nickname: "guide-quick-action-card",
       },
       {
         key: "quick-filter-rail",
@@ -167,9 +183,12 @@ export default function StyleGuideLayout({
     if (pathname.includes("/api-contracts")) return "api-contracts";
     // Component sub-pages
     if (pathname === "/style-guide/components/hero") return "hero";
+    if (pathname === "/style-guide/components/icon-box") return "icon-box";
     if (pathname === "/style-guide/components/event-card") return "event-card";
     if (pathname === "/style-guide/components/organizer-card")
       return "organizer-card";
+    if (pathname === "/style-guide/components/quick-action-card")
+      return "quick-action-card";
     if (pathname === "/style-guide/components/quick-filter-rail")
       return "quick-filter-rail";
     if (pathname === "/style-guide/components/registration-notice-bar")

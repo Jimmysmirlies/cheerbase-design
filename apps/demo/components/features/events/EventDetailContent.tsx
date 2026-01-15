@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { LayoutToggle } from "@/components/ui/controls/LayoutToggle";
+import { LayoutToggle } from "@/components/ui/LayoutToggle";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import type { BrandGradient } from "@/lib/gradients";
 import type { TimelinePhase, PricingRow } from "./sections";

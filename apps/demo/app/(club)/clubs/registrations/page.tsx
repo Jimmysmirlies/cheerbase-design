@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageTabs } from "@/components/ui/controls/PageTabs";
+import { PageTabs } from "@/components/ui/PageTabs";
 import { Button } from "@workspace/ui/shadcn/button";
 import { TextSelect } from "@workspace/ui/components/text-select";
 import {

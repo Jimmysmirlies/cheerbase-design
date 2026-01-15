@@ -3,7 +3,7 @@
 import { Button } from "@workspace/ui/shadcn/button";
 import { Skeleton } from "@workspace/ui/shadcn/skeleton";
 
-import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
+import { GradientAvatar } from "@/components/ui/GradientAvatar";
 import { OrganizerFollowButton } from "@/components/features/clubs/OrganizerFollowButton";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
 

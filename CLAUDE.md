@@ -37,48 +37,326 @@ pnpm build
 
 ### Demo App Structure (`apps/demo`)
 
-**Route Groups:**
-
-- `(marketing)` - Landing page
-- `(events)` - Event browsing and registration flows
-- `(club)` - Club management (teams, registrations, settings)
-- `(organizer)` - Organizer dashboard and event management
-- Style guide pages under `/style-guide`
-
-**Key Directories:**
-
-- `app/` - Next.js app router pages
-- `components/` - React components organized by feature
-  - `components/features/` - Feature-specific components (registration, clubs, events, auth)
-  - `components/ui/` - Reusable UI primitives (cards, avatars, controls, tables)
-  - `components/layout/` - Layout components (NavBar, PageHeader, Sidebar)
-- `data/` - Static mock data (clubs, teams, events, divisions)
-- `types/` - TypeScript type definitions
-- `utils/` - Utility functions
-- `hooks/` - Custom React hooks
-
-### Data Layer
-
-All data is **static mock data** in `apps/demo/data/`:
-
-- `divisions.ts` - Hierarchical division catalog (Category → Tier → Level)
-- `events/` - Event and pricing data
-- `clubs/` - Teams, rosters, registrations
-- No database or backend services
-
-**Division Structure:**
-
-```typescript
-DivisionCategory (e.g., "All Star Cheer")
-  → DivisionTier (e.g., "U16")
-    → levels: string[] (e.g., ["1", "2", "3"])
+```
+apps/demo/
+├── app/                    # Next.js app router pages
+│   ├── (marketing)/        # Landing page
+│   ├── (events)/           # Event browsing and registration
+│   ├── (club)/             # Club management
+│   ├── (organizer)/        # Organizer dashboard
+│   └── style-guide/        # Component documentation
+├── components/
+│   ├── features/           # Feature-specific components
+│   ├── layout/             # Layout components
+│   ├── providers/          # React context providers
+│   └── ui/                 # Reusable UI primitives
+├── data/                   # Static mock data
+├── hooks/                  # Custom React hooks
+├── types/                  # TypeScript type definitions
+├── utils/                  # Utility functions
+└── lib/                    # Shared libraries (gradients, animations)
 ```
 
-Full division format: `Category - Tier - Level` (e.g., "All Star Cheer - U16 - 4")
+---
 
-### Key Features & Patterns
+## Component Organization
 
-#### Registration Flow
+### File Size Guidelines
+
+- **< 500 lines**: Keep as single file
+- **500-800 lines**: Consider splitting if logical sections exist
+- **> 800 lines**: Must split into focused modules
+
+### When to Create Subfolders
+
+Create a subfolder when you have **4+ related files**. Use these patterns:
+
+**Page-specific components** - Use `_components/` convention:
+```
+app/(organizer)/organizer/events/
+├── page.tsx                    # Main page (orchestration only)
+├── _components/
+│   ├── index.ts                # Barrel exports
+│   ├── types.ts                # Shared types
+│   ├── utils.ts                # Helper functions
+│   ├── EventsContent.tsx       # Main content component
+│   └── NewEventModal.tsx       # Modal component
+```
+
+**Feature components** - Use kebab-case folder names:
+```
+components/features/clubs/
+├── registration-detail/        # Complex feature with 4+ files
+│   ├── index.ts
+│   ├── types.ts
+│   ├── useRegistrationEdit.ts  # Feature-specific hook
+│   ├── RegistrationDetailContent.tsx
+│   ├── EventDetailsSection.tsx
+│   ├── RegisteredTeamsSection.tsx
+│   ├── InvoiceSidebar.tsx
+│   └── MobileStickyBar.tsx
+├── TeamCard.tsx                # Single-file components at root
+├── OrganizerCard.tsx
+└── TeamSettingsDialog.tsx
+```
+
+**Layout components** - Use kebab-case folder names:
+```
+components/layout/
+├── NavBar.tsx                  # Main component (imports from subfolder)
+├── nav-bar-components/         # Supporting components
+│   ├── index.ts
+│   ├── types.ts
+│   ├── NavBarSearch.tsx
+│   ├── NavBarAuthMenu.tsx
+│   └── MenuXToggle.tsx
+├── PageHeader.tsx
+├── PageTitle.tsx
+└── Sidebar.tsx
+```
+
+### UI Component Structure (`components/ui/`)
+
+Keep UI primitives **flat** at the root level. Only create subfolders for **4+ related files**:
+
+```
+components/ui/
+├── index.ts                    # Barrel exports for all UI components
+├── GradientAvatar.tsx          # Single-file primitives at root
+├── AvatarCluster.tsx
+├── CalendarBadge.tsx
+├── EmptyStateButton.tsx
+├── EventGallery.tsx
+├── GalleryLightbox.tsx
+├── GlassCard.tsx
+├── LayoutToggle.tsx
+├── PageTabs.tsx
+├── QuickFilterRail.tsx
+├── EventHeroCarousel.tsx
+├── hero.tsx
+├── glass-card-style.ts         # Style utilities
+├── cards/                      # 4+ card components
+│   ├── EventCard.tsx
+│   ├── EventCardV2.tsx
+│   ├── EventRegisteredCard.tsx
+│   ├── OrganizerGlassCard.tsx
+│   ├── OrganizerProfileCard.tsx
+│   └── PricingCard.tsx
+├── skeletons/                  # 4+ skeleton components
+│   └── ...
+└── tables/                     # Table system components
+    └── ...
+```
+
+**Rules:**
+- Single components stay at UI root (not in subfolders)
+- Use `index.ts` for barrel exports
+- Export types alongside components
+- Naming: PascalCase for components, kebab-case for folders
+
+---
+
+## Data Layer (`data/`)
+
+### Structure
+
+```
+data/
+├── index.ts                    # Barrel exports for all data
+├── divisions.ts                # Division catalog and types
+├── registration/
+│   └── divisions.ts            # Pre-computed division categories for UI
+├── events/
+│   ├── index.ts                # Event barrel exports
+│   ├── selectors.ts            # Query functions (getEventsByOrganizerId, etc.)
+│   ├── analytics.ts            # Computed metrics and types
+│   ├── categories.ts           # Event category data
+│   ├── organizers.ts           # Organizer data
+│   └── ...
+└── clubs/
+    ├── teams.ts                # Team data
+    ├── registrations.ts        # Registration data
+    └── members.ts              # Roster/member data
+```
+
+### Import Patterns
+
+Prefer importing from barrel exports:
+```typescript
+// Good - use barrel export
+import { demoTeams, getEventsByOrganizerId } from "@/data";
+
+// Also acceptable - direct import for specific needs
+import { divisionCatalog } from "@/data/divisions";
+```
+
+### Data Conventions
+
+- **IDs**: Descriptive strings (`'reg_001'`) or UUID format
+- **Dates**: ISO string format or JavaScript `Date` objects
+- **Currency**: Store as numbers, format with `Intl.NumberFormat`
+- **Types**: Define types alongside data, export from barrel
+
+---
+
+## Hooks (`hooks/`)
+
+### Organization
+
+Keep all hooks flat in `hooks/` folder. Only create subfolders if you have a hook system with 4+ related files.
+
+```
+hooks/
+├── useOrganizer.ts             # Organizer context/data
+├── useOrganizerLayout.ts       # Layout preferences
+├── useOrganizerSubscription.ts # Subscription state
+├── useOrganizerEventDrafts.ts  # Event draft management
+├── useGradientSettings.ts      # Brand gradient settings
+├── useClubData.ts              # Club data fetching
+├── useRegistrationStorage.ts   # Registration state persistence
+└── ...
+```
+
+### Hook Patterns
+
+**Settings hooks** - Use generic base with convenience wrappers:
+```typescript
+// Generic hook
+export function useGradientSettings(options: GradientSettingsOptions) { ... }
+
+// Convenience hooks
+export function useOrganizerGradient(organizerId: string | undefined) {
+  return useGradientSettings({
+    storageKeyPrefix: "cheerbase-organizer-settings",
+    entityId: organizerId,
+    eventName: "organizer-settings-changed",
+  });
+}
+
+export function useClubGradient(clubId: string | undefined) {
+  return useGradientSettings({
+    storageKeyPrefix: "cheerbase-club-settings",
+    entityId: clubId,
+    eventName: "club-settings-changed",
+  });
+}
+```
+
+**Storage hooks** - Pair state with localStorage:
+```typescript
+export function useOrganizerLayout() {
+  const [layout, setLayoutState] = useState<"A" | "B">("A");
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) setLayoutState(stored);
+  }, []);
+
+  const setLayout = useCallback((next) => {
+    setLayoutState(next);
+    localStorage.setItem(STORAGE_KEY, next);
+  }, []);
+
+  return { layout, setLayout };
+}
+```
+
+---
+
+## Types (`types/`)
+
+### Organization
+
+```
+types/
+├── club.ts                     # Team, Registration, TeamRoster, etc.
+├── events.ts                   # Event, Organizer types
+└── billing.ts                  # Invoice, Payment types
+```
+
+### Guidelines
+
+- **Colocate types with data** when they're only used with that data
+- **Use types/ folder** for types shared across multiple features
+- **Export from barrel** for commonly used types
+- **Prefer `type` over `interface`** for consistency
+
+---
+
+## Naming Conventions
+
+### Files and Folders
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Components | PascalCase | `EventCard.tsx` |
+| Hooks | camelCase with `use` prefix | `useOrganizer.ts` |
+| Utilities | camelCase | `formatCurrency.ts` |
+| Types | camelCase | `types/club.ts` |
+| Folders | kebab-case | `nav-bar-components/` |
+| Page folders | kebab-case | `registration-detail/` |
+| Private folders | `_` prefix | `_components/` |
+
+### Component Names
+
+- **Avoid generic names**: Use `OrganizerGlassCard` not `OrganizerCard` if there's a simpler variant
+- **Include context**: `RegistrationDetailContent` not just `DetailContent`
+- **Be specific**: `NewEventModal` not just `EventModal`
+
+### Type Names
+
+- **Suffix with purpose**: `EventCardV2Props`, `RegistrationTableRow`
+- **Avoid conflicts**: Use `RegistrationDivisionCategory` if `DivisionCategory` exists elsewhere
+
+---
+
+## Barrel Exports (`index.ts`)
+
+### Pattern
+
+Every subfolder with 2+ files should have an `index.ts`:
+
+```typescript
+// components/features/clubs/registration-detail/index.ts
+export { RegistrationDetailContent } from "./RegistrationDetailContent";
+export { EventDetailsSection } from "./EventDetailsSection";
+export { InvoiceSidebar } from "./InvoiceSidebar";
+export type { RegistrationDetailContentProps, EditModeInvoice } from "./types";
+```
+
+### UI Index Structure
+
+```typescript
+// components/ui/index.ts
+
+// Hero
+export { Hero } from "./hero";
+export type { HeroProps, HeroSlide } from "./hero";
+export { EventHeroCarousel } from "./EventHeroCarousel";
+
+// Cards
+export { OrganizerGlassCard } from "./cards/OrganizerGlassCard";
+export { EventCard } from "./cards/EventCard";
+export { EventCardV2, getRegistrationStatus } from "./cards/EventCardV2";
+
+// Controls
+export { QuickFilterRail } from "./QuickFilterRail";
+export { PageTabs } from "./PageTabs";
+export { LayoutToggle } from "./LayoutToggle";
+
+// Avatars
+export { GradientAvatar } from "./GradientAvatar";
+export type { GradientAvatarProps } from "./GradientAvatar";
+export { AvatarCluster } from "./AvatarCluster";
+
+// ... grouped by category
+```
+
+---
+
+## Key Features & Patterns
+
+### Registration Flow
 
 The `RegistrationFlow` component (`components/features/registration/flow/`) is the core registration pattern:
 
@@ -104,7 +382,7 @@ The `RegistrationFlow` component (`components/features/registration/flow/`) is t
 }
 ```
 
-#### Team Management
+### Team Management
 
 Teams use a row-based layout similar to registration flows:
 
@@ -112,26 +390,15 @@ Teams use a row-based layout similar to registration flows:
 - `CreateTeamModal` - Tiered division selection (Category → Tier → Level)
 - `RosterEditorDialog` - Shared dialog for adding/editing team members
 
-#### Component Patterns
-
-**TeamRow variants:**
-
-- Registration context: `TeamRow.tsx` (with lock states, payment deadlines)
-- Team management: `TeamCard.tsx` (simpler, management-focused)
-
-**Modal patterns:**
-
-- `RegisterTeamModal` - Register team to event (existing team or upload)
-- `CreateTeamModal` - Create new team with tiered division selection
-- `RosterEditorDialog` - Edit team members (shared across contexts)
-
-**Navigation consistency:**
+### Navigation Consistency
 
 - Back buttons: Ghost icon button with `ArrowLeftIcon`, size `h-10 w-10`, `-ml-2`
 - Max width: `max-w-7xl` for all main content pages
 - Use Next.js `Link` for navigation, `useRouter` for programmatic navigation
 
-### Styling & Design System
+---
+
+## Styling & Design System
 
 **Framework:** Tailwind CSS v4 + shadcn/ui components
 
@@ -165,22 +432,9 @@ Teams use a row-based layout similar to registration flows:
 - Inline meta rows with subtle dividers
 - Smooth scroll/Lenis only on marketing pages; native scroll in app areas
 
-### Payment & Invoice System
+---
 
-**Payment methods** (in `PaymentMethodsCard`):
-
-1. Mail-in cheque (with payee, memo, address)
-2. Pay online (Stripe/digital, with action button)
-3. E-transfer (email, message instructions)
-
-**Invoice structure:**
-
-- Web view: Uses current design system
-- Print view: Simplified, print-friendly variant (hidden via `.no-print` class)
-- Located at `/clubs/registrations/[registrationId]/invoice`
-- Supports multiple versions with status badges (Paid, Partially Paid, Unpaid)
-
-### State Management
+## State Management
 
 **Client-side state** with React hooks:
 
@@ -194,19 +448,13 @@ Teams use a row-based layout similar to registration flows:
 - Modal open states typically tracked via URL query params
 - Use `router.replace()` to update URL without navigation
 
-### Working with Mock Data
+**LocalStorage patterns:**
 
-**Adding/modifying data:**
+- Settings: `cheerbase-{context}-settings-{id}` (e.g., `cheerbase-organizer-settings-sapphire`)
+- Layout: `cheerbase-{context}-layout` (e.g., `cheerbase-organizer-layout`)
+- Use custom events for cross-component sync: `organizer-settings-changed`
 
-1. Edit files in `apps/demo/data/`
-2. No database needed - changes reflect immediately
-3. Mock data includes realistic structures (invoices, payments, roster members)
-
-**Data conventions:**
-
-- IDs: Use descriptive strings (`'reg_001'`) or UUID format
-- Dates: ISO string format or JavaScript `Date` objects
-- Currency: Store as numbers, format with `Intl.NumberFormat`
+---
 
 ## Common Workflows
 
@@ -214,30 +462,41 @@ Teams use a row-based layout similar to registration flows:
 
 1. Create route folder: `apps/demo/app/(group)/path/page.tsx`
 2. Use appropriate route group: `(marketing)`, `(events)`, `(club)`, or `(organizer)`
-3. Import components from `@workspace/ui`
+3. If page exceeds 500 lines, create `_components/` subfolder
 4. Add mock data to `apps/demo/data/` if needed
 
 ### Creating Reusable Components
 
-1. Place in `apps/demo/components/`:
-   - `features/` for feature-specific components
-   - `ui/` for generic reusable components
-2. Export types alongside components
-3. Add JSDoc comments explaining purpose and usage
-4. Use `'use client'` directive if component needs client-side interactivity
+1. **Determine location:**
+   - `ui/` - Generic, reusable across features
+   - `features/{feature}/` - Specific to one feature area
+   - `layout/` - Page structure components
 
-### Modifying Registration Flow
+2. **File organization:**
+   - Single file if < 300 lines
+   - Create subfolder if 4+ related components
+   - Always include barrel export (`index.ts`)
 
-The `RegistrationFlow` is used in multiple contexts:
+3. **Implementation:**
+   - Export types alongside components
+   - Add JSDoc comments for complex props
+   - Use `'use client'` only when needed
 
-- **New registration:** `/events/[eventId]/register`
-- **View/edit registration:** `/clubs/registrations/[registrationId]`
+### Splitting a Large Component
 
-When modifying, consider:
+When a file exceeds 500-800 lines:
 
-- Props for context adaptation (`hideStats`, `hideSubmitButton`, etc.)
-- Shared components (`RosterEditorDialog`, `TeamRow`, `PricingBreakdownCard`)
-- Payment flow differences (new vs. existing registrations)
+1. Create a subfolder with the component name (kebab-case)
+2. Extract into focused files:
+   - `types.ts` - Shared types and interfaces
+   - `use{Feature}.ts` - Custom hook for complex state logic
+   - `{Section}Section.tsx` - Logical UI sections
+   - `{Component}.tsx` - Main orchestrating component
+   - `index.ts` - Barrel exports
+
+3. Update the original file to re-export from new location (for backwards compatibility if needed)
+
+---
 
 ## Important Notes
 

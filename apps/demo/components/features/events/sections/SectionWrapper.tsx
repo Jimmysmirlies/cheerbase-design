@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/layout/Section";
 import { InlineEditCard } from "@/components/features/events/editor/InlineEditCard";
-import { EmptyStateButton } from "@/components/ui/buttons/EmptyStateButton";
+import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
 import { inlineExpandCollapse, fadeInUp } from "@/lib/animations";
 import type { SectionWrapperProps } from "./types";
 

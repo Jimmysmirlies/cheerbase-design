@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * OrganizerCard
+ * OrganizerGlassCard
  *
  * Purpose
  * - Compact identity card for an organizer, used in horizontal rails.
@@ -11,7 +11,7 @@
  * - Name + region text
  * - Visibility badge (e.g., Public / Invite-only)
  */
-type OrganizerCardProps = {
+type OrganizerGlassCardProps = {
   name: string;
   region: string;
   visibility: string;
@@ -20,14 +20,14 @@ type OrganizerCardProps = {
 
 import { Badge } from "@workspace/ui/shadcn/badge";
 
-import { GlassCard } from "@/components/ui/glass/GlassCard";
+import { GlassCard } from "@/components/ui/GlassCard";
 
-export function OrganizerCard({
+export function OrganizerGlassCard({
   name,
   region,
   visibility,
   accentGradient,
-}: OrganizerCardProps) {
+}: OrganizerGlassCardProps) {
   const initials = name
     .split(" ")
     .map((word) => word[0])

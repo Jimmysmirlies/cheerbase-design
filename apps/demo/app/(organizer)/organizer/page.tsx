@@ -16,6 +16,9 @@ import {
   PlusIcon,
   AlertTriangleIcon,
   ArrowRightIcon,
+  CalendarPlusIcon,
+  ListIcon,
+  ReceiptIcon,
 } from "lucide-react";
 
 import { useOrganizer } from "@/hooks/useOrganizer";
@@ -38,6 +41,7 @@ import {
   DataTableHead,
   DataTableCell,
 } from "@/components/ui/tables";
+import { QuickActionCard } from "@/components/ui/QuickActionCard";
 
 function getStatusBadgeVariant(status: RegistrationStatus) {
   switch (status) {
@@ -48,12 +52,6 @@ function getStatusBadgeVariant(status: RegistrationStatus) {
     case "overdue":
       return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
   }
-}
-
-function getFillRateColor(fillRate: number) {
-  if (fillRate >= 75) return "bg-emerald-500";
-  if (fillRate >= 50) return "bg-amber-500";
-  return "bg-red-500";
 }
 
 export default function OrganizerHomePage() {
@@ -252,48 +250,34 @@ export default function OrganizerHomePage() {
           />
         </motion.div>
 
-        {/* Active Events Section */}
-        {eventPerformance.length > 0 && (
-          <motion.div variants={fadeInUp}>
-            <Section title="Active Events">
-              <div className="space-y-4">
-                {eventPerformance.map((event) => (
-                  <Link
-                    key={event.eventId}
-                    href={`/organizer/events/${event.eventId}`}
-                    className="block"
-                  >
-                    <div className="flex items-center gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/50">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">
-                          {event.eventName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {event.eventDate}
-                        </p>
-                      </div>
-                      <div className="flex w-48 items-center gap-3">
-                        <div className="flex-1">
-                          <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                              className={`h-full transition-all ${getFillRateColor(event.fillRate)}`}
-                              style={{
-                                width: `${Math.min(event.fillRate, 100)}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                          {event.filledSlots}/{event.totalSlots}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </Section>
-          </motion.div>
-        )}
+        {/* Quick Actions Section */}
+        <motion.div variants={fadeInUp}>
+          <Section title="Quick Actions">
+            <div className="grid gap-3 xl:grid-cols-3">
+              <QuickActionCard
+                href="/organizer/events/new"
+                icon={<CalendarPlusIcon className="size-5" />}
+                title="Create Event"
+                description="Set up a new competition or showcase event"
+                gradient={gradientKey as BrandGradient}
+              />
+              <QuickActionCard
+                href="/organizer/events"
+                icon={<ListIcon className="size-5" />}
+                title="View Events"
+                description="Manage your upcoming and past events"
+                gradient={gradientKey as BrandGradient}
+              />
+              <QuickActionCard
+                href="/organizer/invoices"
+                icon={<ReceiptIcon className="size-5" />}
+                title="Manage Invoices"
+                description="Review payments and outstanding balances"
+                gradient={gradientKey as BrandGradient}
+              />
+            </div>
+          </Section>
+        </motion.div>
 
         {/* Recent Registrations Section */}
         {recentRegistrations.length > 0 && (
@@ -397,3 +381,4 @@ function StatCard({
     </Card>
   );
 }
+

@@ -1,18 +1,47 @@
-export { Hero } from "./hero/hero";
-export type { HeroProps, HeroSlide } from "./hero/hero";
-export { EventHeroCarousel } from "./hero/EventHeroCarousel";
-export { OrganizerCard } from "./cards/OrganizerCard";
+// Hero
+export { Hero } from "./hero";
+export type { HeroProps, HeroSlide } from "./hero";
+export { EventHeroCarousel } from "./EventHeroCarousel";
+
+// Cards
+export { OrganizerGlassCard } from "./cards/OrganizerGlassCard";
 export { EventCard } from "./cards/EventCard";
 export { EventRegisteredCard } from "./cards/EventRegisteredCard";
 export { PricingCard, PricingCardGrid } from "./cards/PricingCard";
 export type { PricingCardProps, PricingCardGridProps } from "./cards/PricingCard";
-export { QuickFilterRail } from "./controls/QuickFilterRail";
-export type { QuickFilter } from "./controls/QuickFilterRail";
-export { PageTabs } from "./controls/PageTabs";
-export type { PageTab } from "./controls/PageTabs";
-export { GlassCard } from "./glass/GlassCard";
-export { EventGallery } from "./gallery/EventGallery";
-export { GalleryLightbox } from "./gallery/GalleryLightbox";
+
+// Controls
+export { QuickFilterRail } from "./QuickFilterRail";
+export type { QuickFilter } from "./QuickFilterRail";
+export { PageTabs } from "./PageTabs";
+export type { PageTab } from "./PageTabs";
+export { LayoutToggle } from "./LayoutToggle";
+
+// Avatars
+export { GradientAvatar } from "./GradientAvatar";
+export type { GradientAvatarProps } from "./GradientAvatar";
+export { AvatarCluster } from "./AvatarCluster";
+
+// Icons
+export { IconBox } from "./IconBox";
+export type { IconBoxProps } from "./IconBox";
+
+// Action Cards
+export { QuickActionCard } from "./QuickActionCard";
+export type { QuickActionCardProps } from "./QuickActionCard";
+
+// Glass
+export { GlassCard } from "./GlassCard";
+
+// Gallery
+export { EventGallery } from "./EventGallery";
+export { GalleryLightbox } from "./GalleryLightbox";
+
+// Calendar
+export { CalendarBadge } from "./CalendarBadge";
+
+// Buttons
+export { EmptyStateButton } from "./EmptyStateButton";
 
 // Tables
 export {

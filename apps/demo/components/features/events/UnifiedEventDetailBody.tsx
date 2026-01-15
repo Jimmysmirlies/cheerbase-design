@@ -12,7 +12,7 @@ import { Section } from "@/components/layout/Section";
 import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
 import { EventTableOfContents } from "@/components/features/events/EventTableOfContents";
-import { EmptyStateButton } from "@/components/ui/buttons/EmptyStateButton";
+import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
 import type { Event } from "@/types/events";
 import type { BrandGradient } from "@/lib/gradients";
 

@@ -16,10 +16,15 @@ type FocusModeHeaderProps = {
   /** Callback for back button click - if provided, intercepts navigation */
   onBack?: () => void;
   onOpenMobileSettings?: () => void;
+  /** Title displayed after the divider (default: "Event Editor") */
+  title?: string;
 };
 
-export function FocusModeHeader({ backHref, onBack, onOpenMobileSettings }: FocusModeHeaderProps) {
+export function FocusModeHeader({ backHref, onBack, onOpenMobileSettings, title = "Event Editor" }: FocusModeHeaderProps) {
   const { organizer } = useOrganizer();
+  const gradientCss = organizer?.gradient
+    ? brandGradients[organizer.gradient]?.css
+    : brandGradients.teal.css;
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
@@ -49,19 +54,24 @@ export function FocusModeHeader({ backHref, onBack, onOpenMobileSettings }: Focu
         {/* Centered logo with divider and title */}
         <div className="flex items-center gap-4">
           <Link href="/organizer/events" className="flex items-center">
-            <span
-              className="heading-3 bg-clip-text text-transparent"
+            <div
+              className="h-10 w-[123px]"
               style={{
-                backgroundImage: organizer?.gradient
-                  ? brandGradients[organizer.gradient]?.css
-                  : brandGradients.teal.css,
+                backgroundImage: gradientCss,
+                WebkitMaskImage: "url(/logo/cheerbase-logo.svg)",
+                WebkitMaskSize: "contain",
+                WebkitMaskRepeat: "no-repeat",
+                WebkitMaskPosition: "center",
+                maskImage: "url(/logo/cheerbase-logo.svg)",
+                maskSize: "contain",
+                maskRepeat: "no-repeat",
+                maskPosition: "center",
               }}
-            >
-              cheerbase
-            </span>
+              aria-label="cheerbase"
+            />
           </Link>
           <div className="h-6 w-px bg-border" />
-          <span className="heading-4">Event Editor</span>
+          <span className="heading-4">{title}</span>
         </div>
 
         {/* Mobile settings button - only visible below lg */}

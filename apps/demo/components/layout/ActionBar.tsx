@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import { PageTabs, type PageTab } from "@/components/ui/controls/PageTabs";
+import { PageTabs, type PageTab } from "@/components/ui/PageTabs";
 
 type ActionBarProps = {
   /** Tabs to display on the left side */

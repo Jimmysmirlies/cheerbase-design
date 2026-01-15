@@ -12,72 +12,30 @@
  * - Inline nav links
  * - Auth dropdown for signed-in users; Get Started CTA for guests
  */
-import type React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
-
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 import { Button } from "@workspace/ui/shadcn/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/shadcn/dropdown-menu";
-import { Input } from "@workspace/ui/shadcn/input";
-import { Switch } from "@workspace/ui/shadcn/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/shadcn/tooltip";
-import { cn } from "@workspace/ui/lib/utils";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import { AuthSignUp } from "@/components/features/auth/AuthSignUp";
-import { AuthDialog } from "@/components/features/auth/AuthDialog";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useOrganizer } from "@/hooks/useOrganizer";
-import { GradientAvatar } from "@/components/ui/avatars/GradientAvatar";
-import { LayoutToggle } from "@/components/ui/controls/LayoutToggle";
-import { eventCategories } from "@/data/events/categories";
+import { LayoutToggle } from "@/components/ui/LayoutToggle";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
+import { PaletteIcon } from "lucide-react";
+
 import {
-  SearchIcon,
-  XIcon,
-  SunIcon,
-  MoonIcon,
-  UsersIcon,
-  ClipboardListIcon,
-  LogOutIcon,
-  LayoutDashboardIcon,
-  CalendarIcon,
-  PaletteIcon,
-} from "lucide-react";
-
-type SearchItem = {
-  label: string;
-  href: string;
-  meta?: string;
-  searchText?: string;
-};
-
-type NavBarProps = {
-  mode?: "default" | "clubs";
-  variant?: "default" | "organizer";
-  showNavLinks?: boolean;
-  showSidebarToggle?: boolean;
-  sidebarOpen?: boolean;
-  onSidebarToggle?: () => void;
-  layoutVariant?: "A" | "B";
-  onLayoutChange?: (variant: "A" | "B") => void;
-  showLayoutToggle?: boolean;
-};
+  NavBarSearch,
+  NavBarAuthMenu,
+  MenuXToggle,
+  type NavBarProps,
+} from "./nav-bar-components";
 
 export function NavBar({
   mode,
@@ -93,15 +51,10 @@ export function NavBar({
   void mode;
   void variant;
   void showNavLinks;
-  const router = useRouter();
-  const { user, signOut, signInAsRole } = useAuth();
+  const { user } = useAuth();
   const { organizer } = useOrganizer();
   const role = user?.role ?? null;
   const [isDark, setIsDark] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedTerm, setDebouncedTerm] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
   const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
   const [organizerGradient, setOrganizerGradient] = useState<
@@ -110,7 +63,6 @@ export function NavBar({
   const [clubGradient, setClubGradient] = useState<string | undefined>(
     undefined,
   );
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Load organizer settings if applicable
   useEffect(() => {
@@ -136,7 +88,6 @@ export function NavBar({
 
     loadGradient();
 
-    // Listen for settings changes from other components
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
         setOrganizerGradient(event.detail.gradient);
@@ -179,7 +130,6 @@ export function NavBar({
 
     loadGradient();
 
-    // Listen for settings changes from other components
     const handleClubSettingsChange = (
       event: CustomEvent<{ gradient: string }>,
     ) => {
@@ -200,40 +150,6 @@ export function NavBar({
     };
   }, [role, user?.id]);
 
-  // Build event-only search list
-  const eventSearchItems: SearchItem[] = useMemo(() => {
-    return eventCategories.flatMap((category) =>
-      category.events.map((event) => {
-        const divisionNames =
-          event.availableDivisions?.map((d) => d.name).join(" ") ?? "";
-        return {
-          label: event.name,
-          href: `/events/${encodeURIComponent(event.id)}`,
-          meta: `${event.organizer} · ${event.location} · ${event.date}`,
-          searchText:
-            `${event.name} ${event.organizer} ${event.location} ${divisionNames}`.toLowerCase(),
-        };
-      }),
-    );
-  }, []);
-
-  // Debounce search term to avoid instant queries
-  useEffect(() => {
-    const handle = setTimeout(() => setDebouncedTerm(searchTerm.trim()), 220);
-    return () => clearTimeout(handle);
-  }, [searchTerm]);
-
-  const filteredHits = useMemo(() => {
-    const term = debouncedTerm.toLowerCase();
-    if (!term) return [];
-    const list = eventSearchItems.filter(
-      (item) =>
-        item.searchText?.includes(term) ??
-        item.label.toLowerCase().includes(term),
-    );
-    return list.slice(0, 5);
-  }, [debouncedTerm, eventSearchItems]);
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     const query = window.matchMedia("(max-width: 1023px)");
@@ -249,13 +165,6 @@ export function NavBar({
     return () => query.removeListener(handler);
   }, []);
 
-  // Auto-focus mobile search input when expanded
-  useEffect(() => {
-    if (mobileSearchExpanded && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
-    }
-  }, [mobileSearchExpanded]);
-
   // Initialize theme state from localStorage
   useEffect(() => {
     try {
@@ -265,7 +174,7 @@ export function NavBar({
         setIsDark(true);
       }
     } catch {
-      // localStorage is not available (e.g., SSR or privacy mode)
+      // localStorage is not available
     }
   }, []);
 
@@ -280,593 +189,132 @@ export function NavBar({
     }
   };
 
-  const menuItems =
-    role == null
-      ? []
-      : [
-          ...(role === "club_owner"
-            ? [
-                {
-                  label: "Teams",
-                  icon: UsersIcon,
-                  onClick: () => router.push("/clubs"),
-                },
-                {
-                  label: "Registrations",
-                  icon: ClipboardListIcon,
-                  onClick: () => router.push("/clubs/registrations"),
-                },
-              ]
-            : [
-                {
-                  label: "Organizer Home",
-                  icon: LayoutDashboardIcon,
-                  onClick: () => router.push("/organizer"),
-                },
-                {
-                  label: "Events",
-                  icon: CalendarIcon,
-                  onClick: () => router.push("/organizer/events"),
-                },
-              ]),
-          {
-            label: "Sign out",
-            icon: LogOutIcon,
-            onClick: () => {
-              signOut();
-              router.push("/");
-            },
-          },
-        ];
-
   return (
-    <>
-      {/* Simple sticky header with full-width background and bottom border */}
-      <AuthSignUp>
-        {({ openStart }) => (
-          <>
-            <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
-              {/* Main row - always 68px */}
-              <div className="mx-auto flex h-[68px] w-full items-center justify-between gap-3 px-6">
-                {/* Logo */}
-                <div className="flex items-center gap-3">
-                  {showSidebarToggle && onSidebarToggle ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="lg:hidden"
-                      onClick={onSidebarToggle}
-                      aria-label={
-                        sidebarOpen
-                          ? "Close navigation menu"
-                          : "Open navigation menu"
-                      }
-                    >
-                      <MenuXToggle open={sidebarOpen} />
-                    </Button>
-                  ) : null}
-                  <Link href="/" className="flex items-center gap-2">
-                    <span
-                      className="heading-3 bg-clip-text text-transparent"
-                      style={{
-                        backgroundImage: (() => {
-                          // Use role-specific gradient if available
-                          if (role === "organizer" && organizerGradient) {
-                            const gradient =
-                              brandGradients[
-                                organizerGradient as BrandGradient
-                              ];
-                            if (gradient) return gradient.css;
-                          }
-                          if (role === "organizer" && organizer?.gradient) {
-                            const gradient =
-                              brandGradients[
-                                organizer.gradient as BrandGradient
-                              ];
-                            if (gradient) return gradient.css;
-                          }
-                          if (role === "club_owner" && clubGradient) {
-                            const gradient =
-                              brandGradients[clubGradient as BrandGradient];
-                            if (gradient) return gradient.css;
-                          }
-                          // Default teal gradient
-                          return brandGradients.teal.css;
-                        })(),
-                      }}
-                    >
-                      cheerbase
-                    </span>
-                  </Link>
-                </div>
-
-                {/* Desktop search - hidden on mobile */}
-                <div className="hidden flex-1 px-4 lg:block lg:max-w-xl">
-                  <form
-                    className="relative w-full"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const trimmed = searchTerm.trim();
-                      if (trimmed) {
-                        setSearchOpen(false);
-                        router.push(
-                          `/events/search?q=${encodeURIComponent(trimmed)}`,
-                        );
-                      }
-                    }}
-                  >
-                    <Input
-                      value={searchTerm}
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        if (e.target.value.trim().length > 0)
-                          setSearchOpen(true);
-                      }}
-                      onFocus={() => {
-                        if (searchTerm.trim().length > 0) setSearchOpen(true);
-                      }}
-                      onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
-                      placeholder="Search events, divisions, organizers, and locations"
-                      className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
-                    />
-                    <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-                    {searchOpen && debouncedTerm && (
-                      <div
-                        className="absolute left-0 right-0 top-12 z-20 overflow-hidden rounded-xl border border-border/70 bg-card/90 shadow-xl backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0"
-                        data-state={searchOpen ? "open" : "closed"}
-                      >
-                        <ul className="divide-y divide-border/70">
-                          {filteredHits.length > 0 ? (
-                            filteredHits.map((item, idx) => (
-                              <li
-                                key={`${item.href}-${idx}`}
-                                className="dropdown-fade-in hover:bg-accent/40 focus-within:bg-accent/40 transition"
-                                style={{ animationDelay: `${idx * 60}ms` }}
-                              >
-                                <button
-                                  type="button"
-                                  className="flex w-full items-center justify-between px-4 py-3 text-left"
-                                  onMouseDown={(e) => e.preventDefault()}
-                                  onClick={() => {
-                                    setSearchOpen(false);
-                                    setSearchTerm("");
-                                    router.push(item.href);
-                                  }}
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-semibold text-foreground">
-                                      {item.label}
-                                    </span>
-                                    {item.meta && (
-                                      <span className="text-xs text-muted-foreground">
-                                        {item.meta}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <span className="text-xs text-muted-foreground">
-                                    Enter
-                                  </span>
-                                </button>
-                              </li>
-                            ))
-                          ) : (
-                            <li className="px-4 py-3 text-sm text-muted-foreground">
-                              No results yet
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    )}
-                  </form>
-                </div>
-
-                {/* Right side actions */}
-                <div className="flex items-center gap-2">
-                  {/* Mobile search toggle */}
-                  {isNarrow && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        setMobileSearchExpanded(!mobileSearchExpanded)
-                      }
-                      aria-label={
-                        mobileSearchExpanded ? "Close search" : "Open search"
-                      }
-                    >
-                      {mobileSearchExpanded ? (
-                        <XIcon className="size-5" />
-                      ) : (
-                        <SearchIcon className="size-5" />
-                      )}
-                    </Button>
-                  )}
-
-                  {/* Layout toggle for organizer section */}
-                  {showLayoutToggle && layoutVariant && onLayoutChange && (
-                    <LayoutToggle
-                      variants={["A", "B"]}
-                      value={layoutVariant}
-                      onChange={onLayoutChange}
-                      storageKey="cheerbase-organizer-layout-tutorial"
-                      tutorialTitle="Layout Options"
-                      tutorialDescription="Try different dashboard layouts to find what works best for you."
-                      tutorialItems={[
-                        { label: "A", description: "Full-width sidebar" },
-                        { label: "B", description: "Centered content" },
-                      ]}
-                    />
-                  )}
-
-                  {/* Style Guide button with tooltip */}
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="mr-2"
-                          asChild
-                        >
-                          <Link
-                            href="/style-guide"
-                            aria-label="Open the style guide"
-                          >
-                            <PaletteIcon className="size-5" />
-                          </Link>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Style Guide</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  {role ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="p-0 hover:opacity-90"
-                        >
-                          <GradientAvatar
-                            name={
-                              user?.name ||
-                              (role === "club_owner"
-                                ? "Club Owner"
-                                : "Organizer")
-                            }
-                            size="sm"
-                            gradient={
-                              role === "club_owner"
-                                ? clubGradient
-                                : organizerGradient || organizer?.gradient
-                            }
+    <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
+      {/* Main row - always 68px */}
+      <div className="relative mx-auto flex h-[68px] w-full items-center justify-between gap-3 px-6">
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          {showSidebarToggle && onSidebarToggle ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={onSidebarToggle}
+              aria-label={
+                sidebarOpen ? "Close navigation menu" : "Open navigation menu"
+              }
+            >
+              <MenuXToggle open={sidebarOpen} />
+            </Button>
+          ) : null}
+          <Link href="/" className="flex items-center gap-2">
+            <svg
+              viewBox="0 0 240 155.71"
+              className="h-7 w-auto"
+              aria-label="Cheerbase"
+            >
+              <defs>
+                <linearGradient
+                  id="navbar-logo-gradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  {(() => {
+                    let gradientKey = "teal";
+                    if (role === "organizer" && organizerGradient) {
+                      gradientKey = organizerGradient;
+                    } else if (role === "organizer" && organizer?.gradient) {
+                      gradientKey = organizer.gradient;
+                    } else if (role === "club_owner" && clubGradient) {
+                      gradientKey = clubGradient;
+                    }
+                    const gradient =
+                      brandGradients[gradientKey as BrandGradient];
+                    if (gradient?.stops) {
+                      return gradient.stops.map(
+                        (stop: { color: string; position: number }) => (
+                          <stop
+                            key={stop.position}
+                            offset={`${stop.position}%`}
+                            stopColor={stop.color}
                           />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="min-w-[280px] md:min-w-64 border border-border/70 bg-card/90 shadow-xl backdrop-blur-md p-2 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-                      >
-                        <DropdownMenuLabel className="px-3 py-2 space-y-1">
-                          <span className="block label text-muted-foreground">
-                            Signed in as
-                          </span>
-                          <span className="body-text font-semibold">
-                            {user?.name ?? "User"}
-                          </span>
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator className="my-2" />
-                        <div className="flex items-center justify-between px-3 py-2.5">
-                          <div className="flex items-center gap-2.5">
-                            {isDark ? (
-                              <MoonIcon className="size-5" />
-                            ) : (
-                              <SunIcon className="size-5" />
-                            )}
-                            <span className="body-text md:body-small">
-                              Theme
-                            </span>
-                          </div>
-                          <Switch
-                            checked={isDark}
-                            onCheckedChange={toggleTheme}
-                          />
-                        </div>
-                        <DropdownMenuSeparator className="my-2" />
-                        {menuItems.map((item, idx) => (
-                          <DropdownMenuItem
-                            key={item.label}
-                            onClick={item.onClick}
-                            className="dropdown-fade-in flex items-center gap-3 px-3 py-2.5 body-text md:body-small cursor-pointer"
-                            style={{ animationDelay: `${idx * 60}ms` }}
-                          >
-                            {item.icon && (
-                              <item.icon className="size-5 md:size-4 text-muted-foreground" />
-                            )}
-                            <span>{item.label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="px-4"
-                        onClick={() => openStart("choose")}
-                      >
-                        Get Started
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="px-4"
-                        onClick={() => setLoginOpen(true)}
-                      >
-                        Log in
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                        ),
+                      );
+                    }
+                    return (
+                      <>
+                        <stop offset="0%" stopColor="#0d9488" />
+                        <stop offset="100%" stopColor="#0d9488" />
+                      </>
+                    );
+                  })()}
+                </linearGradient>
+              </defs>
+              <path
+                fill="url(#navbar-logo-gradient)"
+                d="M0,46.07c0-20.76,12.91-27.78,23.86-27.78,6.71,0,14.05,2.07,19,9.81l-7.75,6.4c-3-4.03-6.4-6.4-10.84-6.4-7.13,0-11.98,5.58-11.98,17.46,0,10.74,3.92,17.97,13.12,17.97,4.03,0,7.64-1.24,11.88-4.34l4.65,8.26c-4.03,3.31-10.33,5.89-17.97,5.89-15.18,0-23.96-9.81-23.96-27.27ZM64.03,0v24.27c3.41-4.13,8.67-5.99,13.94-5.99,10.74,0,16.53,5.99,16.53,18.18v35.32h-12.29v-33.15c0-6.09-1.24-10.85-7.85-10.85-5.89,0-10.33,4.96-10.33,10.23v33.77h-12.29V0h12.29ZM105.95,46.89c0-15.18,8.78-28.61,25.2-28.61,10.12,0,16.42,5.17,16.42,14.36,0,15.9-17.87,18.38-29.13,18.49.52,6.4,4.13,12.81,12.91,12.81,6.09,0,10.53-2.79,13.01-4.54l3.82,8.16c-1.65,1.45-8.47,5.78-18.18,5.78-17.04,0-24.07-10.95-24.07-26.44ZM136.63,33.15c0-3.82-2.48-6.09-6.2-6.09-8.26,0-12.08,7.64-12.39,15.18,5.58.1,18.59-1.14,18.59-9.09ZM156.02,40.98c1.06-15.14,10.75-27.93,27.14-26.78,10.1.71,16.02,6.3,15.38,15.47-1.11,15.87-19.11,17.09-30.34,16.41.07,6.42,3.23,13.06,11.99,13.68,6.08.43,10.7-2.05,13.3-3.62l3.24,8.41c-1.75,1.33-8.85,5.18-18.54,4.5-17-1.19-23.24-12.6-22.16-28.06ZM187.58,29.42c.27-3.81-2.05-6.25-5.76-6.51-8.24-.58-12.59,6.78-13.42,14.28,5.56.49,18.63.16,19.18-7.77ZM208.81,19.83h10.43v6.3c2.27-5.78,7.33-7.85,12.5-7.85,3.1,0,6.3.72,8.26,1.96l-2.17,10.22c-2.07-1.03-4.65-1.86-7.33-1.86-5.58,0-9.19,4.44-9.4,10.43v32.74h-12.29V19.83ZM28.26,84.07c12.27,0,23.28,3.7,23.28,17.14,0,7.41-4.02,12.38-9.95,15.13,8.57,2.01,13.44,7.62,13.44,16.51,0,13.86-9.84,21.59-27.83,21.59H3.07v-70.37h25.18ZM36.09,103.65c0-6.77-4.44-8.36-10.37-8.36h-7.51v17.14h6.77c7.83,0,11.11-3.81,11.11-8.78ZM38.94,132.85c0-6.24-4.23-9.52-11.54-9.52h-9.2v19.47h8.68c9.1,0,12.06-4.02,12.06-9.95ZM101.15,84.07l24.66,70.37h-15.98l-5.71-17.04h-23.17l-5.61,17.04h-14.92l23.59-70.37h17.14ZM92.58,98.15h-.32l-8.57,27.94h17.67l-8.78-27.94ZM130.35,148.73l5.4-12.49c4.34,2.75,13.01,6.35,19.68,6.35,4.97,0,9.63-1.59,9.63-8.25,0-5.61-5.4-7.41-12.17-9.52-9.21-2.75-20.32-6.88-20.32-20.74s10.37-21.27,24.55-21.27c9.95,0,19.15,4.23,24.97,10.16l-7.94,10.05c-5.61-4.34-11.54-7.41-16.93-7.41-4.23,0-8.78,1.8-8.78,7.2,0,5.71,5.5,7.62,12.91,9.95,9.63,3.07,19.89,7.09,19.89,21.06s-10.48,21.9-25.93,21.9c-10.47,0-21.06-4.23-24.97-6.98ZM237.21,84.07v13.23h-28.89v14.71h24.76v13.12h-24.76v16.08h29.63v13.23h-44.76v-70.37h44.02Z"
+              />
+            </svg>
+          </Link>
+        </div>
 
-              {/* Mobile search - animated with Framer Motion */}
-              <AnimatePresence>
-                {mobileSearchExpanded && isNarrow && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-6 py-3">
-                      <form
-                        className="relative w-full"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const trimmed = searchTerm.trim();
-                          if (trimmed) {
-                            setSearchOpen(false);
-                            setMobileSearchExpanded(false);
-                            router.push(
-                              `/events/search?q=${encodeURIComponent(trimmed)}`,
-                            );
-                          }
-                        }}
-                      >
-                        <Input
-                          ref={searchInputRef}
-                          value={searchTerm}
-                          onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            if (e.target.value.trim().length > 0)
-                              setSearchOpen(true);
-                          }}
-                          onFocus={() => {
-                            if (searchTerm.trim().length > 0)
-                              setSearchOpen(true);
-                          }}
-                          onBlur={() =>
-                            setTimeout(() => setSearchOpen(false), 120)
-                          }
-                          placeholder="Search events, divisions, organizers, and locations"
-                          className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
-                        />
-                        <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-                        {searchOpen && debouncedTerm && (
-                          <div className="absolute left-0 right-0 top-12 z-20 overflow-hidden rounded-xl border border-border/70 bg-card/90 shadow-xl backdrop-blur-md">
-                            <ul className="divide-y divide-border/70">
-                              {filteredHits.length > 0 ? (
-                                filteredHits.map((item, idx) => (
-                                  <li
-                                    key={`${item.href}-${idx}`}
-                                    className="dropdown-fade-in hover:bg-accent/40 focus-within:bg-accent/40 transition"
-                                    style={{ animationDelay: `${idx * 60}ms` }}
-                                  >
-                                    <button
-                                      type="button"
-                                      className="flex w-full items-center justify-between px-4 py-3 text-left"
-                                      onMouseDown={(e) => e.preventDefault()}
-                                      onClick={() => {
-                                        setSearchOpen(false);
-                                        setSearchTerm("");
-                                        setMobileSearchExpanded(false);
-                                        router.push(item.href);
-                                      }}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="text-sm font-semibold text-foreground">
-                                          {item.label}
-                                        </span>
-                                        {item.meta && (
-                                          <span className="text-xs text-muted-foreground">
-                                            {item.meta}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">
-                                        Enter
-                                      </span>
-                                    </button>
-                                  </li>
-                                ))
-                              ) : (
-                                <li className="px-4 py-3 text-sm text-muted-foreground">
-                                  No results yet
-                                </li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                      </form>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </header>
+        {/* Search */}
+        <NavBarSearch
+          isNarrow={isNarrow}
+          mobileSearchExpanded={mobileSearchExpanded}
+          setMobileSearchExpanded={setMobileSearchExpanded}
+        />
 
-            <AuthDialog
-              open={loginOpen}
-              onOpenChange={setLoginOpen}
-              onDemoLogin={(nextRole) => {
-                if (nextRole === "organizer") {
-                  // Demo organizer login as Sapphire Productions
-                  signInAsRole(
-                    nextRole,
-                    "Sapphire Productions",
-                    "contact@sapphireproductions.ca",
-                    {
-                      demoId: "sapphire-productions",
-                      isDemo: true,
-                      organizerId: "sapphire-productions",
-                    },
-                  );
-                  setLoginOpen(false);
-                  router.push("/organizer");
-                } else {
-                  signInAsRole(
-                    nextRole,
-                    "Demo Club Owner",
-                    "club_owner@demo.test",
-                    {
-                      demoId: "club-owner-1",
-                      isDemo: true,
-                    },
-                  );
-                  setLoginOpen(false);
-                  router.push("/clubs");
-                }
-              }}
-              onJoinClick={() => openStart("choose")}
+        {/* Right side actions */}
+        <div className="flex items-center gap-2">
+          {/* Layout toggle for organizer section */}
+          {showLayoutToggle && layoutVariant && onLayoutChange && (
+            <LayoutToggle
+              variants={["A", "B"]}
+              value={layoutVariant}
+              onChange={onLayoutChange}
+              storageKey="cheerbase-organizer-layout-tutorial"
+              tutorialTitle="Layout Options"
+              tutorialDescription="Try different dashboard layouts to find what works best for you."
+              tutorialItems={[
+                { label: "A", description: "Full-width sidebar" },
+                { label: "B", description: "Centered content" },
+              ]}
             />
-          </>
-        )}
-      </AuthSignUp>
+          )}
 
-      {/* AvatarSheet removed for now - keeping component code below in case needed later */}
-    </>
-  );
-}
+          {/* Style Guide button with tooltip */}
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="mr-2" asChild>
+                  <Link href="/style-guide" aria-label="Open the style guide">
+                    <PaletteIcon className="size-5" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Style Guide</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-function MenuXToggle({ open }: { open: boolean }) {
-  return (
-    <span className="relative block h-4 w-5">
-      <span
-        className={`absolute left-0 block h-0.5 w-full rounded-sm bg-current transition-all duration-300 ${
-          open ? "top-1/2 -translate-y-1/2 rotate-45" : "top-0"
-        }`}
-      />
-      <span
-        className={`absolute left-0 block h-0.5 w-full rounded-sm bg-current transition-all duration-300 ${
-          open ? "top-1/2 opacity-0" : "top-1/2 -translate-y-1/2"
-        }`}
-      />
-      <span
-        className={`absolute left-0 block h-0.5 w-full rounded-sm bg-current transition-all duration-300 ${
-          open ? "top-1/2 -translate-y-1/2 -rotate-45" : "bottom-0"
-        }`}
-      />
-    </span>
-  );
-}
-
-type SheetItem = {
-  label: string;
-  detail?: string;
-  onClick: () => void;
-};
-
-// AvatarSheet kept for future use; currently unused
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function AvatarSheet({
-  open,
-  onClose,
-  items,
-  userName,
-  isDark,
-  onToggleTheme,
-}: {
-  open: boolean;
-  onClose: () => void;
-  items: SheetItem[];
-  userName: string;
-  isDark: boolean;
-  onToggleTheme: () => void;
-}) {
-  return (
-    <>
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300",
-          open ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-        onClick={onClose}
-      />
-      <div
-        className={cn(
-          "fixed inset-0 z-50 bg-background/95 backdrop-blur-xl transition-transform duration-300",
-          open ? "translate-x-0" : "translate-x-full",
-        )}
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between px-5 pt-5">
-            <button
-              type="button"
-              className="flex items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
-              onClick={onClose}
-              aria-label="Close account menu"
-            >
-              <XIcon className="size-5" />
-              Close
-            </button>
-            <span className="text-sm font-semibold text-muted-foreground">
-              Signed in as {userName}
-            </span>
-          </div>
-
-          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-            {items.map((item, idx) => (
-              <button
-                key={item.label}
-                type="button"
-                className="dropdown-fade-in text-2xl font-semibold text-foreground transition hover:text-primary"
-                style={{ animationDelay: `${idx * 80}ms` }}
-                onClick={() => {
-                  onClose();
-                  item.onClick();
-                }}
-              >
-                {item.label}
-                {item.detail ? (
-                  <span className="ml-2 text-base text-muted-foreground">
-                    ({item.detail})
-                  </span>
-                ) : null}
-              </button>
-            ))}
-
-            <div
-              className="dropdown-fade-in mt-4 flex items-center justify-center gap-3 rounded-full border border-border/40 bg-card/40 px-5 py-3 backdrop-blur-sm"
-              style={{ animationDelay: `${items.length * 80}ms` }}
-            >
-              <div className="flex items-center gap-2">
-                {isDark ? (
-                  <MoonIcon className="size-5" />
-                ) : (
-                  <SunIcon className="size-5" />
-                )}
-                <span className="text-base font-medium">Theme</span>
-              </div>
-              <Switch checked={isDark} onCheckedChange={onToggleTheme} />
-            </div>
-          </div>
+          {/* Auth Menu */}
+          <NavBarAuthMenu
+            isDark={isDark}
+            onToggleTheme={toggleTheme}
+            organizerGradient={organizerGradient}
+            clubGradient={clubGradient}
+            organizerDefaultGradient={organizer?.gradient}
+          />
         </div>
       </div>
-    </>
+    </header>
   );
 }
+
+// Re-export types for consumers
+export type { NavBarProps } from "./nav-bar-components";

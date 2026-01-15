@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { EmptyStateButton } from "@/components/ui/buttons/EmptyStateButton";
+import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
 import { ImageIcon, UploadIcon, CalendarIcon } from "lucide-react";
 import { toast } from "@workspace/ui/shadcn/sonner";
 

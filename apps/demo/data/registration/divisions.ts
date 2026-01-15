@@ -1,6 +1,6 @@
 import { divisionCatalog } from "../divisions";
 
-export type DivisionCategory = {
+export type RegistrationDivisionCategory = {
   id: string;
   label: string;
   divisions: string[];
@@ -12,7 +12,7 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-export const divisionCategories: DivisionCategory[] = divisionCatalog.map(
+export const divisionCategories: RegistrationDivisionCategory[] = divisionCatalog.map(
   (category) => {
     const divisions = category.tiers.flatMap((tier) =>
       tier.levels.map((level) => `${tier.name} - ${level}`),

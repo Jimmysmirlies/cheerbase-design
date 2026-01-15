@@ -7,7 +7,7 @@ import Link from "next/link";
 
 import { FALLBACK_EVENT_IMAGE } from "@/data/events/fallbacks";
 
-type RegistrationStatus = "OPEN" | "CLOSING SOON" | "CLOSED" | "FULL" | "DRAFT";
+export type RegistrationStatus = "OPEN" | "CLOSING SOON" | "CLOSED" | "FULL" | "DRAFT";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
@@ -18,6 +18,48 @@ const statusBadgeVariants: Record<RegistrationStatus, BadgeVariant> = {
   FULL: "red",
   DRAFT: "secondary",
 };
+
+/**
+ * Derives registration status from event data
+ */
+export function getRegistrationStatus(event: {
+  registrationDeadline?: string;
+  date: string;
+  slots: { filled: number; capacity: number };
+}): RegistrationStatus {
+  const now = new Date();
+
+  // Check if slots are full
+  if (event.slots.filled >= event.slots.capacity) {
+    return "FULL";
+  }
+
+  // Check registration deadline
+  if (event.registrationDeadline) {
+    const deadline = new Date(event.registrationDeadline);
+    deadline.setHours(23, 59, 59, 999);
+
+    if (now > deadline) {
+      return "CLOSED";
+    }
+
+    // Check if closing soon (within 7 days)
+    const sevenDaysFromNow = new Date(now);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    if (deadline <= sevenDaysFromNow) {
+      return "CLOSING SOON";
+    }
+  }
+
+  // Check if event date has passed
+  const eventDate = new Date(event.date);
+  eventDate.setHours(23, 59, 59, 999);
+  if (now > eventDate) {
+    return "CLOSED";
+  }
+
+  return "OPEN";
+}
 
 export type EventCardV2Props = {
   id: string;

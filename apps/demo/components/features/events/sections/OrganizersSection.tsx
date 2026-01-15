@@ -18,7 +18,7 @@
  */
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { OrganizerCard } from "@/components/ui";
+import { OrganizerGlassCard } from "@/components/ui";
 import type { Organizer } from "@/types/events";
 import { brandGradients } from "@/lib/gradients";
 import { fadeInUp } from "@/lib/animations";
@@ -67,7 +67,7 @@ export default function OrganizersSection({
           {/* Content: Horizontally scrollable organizer cards */}
           <div className="flex snap-x gap-4 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
             {organizers.map((organizer) => (
-              <OrganizerCard
+              <OrganizerGlassCard
                 key={organizer.name}
                 accentGradient={brandGradients[organizer.gradient].tailwind}
                 name={organizer.name}

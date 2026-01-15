@@ -293,6 +293,18 @@ export function EventSettingsSidebar({
             </Tooltip>
           </div>
 
+          {/* Vertical label when collapsed */}
+          {collapsed && (
+            <div className="flex flex-1 items-start justify-center pt-4">
+              <span
+                className="body-small text-muted-foreground"
+                style={{ writingMode: "vertical-rl" }}
+              >
+                Event Settings
+              </span>
+            </div>
+          )}
+
           {/* Settings content - hidden when collapsed */}
           <div
             className={cn(
