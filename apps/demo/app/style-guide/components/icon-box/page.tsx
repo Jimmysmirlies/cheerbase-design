@@ -113,7 +113,9 @@ export default function IconBoxComponentPage() {
           <div className="flex flex-col gap-4 px-1">
             <div className="flex flex-col gap-4">
               <div className="h-px w-full bg-border" />
-              <p className="text-lg font-semibold">Without Gradient (Default)</p>
+              <p className="text-lg font-semibold">
+                Without Gradient (Default)
+              </p>
             </div>
             <div className="space-y-6">
               <div className="space-y-2">
@@ -245,13 +247,11 @@ export default function IconBoxComponentPage() {
                   bg-muted fallback)
                 </li>
                 <li>
-                  Icon color: Primary color from gradient (or text-muted-foreground
-                  fallback)
+                  Icon color: Primary color from gradient (or
+                  text-muted-foreground fallback)
                 </li>
                 <li>Border radius: rounded-lg (8px)</li>
-                <li>
-                  Icon sizes auto-scale: sm (16px), md (20px), lg (24px)
-                </li>
+                <li>Icon sizes auto-scale: sm (16px), md (20px), lg (24px)</li>
               </ul>
             </div>
           </div>
@@ -267,9 +267,7 @@ export default function IconBoxComponentPage() {
                 <li>
                   Use with gradient prop to match organizer or club brand colors
                 </li>
-                <li>
-                  Omit gradient prop for neutral, non-branded contexts
-                </li>
+                <li>Omit gradient prop for neutral, non-branded contexts</li>
                 <li>
                   Pair with QuickActionCard or similar list items for consistent
                   styling

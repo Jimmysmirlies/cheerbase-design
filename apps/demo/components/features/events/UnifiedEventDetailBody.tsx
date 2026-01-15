@@ -11,7 +11,6 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { Section } from "@/components/layout/Section";
 import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
-import { EventTableOfContents } from "@/components/features/events/EventTableOfContents";
 import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
 import type { Event } from "@/types/events";
 import type { BrandGradient } from "@/lib/gradients";
@@ -30,8 +29,6 @@ import {
   type PricingRow,
   type ScheduleDayParts,
 } from "./sections";
-
-type LayoutVariant = "A" | "B";
 
 type SectionId =
   | "overview"
@@ -63,10 +60,6 @@ export type UnifiedEventDetailBodyProps = {
   onSave?: (updates: Partial<Event>) => Promise<void>;
   /** Hide registration sidebar and mobile footer */
   hideRegistration?: boolean;
-  /** Layout variant */
-  layout?: LayoutVariant;
-  /** Show divider on overview section */
-  showOverviewDivider?: boolean;
   /** Show organizer card at top instead of in section */
   showOrganizerCardAtTop?: boolean;
   /** Pre-computed display values */
@@ -101,14 +94,9 @@ export function UnifiedEventDetailBody({
   onUpdate,
   onSave,
   hideRegistration = false,
-  layout: controlledLayout,
-  showOverviewDivider = false,
   showOrganizerCardAtTop = false,
   displayProps = {},
 }: UnifiedEventDetailBodyProps) {
-  // Use controlled layout if provided, otherwise default to "A"
-  const layout = controlledLayout ?? "A";
-
   // Edit mode state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
   const [localDraft, setLocalDraft] = useState<Partial<Event>>({});
@@ -141,7 +129,7 @@ export function UnifiedEventDetailBody({
       setLocalDraft(eventData);
       setEditingSection(section);
     },
-    [editable, eventData]
+    [editable, eventData],
   );
 
   const handleSaveSection = useCallback(async () => {
@@ -187,336 +175,344 @@ export function UnifiedEventDetailBody({
       <div
         className={`grid gap-10 ${hideRegistration ? "" : "lg:grid-cols-[1fr_320px]"}`}
       >
-          <motion.article
-            className="min-w-0 overflow-hidden"
-            variants={staggerSections}
-            initial="hidden"
-            animate="visible"
-          >
-            {/* Overview Section */}
-            <SectionWrapper
-              id="overview"
-              title="Overview"
-              showDivider={showOverviewDivider || layout === "B" || editable}
-              isEditing={editingSection === "overview"}
-              onStartEdit={editable ? () => handleStartEdit("overview") : undefined}
-              onSave={handleSaveSection}
-              onCancel={handleCancelEdit}
-              isSaving={isSaving}
-              hasData={OverviewSection.hasData(displayData)}
-              viewContent={
-                <OverviewSection
-                  mode="view"
-                  eventData={displayData}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              editContent={
-                <OverviewSection
-                  mode="edit"
-                  eventData={localDraft}
-                  onUpdate={updateLocalDraft}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              emptyState={
-                <EmptyStateButton
-                  title={OverviewSection.emptyTitle}
-                  description={OverviewSection.emptyDescription}
-                />
-              }
-            />
-
-            {/* Registration & Pricing Section (Combined for view mode) */}
-            {!editable && (
-              <motion.div variants={fadeInUp}>
-                <Section
-                  id="registration-pricing"
-                  title="Registration & Pricing"
-                  titleRight={
-                    earlyBirdEnabled ? (
-                      <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700">
-                        Early bird ends {pricingDeadlineLabel}
-                      </span>
-                    ) : undefined
-                  }
-                >
-                  <PricingSection
-                    mode="view"
-                    eventData={displayData}
-                    organizerGradient={organizerGradient}
-                    pricingRows={pricingRows}
-                    pricingDeadlineLabel={pricingDeadlineLabel}
-                  />
-                </Section>
-              </motion.div>
-            )}
-
-            {/* Pricing Section (Separate for edit mode) */}
-            {editable && (
-              <SectionWrapper
-                id="pricing"
-                title="Pricing"
-                showDivider
-                isEditing={editingSection === "pricing"}
-                onStartEdit={() => handleStartEdit("pricing")}
-                onSave={handleSaveSection}
-                onCancel={handleCancelEdit}
-                isSaving={isSaving}
-                hasData={PricingSection.hasData(displayData)}
-                viewContent={
-                  <PricingSection
-                    mode="view"
-                    eventData={displayData}
-                    organizerGradient={organizerGradient}
-                    pricingRows={pricingRows}
-                    pricingDeadlineLabel={pricingDeadlineLabel}
-                  />
-                }
-                editContent={
-                  <PricingSection
-                    mode="edit"
-                    eventData={localDraft}
-                    onUpdate={updateLocalDraft}
-                    organizerGradient={organizerGradient}
-                  />
-                }
-                emptyState={
-                  <EmptyStateButton
-                    title={PricingSection.emptyTitle}
-                    description={PricingSection.emptyDescription}
-                  />
-                }
+        <motion.article
+          className="min-w-0 overflow-hidden"
+          variants={staggerSections}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Overview Section */}
+          <SectionWrapper
+            id="overview"
+            title="Overview"
+            showDivider
+            isEditing={editingSection === "overview"}
+            onStartEdit={
+              editable ? () => handleStartEdit("overview") : undefined
+            }
+            onSave={handleSaveSection}
+            onCancel={handleCancelEdit}
+            isSaving={isSaving}
+            hasData={OverviewSection.hasData(displayData)}
+            viewContent={
+              <OverviewSection
+                mode="view"
+                eventData={displayData}
+                organizerGradient={organizerGradient}
               />
-            )}
-
-            {/* Event Date & Time Section */}
-            <SectionWrapper
-              id="date-time"
-              title={scheduleDays.length > 1 ? "Event Schedule" : "Event Date & Time"}
-              showDivider
-              isEditing={editingSection === "date-time"}
-              onStartEdit={editable ? () => handleStartEdit("date-time") : undefined}
-              onSave={handleSaveSection}
-              onCancel={handleCancelEdit}
-              isSaving={isSaving}
-              hasData={DateTimeSection.hasData(displayData)}
-              viewContent={
-                <DateTimeSection
-                  mode="view"
-                  eventData={displayData}
-                  organizerGradient={organizerGradient}
-                  eventDateParts={eventDateParts}
-                  scheduleDays={scheduleDays}
-                />
-              }
-              editContent={
-                <DateTimeSection
-                  mode="edit"
-                  eventData={localDraft}
-                  onUpdate={updateLocalDraft}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              emptyState={
-                <EmptyStateButton
-                  title={DateTimeSection.emptyTitle}
-                  description={DateTimeSection.emptyDescription}
-                />
-              }
-            />
-
-            {/* Location Section */}
-            <SectionWrapper
-              id="location"
-              title="Where You'll Be"
-              showDivider
-              isEditing={editingSection === "location"}
-              onStartEdit={editable ? () => handleStartEdit("location") : undefined}
-              onSave={handleSaveSection}
-              onCancel={handleCancelEdit}
-              isSaving={isSaving}
-              hasData={LocationSection.hasData(displayData)}
-              viewContent={
-                <LocationSection
-                  mode="view"
-                  eventData={displayData}
-                  organizerGradient={organizerGradient}
-                  venueName={venueName}
-                  cityState={cityState}
-                />
-              }
-              editContent={
-                <LocationSection
-                  mode="edit"
-                  eventData={localDraft}
-                  onUpdate={updateLocalDraft}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              emptyState={
-                <EmptyStateButton
-                  title={LocationSection.emptyTitle}
-                  description={LocationSection.emptyDescription}
-                />
-              }
-            />
-
-            {/* Registration Timeline Section (Editor only) */}
-            {editable && (
-              <SectionWrapper
-                id="registration"
-                title="Registration Timeline"
-                showDivider
-                isEditing={editingSection === "registration"}
-                onStartEdit={() => handleStartEdit("registration")}
-                onSave={handleSaveSection}
-                onCancel={handleCancelEdit}
-                isSaving={isSaving}
-                hasData={TimelineSection.hasData(displayData)}
-                viewContent={
-                  <TimelineSection
-                    mode="view"
-                    eventData={displayData}
-                    organizerGradient={organizerGradient}
-                    timelinePhases={timelinePhases}
-                  />
-                }
-                editContent={
-                  <TimelineSection
-                    mode="edit"
-                    eventData={localDraft}
-                    onUpdate={updateLocalDraft}
-                    organizerGradient={organizerGradient}
-                  />
-                }
-                emptyState={
-                  <EmptyStateButton
-                    title={TimelineSection.emptyTitle}
-                    description={TimelineSection.emptyDescription}
-                  />
-                }
+            }
+            editContent={
+              <OverviewSection
+                mode="edit"
+                eventData={localDraft}
+                onUpdate={updateLocalDraft}
+                organizerGradient={organizerGradient}
               />
-            )}
+            }
+            emptyState={
+              <EmptyStateButton
+                title={OverviewSection.emptyTitle}
+                description={OverviewSection.emptyDescription}
+              />
+            }
+          />
 
-            {/* Gallery Section */}
-            <SectionWrapper
-              id="gallery"
-              title="Gallery"
-              showDivider
-              isEditing={editingSection === "gallery"}
-              onStartEdit={editable ? () => handleStartEdit("gallery") : undefined}
-              onSave={handleSaveSection}
-              onCancel={handleCancelEdit}
-              isSaving={isSaving}
-              hasData={GallerySection.hasData(displayData)}
-              viewContent={
-                <GallerySection
-                  mode="view"
-                  eventData={displayData}
-                  organizerGradient={organizerGradient}
-                  galleryImages={galleryImages}
-                />
-              }
-              editContent={
-                <GallerySection
-                  mode="edit"
-                  eventData={localDraft}
-                  onUpdate={updateLocalDraft}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              emptyState={
-                <EmptyStateButton
-                  title={GallerySection.emptyTitle}
-                  description={GallerySection.emptyDescription}
-                />
-              }
-            />
-
-            {/* Organizer Section - hidden when shown at top */}
-            {!showOrganizerCardAtTop && (
-              <motion.div variants={fadeInUp}>
-                <Section id="organizer" title="Organizer" showDivider>
-                  <OrganizerCard
-                    name={event.organizer}
-                    gradient={organizerGradient}
-                    followers={organizerFollowers}
-                    eventsCount={organizerEventsCount}
-                    hostingDuration={organizerHostingDuration}
-                  />
-                </Section>
-              </motion.div>
-            )}
-
-            {/* Documents Section */}
-            <SectionWrapper
-              id="documents"
-              title="Documents & Resources"
-              showDivider
-              isEditing={editingSection === "documents"}
-              onStartEdit={editable ? () => handleStartEdit("documents") : undefined}
-              onSave={handleSaveSection}
-              onCancel={handleCancelEdit}
-              isSaving={isSaving}
-              hasData={DocumentsSection.hasData(displayData)}
-              viewContent={
-                <DocumentsSection
-                  mode="view"
-                  eventData={displayData}
-                  organizerGradient={organizerGradient}
-                  documents={documents}
-                />
-              }
-              editContent={
-                <DocumentsSection
-                  mode="edit"
-                  eventData={localDraft}
-                  onUpdate={updateLocalDraft}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              emptyState={
-                <EmptyStateButton
-                  title={DocumentsSection.emptyTitle}
-                  description={DocumentsSection.emptyDescription}
-                />
-              }
-            />
-
-            {/* Results Section - Not editable */}
+          {/* Registration & Pricing Section (Combined for view mode) */}
+          {!editable && (
             <motion.div variants={fadeInUp}>
-              <Section id="results" title="Results & Leaderboard" showDivider>
-                <ResultsSection mode="view" eventData={displayData} />
+              <Section
+                id="registration-pricing"
+                title="Registration & Pricing"
+                titleRight={
+                  earlyBirdEnabled ? (
+                    <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700">
+                      Early bird ends {pricingDeadlineLabel}
+                    </span>
+                  ) : undefined
+                }
+              >
+                <PricingSection
+                  mode="view"
+                  eventData={displayData}
+                  organizerGradient={organizerGradient}
+                  pricingRows={pricingRows}
+                  pricingDeadlineLabel={pricingDeadlineLabel}
+                />
               </Section>
             </motion.div>
-          </motion.article>
+          )}
 
-          {/* Sidebar with Registration CTA (desktop) - hidden for organizer views */}
-          {!hideRegistration && (
-            <motion.div
-              className="hidden lg:block lg:sticky lg:top-24 lg:self-start"
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <div className="flex flex-col gap-6">
-                <RegistrationSummaryCard
-                  eventId={event.id}
-                  eventDate={event.date}
-                  eventStartTime="9:00 AM"
-                  registrationDeadline={registrationDeadlineISO}
-                  isRegistrationClosed={registrationClosed}
-                  hidePricingButton
+          {/* Pricing Section (Separate for edit mode) */}
+          {editable && (
+            <SectionWrapper
+              id="pricing"
+              title="Pricing"
+              showDivider
+              isEditing={editingSection === "pricing"}
+              onStartEdit={() => handleStartEdit("pricing")}
+              onSave={handleSaveSection}
+              onCancel={handleCancelEdit}
+              isSaving={isSaving}
+              hasData={PricingSection.hasData(displayData)}
+              viewContent={
+                <PricingSection
+                  mode="view"
+                  eventData={displayData}
+                  organizerGradient={organizerGradient}
+                  pricingRows={pricingRows}
+                  pricingDeadlineLabel={pricingDeadlineLabel}
                 />
-                {/* Table of Contents - Layout A only */}
-                {layout === "A" && (
-                  <EventTableOfContents showLabel={false} showDivider />
-                )}
-              </div>
+              }
+              editContent={
+                <PricingSection
+                  mode="edit"
+                  eventData={localDraft}
+                  onUpdate={updateLocalDraft}
+                  organizerGradient={organizerGradient}
+                />
+              }
+              emptyState={
+                <EmptyStateButton
+                  title={PricingSection.emptyTitle}
+                  description={PricingSection.emptyDescription}
+                />
+              }
+            />
+          )}
+
+          {/* Event Date & Time Section */}
+          <SectionWrapper
+            id="date-time"
+            title={
+              scheduleDays.length > 1 ? "Event Schedule" : "Event Date & Time"
+            }
+            showDivider
+            isEditing={editingSection === "date-time"}
+            onStartEdit={
+              editable ? () => handleStartEdit("date-time") : undefined
+            }
+            onSave={handleSaveSection}
+            onCancel={handleCancelEdit}
+            isSaving={isSaving}
+            hasData={DateTimeSection.hasData(displayData)}
+            viewContent={
+              <DateTimeSection
+                mode="view"
+                eventData={displayData}
+                organizerGradient={organizerGradient}
+                eventDateParts={eventDateParts}
+                scheduleDays={scheduleDays}
+              />
+            }
+            editContent={
+              <DateTimeSection
+                mode="edit"
+                eventData={localDraft}
+                onUpdate={updateLocalDraft}
+                organizerGradient={organizerGradient}
+              />
+            }
+            emptyState={
+              <EmptyStateButton
+                title={DateTimeSection.emptyTitle}
+                description={DateTimeSection.emptyDescription}
+              />
+            }
+          />
+
+          {/* Location Section */}
+          <SectionWrapper
+            id="location"
+            title="Where You'll Be"
+            showDivider
+            isEditing={editingSection === "location"}
+            onStartEdit={
+              editable ? () => handleStartEdit("location") : undefined
+            }
+            onSave={handleSaveSection}
+            onCancel={handleCancelEdit}
+            isSaving={isSaving}
+            hasData={LocationSection.hasData(displayData)}
+            viewContent={
+              <LocationSection
+                mode="view"
+                eventData={displayData}
+                organizerGradient={organizerGradient}
+                venueName={venueName}
+                cityState={cityState}
+              />
+            }
+            editContent={
+              <LocationSection
+                mode="edit"
+                eventData={localDraft}
+                onUpdate={updateLocalDraft}
+                organizerGradient={organizerGradient}
+              />
+            }
+            emptyState={
+              <EmptyStateButton
+                title={LocationSection.emptyTitle}
+                description={LocationSection.emptyDescription}
+              />
+            }
+          />
+
+          {/* Registration Timeline Section (Editor only) */}
+          {editable && (
+            <SectionWrapper
+              id="registration"
+              title="Registration Timeline"
+              showDivider
+              isEditing={editingSection === "registration"}
+              onStartEdit={() => handleStartEdit("registration")}
+              onSave={handleSaveSection}
+              onCancel={handleCancelEdit}
+              isSaving={isSaving}
+              hasData={TimelineSection.hasData(displayData)}
+              viewContent={
+                <TimelineSection
+                  mode="view"
+                  eventData={displayData}
+                  organizerGradient={organizerGradient}
+                  timelinePhases={timelinePhases}
+                />
+              }
+              editContent={
+                <TimelineSection
+                  mode="edit"
+                  eventData={localDraft}
+                  onUpdate={updateLocalDraft}
+                  organizerGradient={organizerGradient}
+                />
+              }
+              emptyState={
+                <EmptyStateButton
+                  title={TimelineSection.emptyTitle}
+                  description={TimelineSection.emptyDescription}
+                />
+              }
+            />
+          )}
+
+          {/* Gallery Section */}
+          <SectionWrapper
+            id="gallery"
+            title="Gallery"
+            showDivider
+            isEditing={editingSection === "gallery"}
+            onStartEdit={
+              editable ? () => handleStartEdit("gallery") : undefined
+            }
+            onSave={handleSaveSection}
+            onCancel={handleCancelEdit}
+            isSaving={isSaving}
+            hasData={
+              GallerySection.hasData(displayData) || galleryImages.length > 0
+            }
+            viewContent={
+              <GallerySection
+                mode="view"
+                eventData={displayData}
+                organizerGradient={organizerGradient}
+                galleryImages={galleryImages}
+              />
+            }
+            editContent={
+              <GallerySection
+                mode="edit"
+                eventData={localDraft}
+                onUpdate={updateLocalDraft}
+                organizerGradient={organizerGradient}
+              />
+            }
+            emptyState={
+              <EmptyStateButton
+                title={GallerySection.emptyTitle}
+                description={GallerySection.emptyDescription}
+              />
+            }
+          />
+
+          {/* Organizer Section - hidden when shown at top */}
+          {!showOrganizerCardAtTop && (
+            <motion.div variants={fadeInUp}>
+              <Section id="organizer" title="Organizer" showDivider>
+                <OrganizerCard
+                  name={event.organizer}
+                  gradient={organizerGradient}
+                  followers={organizerFollowers}
+                  eventsCount={organizerEventsCount}
+                  hostingDuration={organizerHostingDuration}
+                />
+              </Section>
             </motion.div>
           )}
+
+          {/* Documents Section */}
+          <SectionWrapper
+            id="documents"
+            title="Documents & Resources"
+            showDivider
+            isEditing={editingSection === "documents"}
+            onStartEdit={
+              editable ? () => handleStartEdit("documents") : undefined
+            }
+            onSave={handleSaveSection}
+            onCancel={handleCancelEdit}
+            isSaving={isSaving}
+            hasData={DocumentsSection.hasData(displayData) || documents.length > 0}
+            viewContent={
+              <DocumentsSection
+                mode="view"
+                eventData={displayData}
+                organizerGradient={organizerGradient}
+                documents={documents}
+              />
+            }
+            editContent={
+              <DocumentsSection
+                mode="edit"
+                eventData={localDraft}
+                onUpdate={updateLocalDraft}
+                organizerGradient={organizerGradient}
+              />
+            }
+            emptyState={
+              <EmptyStateButton
+                title={DocumentsSection.emptyTitle}
+                description={DocumentsSection.emptyDescription}
+              />
+            }
+          />
+
+          {/* Results Section - Not editable */}
+          <motion.div variants={fadeInUp}>
+            <Section id="results" title="Results & Leaderboard" showDivider>
+              <ResultsSection mode="view" eventData={displayData} />
+            </Section>
+          </motion.div>
+        </motion.article>
+
+        {/* Sidebar with Registration CTA (desktop) - hidden for organizer views */}
+        {!hideRegistration && (
+          <motion.div
+            className="hidden lg:block lg:sticky lg:top-24 lg:self-start"
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <RegistrationSummaryCard
+              eventId={event.id}
+              eventDate={event.date}
+              eventStartTime="9:00 AM"
+              registrationDeadline={registrationDeadlineISO}
+              isRegistrationClosed={registrationClosed}
+              hidePricingButton
+            />
+          </motion.div>
+        )}
       </div>
 
       {/* Mobile Sticky Footer CTA */}

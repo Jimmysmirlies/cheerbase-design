@@ -15,12 +15,6 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@workspace/ui/shadcn/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui/shadcn/tooltip";
 
 import Link from "next/link";
 
@@ -28,7 +22,6 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useOrganizer } from "@/hooks/useOrganizer";
 import { LayoutToggle } from "@/components/ui/LayoutToggle";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
-import { PaletteIcon } from "lucide-react";
 
 import {
   NavBarSearch,
@@ -211,7 +204,7 @@ export function NavBar({
           <Link href="/" className="flex items-center gap-2">
             <svg
               viewBox="0 0 240 155.71"
-              className="h-7 w-auto"
+              className="h-10 w-auto"
               aria-label="Cheerbase"
             >
               <defs>
@@ -233,21 +226,30 @@ export function NavBar({
                     }
                     const gradient =
                       brandGradients[gradientKey as BrandGradient];
-                    if (gradient?.stops) {
-                      return gradient.stops.map(
-                        (stop: { color: string; position: number }) => (
+                    if (gradient?.css) {
+                      // Parse colors and positions from CSS gradient string
+                      // Format: "linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)"
+                      const colorMatches = gradient.css.matchAll(
+                        /(#[0-9A-Fa-f]{6})\s+([\d.]+)%/g,
+                      );
+                      const stops = Array.from(colorMatches).map((match) => ({
+                        color: match[1],
+                        position: parseFloat(match[2] ?? "0"),
+                      }));
+                      if (stops.length > 0) {
+                        return stops.map((stop) => (
                           <stop
                             key={stop.position}
                             offset={`${stop.position}%`}
                             stopColor={stop.color}
                           />
-                        ),
-                      );
+                        ));
+                      }
                     }
                     return (
                       <>
                         <stop offset="0%" stopColor="#0d9488" />
-                        <stop offset="100%" stopColor="#0d9488" />
+                        <stop offset="100%" stopColor="#06B6D4" />
                       </>
                     );
                   })()}
@@ -285,22 +287,6 @@ export function NavBar({
               ]}
             />
           )}
-
-          {/* Style Guide button with tooltip */}
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" className="mr-2" asChild>
-                  <Link href="/style-guide" aria-label="Open the style guide">
-                    <PaletteIcon className="size-5" />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Style Guide</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
           {/* Auth Menu */}
           <NavBarAuthMenu

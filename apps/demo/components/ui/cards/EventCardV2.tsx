@@ -7,7 +7,12 @@ import Link from "next/link";
 
 import { FALLBACK_EVENT_IMAGE } from "@/data/events/fallbacks";
 
-export type RegistrationStatus = "OPEN" | "CLOSING SOON" | "CLOSED" | "FULL" | "DRAFT";
+export type RegistrationStatus =
+  | "OPEN"
+  | "CLOSING SOON"
+  | "CLOSED"
+  | "FULL"
+  | "DRAFT";
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"];
 
@@ -72,6 +77,8 @@ export type EventCardV2Props = {
   statusLabel: RegistrationStatus;
   disabled?: boolean;
   status?: "draft" | "published";
+  /** Custom link destination. Defaults to /organizer/events/{id} */
+  href?: string;
 };
 
 export function EventCardV2({
@@ -85,16 +92,18 @@ export function EventCardV2({
   statusLabel,
   disabled = false,
   status,
+  href,
 }: EventCardV2Props) {
   const heroImage = image || FALLBACK_EVENT_IMAGE;
   const heroStyle = { backgroundImage: `url(${heroImage})` };
   const displayStatus = status === "draft" ? "DRAFT" : statusLabel;
   const badgeVariant = statusBadgeVariants[displayStatus] ?? "secondary";
   const linkLabel = `View event: ${title}`;
+  const linkHref = href ?? `/organizer/events/${id}`;
 
   return (
     <Link
-      href={`/organizer/events/${id}`}
+      href={linkHref}
       aria-label={linkLabel}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : undefined}

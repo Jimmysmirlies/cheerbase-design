@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@workspace/ui/shadcn/card";
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { Button } from "@workspace/ui/shadcn/button";
+import { Input } from "@workspace/ui/shadcn/input";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ import {
   SlidersHorizontalIcon,
   ExternalLinkIcon,
   X,
+  SearchIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -39,6 +41,7 @@ import {
 import {
   getOrganizerRegistrations,
   getRegistrationTableData,
+  getInvoiceHistory,
   formatCurrency,
   type RegistrationStatus,
 } from "@/data/events/analytics";
@@ -51,8 +54,11 @@ import { PageTitle } from "@/components/layout/PageTitle";
 import { Section } from "@/components/layout/Section";
 import { SeasonDropdown } from "@/components/layout/SeasonDropdown";
 import { useSeason } from "@/components/providers/SeasonProvider";
-import { type BrandGradient } from "@/lib/gradients";
+import { PageTabs } from "@/components/ui/PageTabs";
+import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
 import { fadeInUp } from "@/lib/animations";
+
+type InvoicesTab = "registrations" | "history";
 
 type ColumnKey =
   | "teamName"
@@ -69,6 +75,25 @@ const COLUMN_LABELS: Record<ColumnKey, string> = {
   event: "Event",
   invoice: "Invoice",
   status: "Status",
+};
+
+type HistoryColumnKey =
+  | "teamName"
+  | "clubOwner"
+  | "event"
+  | "invoice"
+  | "paidBy"
+  | "note"
+  | "date";
+
+const HISTORY_COLUMN_LABELS: Record<HistoryColumnKey, string> = {
+  teamName: "Team Name",
+  clubOwner: "Club Owner",
+  event: "Event",
+  invoice: "Invoice",
+  paidBy: "Paid By",
+  note: "Note",
+  date: "Date",
 };
 
 function getStatusBadgeVariant(status: RegistrationStatus) {
@@ -88,6 +113,12 @@ export default function OrganizerInvoicesPage() {
     BrandGradient | undefined
   >(undefined);
   const { selectedSeason, isAllSeasons } = useSeason();
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<InvoicesTab>("registrations");
+
+  // History search state
+  const [historySearch, setHistorySearch] = useState("");
 
   // Get events and filter by season
   const organizerEvents = useMemo(
@@ -164,6 +195,23 @@ export default function OrganizerInvoicesPage() {
     return allData.filter((row) => seasonEventIds.has(row.eventId));
   }, [organizerId, seasonEventIds]);
 
+  // History data
+  const historyData = useMemo(() => {
+    if (!organizerId) return [];
+    const allHistory = getInvoiceHistory(organizerId);
+    return allHistory.filter((entry) => seasonEventIds.has(entry.eventId));
+  }, [organizerId, seasonEventIds]);
+
+  // History column sort state (must be declared before filteredHistoryData)
+  const [historyTeamNameSort, setHistoryTeamNameSort] =
+    useState<TableSortDirection>(null);
+  const [historyEventSort, setHistoryEventSort] =
+    useState<TableSortDirection>(null);
+  const [historyDateSort, setHistoryDateSort] =
+    useState<TableSortDirection>("desc");
+  const [historyPaidBySort, setHistoryPaidBySort] =
+    useState<TableSortDirection>(null);
+
   // Table state
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
     new Set([
@@ -175,6 +223,32 @@ export default function OrganizerInvoicesPage() {
       "status",
     ]),
   );
+
+  // History table column visibility state
+  const [historyVisibleColumns, setHistoryVisibleColumns] = useState<
+    Set<HistoryColumnKey>
+  >(
+    new Set([
+      "teamName",
+      "clubOwner",
+      "event",
+      "invoice",
+      "paidBy",
+      "note",
+      "date",
+    ]),
+  );
+
+  // History column filter state
+  const [historySelectedTeams, setHistorySelectedTeams] = useState<Set<string>>(
+    new Set(),
+  );
+  const [historySelectedEvents, setHistorySelectedEvents] = useState<
+    Set<string>
+  >(new Set());
+  const [historySelectedPaidBy, setHistorySelectedPaidBy] = useState<
+    Set<string>
+  >(new Set());
 
   // Column sort state
   const [teamNameSort, setTeamNameSort] = useState<TableSortDirection>(null);
@@ -219,6 +293,101 @@ export default function OrganizerInvoicesPage() {
     ],
     [],
   );
+
+  // Sync history filter selections when historyData changes (select all by default)
+  useEffect(() => {
+    setHistorySelectedTeams(
+      new Set(historyData.map((entry) => entry.teamName)),
+    );
+    setHistorySelectedEvents(
+      new Set(historyData.map((entry) => entry.eventName)),
+    );
+    setHistorySelectedPaidBy(
+      new Set(historyData.map((entry) => entry.paidByOrganizer)),
+    );
+  }, [historyData]);
+
+  // Unique options for history filters
+  const historyTeamNameOptions = useMemo(
+    () =>
+      [...new Set(historyData.map((entry) => entry.teamName))]
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [historyData],
+  );
+  const historyEventOptions = useMemo(
+    () =>
+      [...new Set(historyData.map((entry) => entry.eventName))]
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [historyData],
+  );
+  const historyPaidByOptions = useMemo(
+    () =>
+      [...new Set(historyData.map((entry) => entry.paidByOrganizer))]
+        .sort()
+        .map((name) => ({ value: name, label: name })),
+    [historyData],
+  );
+
+  // Filtered and sorted history data
+  const filteredHistoryData = useMemo(() => {
+    let data = [...historyData];
+
+    // Apply column filters
+    data = data.filter((entry) => historySelectedTeams.has(entry.teamName));
+    data = data.filter((entry) => historySelectedEvents.has(entry.eventName));
+    data = data.filter((entry) =>
+      historySelectedPaidBy.has(entry.paidByOrganizer),
+    );
+
+    // Apply search filter
+    if (historySearch.trim()) {
+      const searchLower = historySearch.toLowerCase();
+      data = data.filter(
+        (entry) =>
+          entry.invoiceNumber.toLowerCase().includes(searchLower) ||
+          entry.teamName.toLowerCase().includes(searchLower) ||
+          entry.clubOwner.toLowerCase().includes(searchLower) ||
+          entry.eventName.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Apply sorting
+    if (historyTeamNameSort) {
+      data.sort((a, b) => {
+        const diff = a.teamName.localeCompare(b.teamName);
+        return historyTeamNameSort === "asc" ? diff : -diff;
+      });
+    } else if (historyEventSort) {
+      data.sort((a, b) => {
+        const diff = a.eventName.localeCompare(b.eventName);
+        return historyEventSort === "asc" ? diff : -diff;
+      });
+    } else if (historyPaidBySort) {
+      data.sort((a, b) => {
+        const diff = a.paidByOrganizer.localeCompare(b.paidByOrganizer);
+        return historyPaidBySort === "asc" ? diff : -diff;
+      });
+    } else if (historyDateSort) {
+      data.sort((a, b) => {
+        const diff = a.changeDate.getTime() - b.changeDate.getTime();
+        return historyDateSort === "asc" ? diff : -diff;
+      });
+    }
+
+    return data;
+  }, [
+    historyData,
+    historySelectedTeams,
+    historySelectedEvents,
+    historySelectedPaidBy,
+    historySearch,
+    historyTeamNameSort,
+    historyEventSort,
+    historyPaidBySort,
+    historyDateSort,
+  ]);
 
   // Filter and sort data
   const filteredData = useMemo(() => {
@@ -358,6 +527,105 @@ export default function OrganizerInvoicesPage() {
     setStatusSort(null);
   };
 
+  // History sort handlers
+  const handleHistoryTeamNameSort = (dir: TableSortDirection) => {
+    setHistoryTeamNameSort(dir);
+    if (dir) {
+      setHistoryEventSort(null);
+      setHistoryDateSort(null);
+      setHistoryPaidBySort(null);
+    }
+  };
+  const handleHistoryEventSort = (dir: TableSortDirection) => {
+    setHistoryEventSort(dir);
+    if (dir) {
+      setHistoryTeamNameSort(null);
+      setHistoryDateSort(null);
+      setHistoryPaidBySort(null);
+    }
+  };
+  const handleHistoryDateSort = (dir: TableSortDirection) => {
+    setHistoryDateSort(dir);
+    if (dir) {
+      setHistoryTeamNameSort(null);
+      setHistoryEventSort(null);
+      setHistoryPaidBySort(null);
+    }
+  };
+  const handleHistoryPaidBySort = (dir: TableSortDirection) => {
+    setHistoryPaidBySort(dir);
+    if (dir) {
+      setHistoryTeamNameSort(null);
+      setHistoryEventSort(null);
+      setHistoryDateSort(null);
+    }
+  };
+
+  // Toggle history column visibility
+  const toggleHistoryColumn = (column: HistoryColumnKey) => {
+    if (column === "teamName") return;
+    setHistoryVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(column)) {
+        next.delete(column);
+      } else {
+        next.add(column);
+      }
+      return next;
+    });
+  };
+
+  // Check if history has active filters or sorts (non-default)
+  const historyHasActiveFilters = useMemo(() => {
+    const allTeamsSelected =
+      historySelectedTeams.size === historyTeamNameOptions.length;
+    const allEventsSelected =
+      historySelectedEvents.size === historyEventOptions.length;
+    const allPaidBySelected =
+      historySelectedPaidBy.size === historyPaidByOptions.length;
+    const hasActiveFilters =
+      !allTeamsSelected || !allEventsSelected || !allPaidBySelected;
+
+    const hasActiveSorts =
+      historyTeamNameSort !== null ||
+      historyEventSort !== null ||
+      (historyDateSort !== null && historyDateSort !== "desc") ||
+      historyPaidBySort !== null;
+
+    return hasActiveFilters || hasActiveSorts;
+  }, [
+    historySelectedTeams,
+    historySelectedEvents,
+    historySelectedPaidBy,
+    historyTeamNameOptions.length,
+    historyEventOptions.length,
+    historyPaidByOptions.length,
+    historyTeamNameSort,
+    historyEventSort,
+    historyDateSort,
+    historyPaidBySort,
+  ]);
+
+  // Clear history filters and sorts
+  const clearHistoryFilters = () => {
+    // Clear filters (select all options)
+    setHistorySelectedTeams(
+      new Set(historyTeamNameOptions.map((opt) => opt.value)),
+    );
+    setHistorySelectedEvents(
+      new Set(historyEventOptions.map((opt) => opt.value)),
+    );
+    setHistorySelectedPaidBy(
+      new Set(historyPaidByOptions.map((opt) => opt.value)),
+    );
+
+    // Clear sorts (reset to default state)
+    setHistoryTeamNameSort(null);
+    setHistoryEventSort(null);
+    setHistoryDateSort("desc");
+    setHistoryPaidBySort(null);
+  };
+
   // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
@@ -455,115 +723,339 @@ export default function OrganizerInvoicesPage() {
         <SeasonDropdown />
       </div>
 
-      {/* Content Area */}
-      <div className="pt-8">
-        {/* Statistics Section */}
-        <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <Section title="Statistics">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Registrations
-                  </p>
-                  <CalendarIcon className="size-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-semibold">
-                    {overview.totalRegistrations}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Across all events
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Participants
-                  </p>
-                  <UsersIcon className="size-4 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-semibold">
-                    {overview.totalParticipants.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Athletes registered
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Revenue Collected
-                  </p>
-                  <DollarSignIcon className="size-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-semibold">
-                    {formatCurrency(overview.revenuePaid)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    From paid registrations
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className={hasOverdue ? "border-amber-500/50" : ""}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Outstanding Balance
-                  </p>
-                  {hasOverdue ? (
-                    <AlertTriangleIcon className="size-4 text-amber-500" />
-                  ) : (
-                    <DollarSignIcon className="size-4 text-muted-foreground" />
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <p
-                    className={`text-2xl font-semibold ${hasOverdue ? "text-amber-600" : ""}`}
-                  >
-                    {formatCurrency(overview.revenueOutstanding)}
-                  </p>
-                  {hasOverdue ? (
-                    <p className="text-xs text-amber-600 mt-1">
-                      {formatCurrency(overview.overdueAmount)} overdue
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Pending payments
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </Section>
-        </motion.div>
+      {/* Tabs */}
+      <div className="pt-6">
+        <PageTabs
+          tabs={[
+            { id: "registrations", label: "Registrations" },
+            { id: "history", label: "History" },
+          ]}
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as InvoicesTab)}
+          accentColor={
+            organizerGradient
+              ? getGradientStartColor(organizerGradient)
+              : undefined
+          }
+        />
+      </div>
 
-        {/* Registrations Table Section */}
-        <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <Section
-            title="Registrations"
-            titleRight={
+      {/* Content Area */}
+      <div>
+        {activeTab === "registrations" && (
+          <>
+            {/* Statistics Section */}
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              <Section title="Statistics" showDivider={false}>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Total Registrations
+                      </p>
+                      <CalendarIcon className="size-4 text-primary" />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-semibold">
+                        {overview.totalRegistrations}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Across all events
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Total Participants
+                      </p>
+                      <UsersIcon className="size-4 text-emerald-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-semibold">
+                        {overview.totalParticipants.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Athletes registered
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Revenue Collected
+                      </p>
+                      <DollarSignIcon className="size-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-semibold">
+                        {formatCurrency(overview.revenuePaid)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        From paid registrations
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card className={hasOverdue ? "border-amber-500/50" : ""}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Outstanding Balance
+                      </p>
+                      {hasOverdue ? (
+                        <AlertTriangleIcon className="size-4 text-amber-500" />
+                      ) : (
+                        <DollarSignIcon className="size-4 text-muted-foreground" />
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <p
+                        className={`text-2xl font-semibold ${hasOverdue ? "text-amber-600" : ""}`}
+                      >
+                        {formatCurrency(overview.revenueOutstanding)}
+                      </p>
+                      {hasOverdue ? (
+                        <p className="text-xs text-amber-600 mt-1">
+                          {formatCurrency(overview.overdueAmount)} overdue
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Pending payments
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </Section>
+            </motion.div>
+
+            {/* Registrations Table Section */}
+            <motion.div
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              <Section
+                title="Registrations"
+                titleRight={
+                  <div className="flex items-center gap-3">
+                    {/* Clear Filters Button - appears when filters are applied */}
+                    {hasActiveFilters && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2"
+                        onClick={clearFilters}
+                      >
+                        <X className="size-4" />
+                        Clear Filters
+                      </Button>
+                    )}
+                    {/* Column Visibility */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <SlidersHorizontalIcon className="size-4" />
+                          Columns
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[180px]">
+                        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {(Object.keys(COLUMN_LABELS) as ColumnKey[]).map(
+                          (column) => (
+                            <DropdownMenuCheckboxItem
+                              key={column}
+                              checked={visibleColumns.has(column)}
+                              onCheckedChange={() => toggleColumn(column)}
+                              disabled={column === "teamName"}
+                            >
+                              {COLUMN_LABELS[column]}
+                            </DropdownMenuCheckboxItem>
+                          ),
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                }
+              >
+                {/* Table */}
+                <DataTable>
+                  <DataTableHeader>
+                    <tr>
+                      {visibleColumns.has("teamName") && (
+                        <DataTableColumnHeader
+                          title="Team Name"
+                          sortable
+                          sortDirection={teamNameSort}
+                          onSortChange={handleTeamNameSort}
+                          filterable
+                          filterOptions={teamNameOptions}
+                          selectedFilters={selectedTeams}
+                          onFilterChange={setSelectedTeams}
+                        />
+                      )}
+                      {visibleColumns.has("clubName") && (
+                        <DataTableHead>Club</DataTableHead>
+                      )}
+                      {visibleColumns.has("submittedAt") && (
+                        <DataTableColumnHeader
+                          title="Submitted"
+                          sortable
+                          sortDirection={submittedSort}
+                          onSortChange={handleSubmittedSort}
+                        />
+                      )}
+                      {visibleColumns.has("event") && (
+                        <DataTableColumnHeader
+                          title="Event"
+                          sortable
+                          sortDirection={eventSort}
+                          onSortChange={handleEventSort}
+                          filterable
+                          filterOptions={eventOptions}
+                          selectedFilters={selectedEvents}
+                          onFilterChange={setSelectedEvents}
+                        />
+                      )}
+                      {visibleColumns.has("invoice") && (
+                        <DataTableHead>Invoice</DataTableHead>
+                      )}
+                      {visibleColumns.has("status") && (
+                        <DataTableColumnHeader
+                          title="Status"
+                          className="text-right"
+                          sortable
+                          sortDirection={statusSort}
+                          onSortChange={handleStatusSort}
+                          filterable
+                          filterOptions={statusOptions}
+                          selectedFilters={selectedStatuses}
+                          onFilterChange={setSelectedStatuses}
+                        />
+                      )}
+                    </tr>
+                  </DataTableHeader>
+                  <DataTableBody>
+                    {filteredData.length > 0 ? (
+                      filteredData.map((row, index) => (
+                        <DataTableRow key={row.id} animationDelay={index * 40}>
+                          {visibleColumns.has("teamName") && (
+                            <DataTableCell className="font-medium text-foreground">
+                              {row.teamName}
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("clubName") && (
+                            <DataTableCell className="text-muted-foreground">
+                              {row.clubName}
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("submittedAt") && (
+                            <DataTableCell className="text-muted-foreground">
+                              {row.submittedAtFormatted}
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("event") && (
+                            <DataTableCell>
+                              <div className="flex flex-col">
+                                <span className="text-foreground">
+                                  {row.eventName}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {row.eventId}
+                                </span>
+                              </div>
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("invoice") && (
+                            <DataTableCell>
+                              <Link
+                                href={row.invoiceHref}
+                                className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                              >
+                                #{row.invoiceNumber}
+                                <ExternalLinkIcon className="size-3" />
+                              </Link>
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("status") && (
+                            <DataTableCell className="text-right">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "font-medium",
+                                  getStatusBadgeVariant(row.status),
+                                )}
+                              >
+                                {row.status.charAt(0).toUpperCase() +
+                                  row.status.slice(1)}
+                              </Badge>
+                            </DataTableCell>
+                          )}
+                        </DataTableRow>
+                      ))
+                    ) : (
+                      <DataTableRow>
+                        <DataTableCell
+                          colSpan={visibleColumns.size}
+                          className="p-8 text-center text-sm text-muted-foreground"
+                        >
+                          No registrations match the current filters.
+                        </DataTableCell>
+                      </DataTableRow>
+                    )}
+                  </DataTableBody>
+                </DataTable>
+
+                {/* Table Summary */}
+                {filteredData.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Showing {filteredData.length} of {tableData.length}{" "}
+                    registrations
+                    {filteredData.length < tableData.length && " (filtered)"}
+                  </p>
+                )}
+              </Section>
+            </motion.div>
+          </>
+        )}
+
+        {activeTab === "history" && (
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="flex flex-col gap-6 py-8"
+          >
+            {/* Search and Controls Row */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search by invoice number, club name, team name, or event name..."
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Controls */}
               <div className="flex items-center gap-3">
-                {/* Clear Filters Button - appears when filters are applied */}
-                {hasActiveFilters && (
+                {/* Clear Filters Button */}
+                {historyHasActiveFilters && (
                   <Button
                     variant="ghost"
                     size="sm"
                     className="gap-2"
-                    onClick={clearFilters}
+                    onClick={clearHistoryFilters}
                   >
                     <X className="size-4" />
                     Clear Filters
@@ -580,134 +1072,130 @@ export default function OrganizerInvoicesPage() {
                   <DropdownMenuContent align="end" className="w-[180px]">
                     <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {(Object.keys(COLUMN_LABELS) as ColumnKey[]).map(
-                      (column) => (
-                        <DropdownMenuCheckboxItem
-                          key={column}
-                          checked={visibleColumns.has(column)}
-                          onCheckedChange={() => toggleColumn(column)}
-                          disabled={column === "teamName"}
-                        >
-                          {COLUMN_LABELS[column]}
-                        </DropdownMenuCheckboxItem>
-                      ),
-                    )}
+                    {(
+                      Object.keys(HISTORY_COLUMN_LABELS) as HistoryColumnKey[]
+                    ).map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column}
+                        checked={historyVisibleColumns.has(column)}
+                        onCheckedChange={() => toggleHistoryColumn(column)}
+                        disabled={column === "teamName"}
+                      >
+                        {HISTORY_COLUMN_LABELS[column]}
+                      </DropdownMenuCheckboxItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            }
-          >
-            {/* Table */}
+            </div>
+
+            {/* History Table */}
             <DataTable>
               <DataTableHeader>
                 <tr>
-                  {visibleColumns.has("teamName") && (
+                  {historyVisibleColumns.has("teamName") && (
                     <DataTableColumnHeader
                       title="Team Name"
                       sortable
-                      sortDirection={teamNameSort}
-                      onSortChange={handleTeamNameSort}
+                      sortDirection={historyTeamNameSort}
+                      onSortChange={handleHistoryTeamNameSort}
                       filterable
-                      filterOptions={teamNameOptions}
-                      selectedFilters={selectedTeams}
-                      onFilterChange={setSelectedTeams}
+                      filterOptions={historyTeamNameOptions}
+                      selectedFilters={historySelectedTeams}
+                      onFilterChange={setHistorySelectedTeams}
                     />
                   )}
-                  {visibleColumns.has("clubName") && (
-                    <DataTableHead>Club</DataTableHead>
+                  {historyVisibleColumns.has("clubOwner") && (
+                    <DataTableHead>Club Owner</DataTableHead>
                   )}
-                  {visibleColumns.has("submittedAt") && (
-                    <DataTableColumnHeader
-                      title="Submitted"
-                      sortable
-                      sortDirection={submittedSort}
-                      onSortChange={handleSubmittedSort}
-                    />
-                  )}
-                  {visibleColumns.has("event") && (
+                  {historyVisibleColumns.has("event") && (
                     <DataTableColumnHeader
                       title="Event"
                       sortable
-                      sortDirection={eventSort}
-                      onSortChange={handleEventSort}
+                      sortDirection={historyEventSort}
+                      onSortChange={handleHistoryEventSort}
                       filterable
-                      filterOptions={eventOptions}
-                      selectedFilters={selectedEvents}
-                      onFilterChange={setSelectedEvents}
+                      filterOptions={historyEventOptions}
+                      selectedFilters={historySelectedEvents}
+                      onFilterChange={setHistorySelectedEvents}
                     />
                   )}
-                  {visibleColumns.has("invoice") && (
+                  {historyVisibleColumns.has("invoice") && (
                     <DataTableHead>Invoice</DataTableHead>
                   )}
-                  {visibleColumns.has("status") && (
+                  {historyVisibleColumns.has("paidBy") && (
                     <DataTableColumnHeader
-                      title="Status"
+                      title="Paid By"
+                      sortable
+                      sortDirection={historyPaidBySort}
+                      onSortChange={handleHistoryPaidBySort}
+                      filterable
+                      filterOptions={historyPaidByOptions}
+                      selectedFilters={historySelectedPaidBy}
+                      onFilterChange={setHistorySelectedPaidBy}
+                    />
+                  )}
+                  {historyVisibleColumns.has("note") && (
+                    <DataTableHead>Note</DataTableHead>
+                  )}
+                  {historyVisibleColumns.has("date") && (
+                    <DataTableColumnHeader
+                      title="Date"
                       className="text-right"
                       sortable
-                      sortDirection={statusSort}
-                      onSortChange={handleStatusSort}
-                      filterable
-                      filterOptions={statusOptions}
-                      selectedFilters={selectedStatuses}
-                      onFilterChange={setSelectedStatuses}
+                      sortDirection={historyDateSort}
+                      onSortChange={handleHistoryDateSort}
                     />
                   )}
                 </tr>
               </DataTableHeader>
               <DataTableBody>
-                {filteredData.length > 0 ? (
-                  filteredData.map((row, index) => (
-                    <DataTableRow key={row.id} animationDelay={index * 40}>
-                      {visibleColumns.has("teamName") && (
+                {filteredHistoryData.length > 0 ? (
+                  filteredHistoryData.map((entry, index) => (
+                    <DataTableRow key={entry.id} animationDelay={index * 40}>
+                      {historyVisibleColumns.has("teamName") && (
                         <DataTableCell className="font-medium text-foreground">
-                          {row.teamName}
+                          {entry.teamName}
                         </DataTableCell>
                       )}
-                      {visibleColumns.has("clubName") && (
+                      {historyVisibleColumns.has("clubOwner") && (
                         <DataTableCell className="text-muted-foreground">
-                          {row.clubName}
+                          {entry.clubOwner}
                         </DataTableCell>
                       )}
-                      {visibleColumns.has("submittedAt") && (
-                        <DataTableCell className="text-muted-foreground">
-                          {row.submittedAtFormatted}
-                        </DataTableCell>
-                      )}
-                      {visibleColumns.has("event") && (
+                      {historyVisibleColumns.has("event") && (
                         <DataTableCell>
                           <div className="flex flex-col">
                             <span className="text-foreground">
-                              {row.eventName}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {row.eventId}
+                              {entry.eventName}
                             </span>
                           </div>
                         </DataTableCell>
                       )}
-                      {visibleColumns.has("invoice") && (
+                      {historyVisibleColumns.has("invoice") && (
                         <DataTableCell>
                           <Link
-                            href={row.invoiceHref}
+                            href={`/organizer/invoices/invoice/${entry.id}`}
                             className="inline-flex items-center gap-1.5 text-primary hover:underline"
                           >
-                            #{row.invoiceNumber}
+                            #{entry.invoiceNumber}
                             <ExternalLinkIcon className="size-3" />
                           </Link>
                         </DataTableCell>
                       )}
-                      {visibleColumns.has("status") && (
-                        <DataTableCell className="text-right">
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "font-medium",
-                              getStatusBadgeVariant(row.status),
-                            )}
-                          >
-                            {row.status.charAt(0).toUpperCase() +
-                              row.status.slice(1)}
-                          </Badge>
+                      {historyVisibleColumns.has("paidBy") && (
+                        <DataTableCell className="text-foreground">
+                          {entry.paidByOrganizer}
+                        </DataTableCell>
+                      )}
+                      {historyVisibleColumns.has("note") && (
+                        <DataTableCell className="max-w-[200px] truncate text-muted-foreground">
+                          {entry.paymentNote || "—"}
+                        </DataTableCell>
+                      )}
+                      {historyVisibleColumns.has("date") && (
+                        <DataTableCell className="text-right text-muted-foreground">
+                          {entry.changeDateFormatted}
                         </DataTableCell>
                       )}
                     </DataTableRow>
@@ -715,10 +1203,12 @@ export default function OrganizerInvoicesPage() {
                 ) : (
                   <DataTableRow>
                     <DataTableCell
-                      colSpan={visibleColumns.size}
+                      colSpan={historyVisibleColumns.size}
                       className="p-8 text-center text-sm text-muted-foreground"
                     >
-                      No registrations match the current filters.
+                      {historySearch
+                        ? "No payment history matches your search."
+                        : "No payment history available."}
                     </DataTableCell>
                   </DataTableRow>
                 )}
@@ -726,15 +1216,16 @@ export default function OrganizerInvoicesPage() {
             </DataTable>
 
             {/* Table Summary */}
-            {filteredData.length > 0 && (
+            {filteredHistoryData.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                Showing {filteredData.length} of {tableData.length}{" "}
-                registrations
-                {filteredData.length < tableData.length && " (filtered)"}
+                Showing {filteredHistoryData.length} of {historyData.length}{" "}
+                payment records
+                {filteredHistoryData.length < historyData.length &&
+                  " (filtered)"}
               </p>
             )}
-          </Section>
-        </motion.div>
+          </motion.div>
+        )}
       </div>
     </section>
   );

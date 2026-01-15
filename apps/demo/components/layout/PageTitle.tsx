@@ -85,7 +85,9 @@ export function PageTitle({
         )}
       </div>
 
-      {subtitle && <p className="body-small text-muted-foreground">{subtitle}</p>}
+      {subtitle && (
+        <p className="body-small text-muted-foreground">{subtitle}</p>
+      )}
     </div>
   );
 }

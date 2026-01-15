@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/shadcn/select";
-import { Badge } from "@workspace/ui/shadcn/badge";
 import {
   Dialog,
   DialogContent,
@@ -223,24 +222,34 @@ export default function OrganizerSettingsPage() {
               </button>
             }
           >
-            <div className="space-y-4 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Organization Name</span>
-                <span className="font-medium">{form.name || "Not set"}</span>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">Organization</p>
+                <p className="body-text font-semibold">
+                  {form.name || "Not set"}
+                </p>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Region</span>
-                <span className="font-medium">{form.region || "Not set"}</span>
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">Region</p>
+                <p className="body-text font-semibold">
+                  {form.region || "Not set"}
+                </p>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Contact Email</span>
-                <span className="font-medium">{form.email || "Not set"}</span>
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">
+                  Contact Email
+                </p>
+                <p className="body-text font-semibold truncate">
+                  {form.email || "Not set"}
+                </p>
               </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground">Support Email</span>
-                <span className="font-medium">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">
+                  Support Email
+                </p>
+                <p className="body-text font-semibold truncate">
                   {form.supportEmail || "Not set"}
-                </span>
+                </p>
               </div>
             </div>
           </Section>
@@ -362,29 +371,31 @@ export default function OrganizerSettingsPage() {
               </Link>
             }
           >
-            <div className="space-y-4 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Current Plan</span>
-                <Badge variant={plan.id === "pro" ? "default" : "secondary"}>
-                  {plan.id === "pro" && (
-                    <SparklesIcon className="mr-1 size-3" />
-                  )}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">Current Plan</p>
+                <p className="body-text font-semibold inline-flex items-center gap-1">
+                  {plan.id === "pro" && <SparklesIcon className="size-4" />}
                   {plan.name}
-                </Badge>
+                </p>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Price</span>
-                <span className="font-medium">{formatPlanPrice(plan)}</span>
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">Price</p>
+                <p className="body-text font-semibold">
+                  {formatPlanPrice(plan)}
+                </p>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/40">
-                <span className="text-muted-foreground">Active Events</span>
-                <span className="font-medium">
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">
+                  Active Events
+                </p>
+                <p className="body-text font-semibold">
                   {activeEventCount} / {plan.activeEventLimit}
-                </span>
+                </p>
               </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-muted-foreground">Platform Fee</span>
-                <span className="font-medium">3% per registration</span>
+              <div className="rounded-lg bg-muted/50 px-4 py-3">
+                <p className="body-small text-muted-foreground">Platform Fee</p>
+                <p className="body-text font-semibold">3% per registration</p>
               </div>
             </div>
           </Section>

@@ -60,7 +60,7 @@ export function PricingCard({
       className={cn(
         "relative rounded-lg border p-5 overflow-hidden cursor-pointer",
         !gradient && "border-border/60 bg-card",
-        className
+        className,
       )}
       style={
         gradient && firstGradientColor
@@ -69,9 +69,10 @@ export function PricingCard({
       }
       whileHover={{
         y: -2,
-        boxShadow: gradient && firstGradientColor
-          ? `0 8px 20px -6px ${firstGradientColor}25`
-          : "0 8px 20px -6px rgba(0, 0, 0, 0.1)",
+        boxShadow:
+          gradient && firstGradientColor
+            ? `0 8px 20px -6px ${firstGradientColor}25`
+            : "0 8px 20px -6px rgba(0, 0, 0, 0.1)",
       }}
       transition={{
         type: "spring",
@@ -102,7 +103,10 @@ export function PricingCard({
         </div>
         <div className="mt-4 flex items-baseline gap-2">
           <span
-            className={cn("heading-3 font-bold", !gradient && "text-foreground")}
+            className={cn(
+              "heading-3 font-bold",
+              !gradient && "text-foreground",
+            )}
             style={priceGradientStyle}
           >
             {price}

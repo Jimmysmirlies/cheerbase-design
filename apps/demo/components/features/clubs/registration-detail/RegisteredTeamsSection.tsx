@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowUpRightIcon, CheckCircle2Icon, LockIcon, PlusIcon, UploadIcon } from "lucide-react";
+import {
+  ArrowUpRightIcon,
+  CheckCircle2Icon,
+  LockIcon,
+  PlusIcon,
+  UploadIcon,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@workspace/ui/shadcn/button";
@@ -49,11 +55,7 @@ export function RegisteredTeamsSection({
             {isEditMode ? (
               // Edit mode: show Bulk Upload and Register Team buttons
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onBulkUpload}
-                >
+                <Button variant="outline" size="sm" onClick={onBulkUpload}>
                   <UploadIcon className="size-4" />
                   Bulk Upload
                 </Button>

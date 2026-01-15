@@ -107,28 +107,28 @@ export function ActionBar({
           className,
         )}
       >
-          {/* Left side: Tabs or custom content */}
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            {hasTabs && onTabChange && activeTab ? (
-              <PageTabs
-                tabs={tabs}
-                value={activeTab}
-                onValueChange={onTabChange}
-                variant={tabVariant}
-                accentColor={tabAccentColor}
-              />
-            ) : (
-              leftContent
-            )}
-          </div>
-
-          {/* Right side: Status + Actions */}
-          {hasRightContent && (
-            <div className="flex shrink-0 items-center gap-3">
-              {status}
-              {actions}
-            </div>
+        {/* Left side: Tabs or custom content */}
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          {hasTabs && onTabChange && activeTab ? (
+            <PageTabs
+              tabs={tabs}
+              value={activeTab}
+              onValueChange={onTabChange}
+              variant={tabVariant}
+              accentColor={tabAccentColor}
+            />
+          ) : (
+            leftContent
           )}
+        </div>
+
+        {/* Right side: Status + Actions */}
+        {hasRightContent && (
+          <div className="flex shrink-0 items-center gap-3">
+            {status}
+            {actions}
+          </div>
+        )}
       </div>
     );
   }

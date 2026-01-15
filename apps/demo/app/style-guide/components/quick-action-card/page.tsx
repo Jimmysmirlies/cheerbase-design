@@ -278,9 +278,7 @@ export default function QuickActionCardComponentPage() {
             </div>
             <div className="rounded-2xl border border-border bg-card/60 p-4 text-sm text-muted-foreground">
               <ul className="list-inside list-disc space-y-1">
-                <li>
-                  Use for primary navigation actions on dashboards
-                </li>
+                <li>Use for primary navigation actions on dashboards</li>
                 <li>
                   Pass gradient prop to match the organizer or club brand colors
                 </li>
@@ -294,9 +292,7 @@ export default function QuickActionCardComponentPage() {
                 <li>
                   Stack vertically on mobile, use grid layout on larger screens
                 </li>
-                <li>
-                  Group related actions together in the same section
-                </li>
+                <li>Group related actions together in the same section</li>
               </ul>
             </div>
           </div>

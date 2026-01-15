@@ -1,21 +1,45 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
-import { Hero } from "@/components/ui";
-import { EventCard } from "@/components/ui/cards/EventCard";
-import { fadeInUp, staggerContainer } from "@/lib/animations";
-import { heroSlides, organizers, listEvents } from "@/data/events";
-import {
-  getProvinceFromLocation,
-  getProvinceOptions,
-} from "@/data/events/locations";
-import { TextSelect } from "@workspace/ui/components/text-select";
+import { Hero, HorizontalScrollSection, HorizontalScrollCard } from "@/components/ui";
+import { EventCardV2, getRegistrationStatus } from "@/components/ui/cards/EventCardV2";
+import { fadeInUp } from "@/lib/animations";
+import { heroSlides, listEvents } from "@/data/events";
+import { getProvinceFromLocation } from "@/data/events/locations";
+
+// Featured organizer (Sapphire Productions)
+const FEATURED_ORGANIZER = "Sapphire Productions";
+
+// Default region to show in "Find Events in Your Area"
+const DEFAULT_REGION = "QC"; // Quebec
+
+// Order organizers: featured first, then by event count
+const ORGANIZER_ORDER = [
+  "Sapphire Productions",
+  "West Coast Cheer",
+  "Spirit Sports Co.",
+  "Midwest Athletics",
+  "Southern Spirit",
+  "East Region Events",
+  "Cheer Elite Events",
+  "Cheer Squad Prestige Academy",
+];
 
 export default function HomePage() {
   const events = useMemo(() => listEvents(), []);
+
+  // Filter events by region (Quebec)
+  const regionalEvents = useMemo(() => {
+    return events.filter((event) => {
+      const province = getProvinceFromLocation(event.location);
+      return province?.code === DEFAULT_REGION;
+    });
+  }, [events]);
+
+  // Group events by organizer
   const eventsByOrganizer = useMemo(() => {
     return events.reduce<Record<string, typeof events>>((acc, event) => {
       const current = acc[event.organizer] ?? [];
@@ -24,166 +48,94 @@ export default function HomePage() {
     }, {});
   }, [events]);
 
-  const organizerNames = useMemo(() => organizers.map((org) => org.name), []);
-
-  const provinceOptions = useMemo(() => getProvinceOptions(events), [events]);
-  const defaultProvince = useMemo(
-    () =>
-      provinceOptions.find((option) =>
-        option.label.toLowerCase().includes("quebec"),
-      ) ?? provinceOptions[0],
-    [provinceOptions],
-  );
-  const [selectedProvince, setSelectedProvince] = useState<string>(
-    defaultProvince?.code ?? "",
-  );
-  useEffect(() => {
-    if (defaultProvince) {
-      setSelectedProvince(defaultProvince.code);
-    }
-  }, [defaultProvince]);
-  const provinceEvents = useMemo(() => {
-    if (!selectedProvince) return events.slice(0, 6);
-    const filtered = events.filter(
-      (event) =>
-        getProvinceFromLocation(event.location)?.code === selectedProvince,
+  // Get organizers with events, in preferred order
+  const organizersWithEvents = useMemo(() => {
+    const withEvents = ORGANIZER_ORDER.filter(
+      (name) => (eventsByOrganizer[name]?.length ?? 0) > 0
     );
-    return filtered.length ? filtered : events.slice(0, 6);
-  }, [events, selectedProvince]);
-
-  const defaultOrganizer = useMemo(
-    () =>
-      organizerNames.find((name) => name.toLowerCase().includes("sapphire")) ??
-      "",
-    [organizerNames],
-  );
-  const [selectedOrganizer, setSelectedOrganizer] = useState<string>(
-    defaultOrganizer || organizerNames[0] || "",
-  );
-  useEffect(() => {
-    if (defaultOrganizer) {
-      setSelectedOrganizer(defaultOrganizer);
-    } else if (organizerNames[0]) {
-      setSelectedOrganizer(organizerNames[0]);
-    }
-  }, [defaultOrganizer, organizerNames]);
-  const organizerEvents = eventsByOrganizer[selectedOrganizer] ?? [];
-
-  const provinceSelectOptions = useMemo(
-    () =>
-      provinceOptions.map((option) => ({
-        value: option.code,
-        label: option.label,
-      })),
-    [provinceOptions],
-  );
-  const organizerSelectOptions = useMemo(
-    () => organizers.map((org) => ({ value: org.name, label: org.name })),
-    [],
-  );
+    // Add any organizers not in the order list
+    Object.keys(eventsByOrganizer).forEach((name) => {
+      if (!withEvents.includes(name)) {
+        withEvents.push(name);
+      }
+    });
+    return withEvents;
+  }, [eventsByOrganizer]);
 
   return (
     <main className="bg-background text-foreground">
       {/* Hero: Featured experiences carousel with CTA */}
       <Hero slides={heroSlides} />
 
-      {/* Location-first browsing */}
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-8">
-        <motion.header
-          className="flex flex-wrap items-center gap-3"
+      {/* Regional events row */}
+      {regionalEvents.length > 0 && (
+        <motion.section
+          className="mx-auto w-full max-w-7xl px-6 py-6"
           variants={fadeInUp}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <p className="heading-3">Find events in your area:</p>
-          <TextSelect
-            value={selectedProvince}
-            onValueChange={setSelectedProvince}
-            options={provinceSelectOptions}
-            size="large"
-          />
-        </motion.header>
-
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={`province-${selectedProvince || "all"}`}
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0 }}
+          <HorizontalScrollSection
+            title="Find Events in Your Area"
+            titleHref="/events/search"
           >
-            {provinceEvents.map((event) => (
-              <motion.div
-                key={`${event.id}-${event.location}`}
-                variants={fadeInUp}
-                className="h-full"
-              >
-                <EventCard
+            {regionalEvents.map((event) => (
+              <HorizontalScrollCard key={`regional-${event.id}`}>
+                <EventCardV2
+                  id={event.id}
                   image={event.image}
                   title={event.name}
-                  organizer={event.organizer}
                   date={event.date}
                   location={event.location}
-                  teams={event.teams}
+                  teamsFilled={event.slots.filled}
+                  teamsCapacity={event.slots.capacity}
+                  statusLabel={getRegistrationStatus(event)}
                   href={`/events/${encodeURIComponent(event.id)}`}
                 />
-              </motion.div>
+              </HorizontalScrollCard>
             ))}
-          </motion.div>
-        </AnimatePresence>
-      </section>
+          </HorizontalScrollSection>
+        </motion.section>
+      )}
 
-      {/* Organizer-first browsing: select an organizer, see their events */}
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-8">
-        <motion.div
-          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <header className="flex flex-wrap items-center gap-3">
-            <p className="heading-3">Browse events by organizer:</p>
-            <TextSelect
-              value={selectedOrganizer}
-              onValueChange={setSelectedOrganizer}
-              options={organizerSelectOptions}
-              size="large"
-            />
-          </header>
-        </motion.div>
+      {/* Organizer rows */}
+      {organizersWithEvents.map((organizerName) => {
+        const organizerEvents = eventsByOrganizer[organizerName] ?? [];
+        const isFeatured = organizerName === FEATURED_ORGANIZER;
 
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={`organizer-${selectedOrganizer || "all"}`}
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-            variants={staggerContainer}
+        return (
+          <motion.section
+            key={organizerName}
+            className="mx-auto w-full max-w-7xl px-6 py-6"
+            variants={fadeInUp}
             initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0 }}
+            whileInView="visible"
+            viewport={{ once: true }}
           >
-            {organizerEvents.map((event) => (
-              <motion.div
-                key={`${event.id}-organizer`}
-                variants={fadeInUp}
-                className="h-full"
-              >
-                <EventCard
-                  image={event.image}
-                  title={event.name}
-                  organizer={event.organizer}
-                  date={event.date}
-                  location={event.location}
-                  teams={event.teams}
-                  href={`/events/${encodeURIComponent(event.id)}`}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
-      </section>
+            <HorizontalScrollSection
+              title={organizerName}
+              featured={isFeatured}
+            >
+              {organizerEvents.map((event) => (
+                <HorizontalScrollCard key={event.id}>
+                  <EventCardV2
+                    id={event.id}
+                    image={event.image}
+                    title={event.name}
+                    date={event.date}
+                    location={event.location}
+                    teamsFilled={event.slots.filled}
+                    teamsCapacity={event.slots.capacity}
+                    statusLabel={getRegistrationStatus(event)}
+                    href={`/events/${encodeURIComponent(event.id)}`}
+                  />
+                </HorizontalScrollCard>
+              ))}
+            </HorizontalScrollSection>
+          </motion.section>
+        );
+      })}
 
       {/* Footer: Global links and product tagline */}
       <footer className="border-t border-sidebar-border bg-sidebar">

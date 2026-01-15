@@ -67,7 +67,7 @@ export function EventEditor() {
     async (updates: Partial<typeof eventData>) => {
       await saveSection(updates);
     },
-    [saveSection]
+    [saveSection],
   );
 
   const handlePublish = useCallback(() => {
@@ -109,40 +109,43 @@ export function EventEditor() {
   const headerContent = eventData.name ? (
     <div className="pb-8">
       <EventTitleHeader
-      name={eventData.name}
-      date={eventData.date}
-      location={eventData.location}
-      gradient={organizerGradient}
-      badge={
-        isPublished ? (
-          <Badge variant="outline" className="border-green-500 text-green-600">
-            Published
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="text-muted-foreground">
-            Draft
-          </Badge>
-        )
-      }
-      actions={
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            disabled={isSavingDraft}
-          >
-            {isSavingDraft ? "Saving..." : "Save Draft"}
-          </Button>
-          <Button onClick={handlePublish} disabled={isPublishing}>
-            {isPublishing
-              ? "Saving..."
-              : isPublished
-                ? "Update Event"
-                : "Publish Event"}
-          </Button>
-        </div>
-      }
-    />
+        name={eventData.name}
+        date={eventData.date}
+        location={eventData.location}
+        gradient={organizerGradient}
+        badge={
+          isPublished ? (
+            <Badge
+              variant="outline"
+              className="border-green-500 text-green-600"
+            >
+              Published
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-muted-foreground">
+              Draft
+            </Badge>
+          )
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft}
+            >
+              {isSavingDraft ? "Saving..." : "Save Draft"}
+            </Button>
+            <Button onClick={handlePublish} disabled={isPublishing}>
+              {isPublishing
+                ? "Saving..."
+                : isPublished
+                  ? "Update Event"
+                  : "Publish Event"}
+            </Button>
+          </div>
+        }
+      />
     </div>
   ) : null;
 
@@ -162,7 +165,6 @@ export function EventEditor() {
                 organizerGradient={organizerGradient}
                 editable
                 hideRegistration
-                layout="A"
                 displayProps={displayProps}
               />
             </section>
@@ -176,7 +178,9 @@ export function EventEditor() {
     <>
       <FocusModeHeader
         onBack={handleBack}
-        onOpenMobileSettings={isMobile ? () => setMobileSheetOpen(true) : undefined}
+        onOpenMobileSettings={
+          isMobile ? () => setMobileSheetOpen(true) : undefined
+        }
       />
 
       <div className="flex h-[calc(100vh-68px)]">
@@ -192,7 +196,6 @@ export function EventEditor() {
                 organizerGradient={organizerGradient}
                 editable
                 hideRegistration
-                layout="A"
                 displayProps={displayProps}
               />
             </section>

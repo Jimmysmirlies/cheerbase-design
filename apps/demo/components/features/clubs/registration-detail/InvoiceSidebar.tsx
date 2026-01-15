@@ -105,12 +105,14 @@ export function InvoiceSidebar({
 
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Subtotal</span>
+                  <span className="text-sm text-muted-foreground">
+                    Subtotal
+                  </span>
                   <span className="text-sm text-foreground">
                     {formatCurrency(
                       showUpdatedInvoice && editModeInvoice
                         ? editModeInvoice.subtotal
-                        : subtotal
+                        : subtotal,
                     )}
                   </span>
                 </div>
@@ -120,7 +122,7 @@ export function InvoiceSidebar({
                     {formatCurrency(
                       showUpdatedInvoice && editModeInvoice
                         ? editModeInvoice.tax
-                        : totalTax
+                        : totalTax,
                     )}
                   </span>
                 </div>
@@ -134,7 +136,7 @@ export function InvoiceSidebar({
                   {formatCurrency(
                     showUpdatedInvoice && editModeInvoice
                       ? editModeInvoice.total
-                      : invoiceTotal
+                      : invoiceTotal,
                   )}
                 </span>
               </div>
@@ -185,7 +187,9 @@ export function InvoiceSidebar({
               >
                 <Button asChild className="w-full">
                   <Link href={invoiceHref}>
-                    {effectiveStatus === "Paid" ? "View Invoice" : "Pay Invoice"}
+                    {effectiveStatus === "Paid"
+                      ? "View Invoice"
+                      : "Pay Invoice"}
                   </Link>
                 </Button>
               </WalkthroughSpotlight>
@@ -230,7 +234,9 @@ export function EditModeInvoiceSidebar({
         <Card className="border-border/70 bg-card py-6">
           <CardContent className="flex flex-col gap-4 px-6 py-0">
             <p className="label text-muted-foreground">
-              {editModeInvoice.hasChanges ? "Updated Invoice" : "Invoice Summary"}
+              {editModeInvoice.hasChanges
+                ? "Updated Invoice"
+                : "Invoice Summary"}
             </p>
 
             <div className="flex flex-col gap-4">
@@ -239,14 +245,14 @@ export function EditModeInvoiceSidebar({
                   key={item.id}
                   className={cn(
                     "flex flex-col gap-1",
-                    item.isRemoved && "opacity-50"
+                    item.isRemoved && "opacity-50",
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={cn(
                         "text-sm font-medium text-foreground",
-                        item.isRemoved && "line-through"
+                        item.isRemoved && "line-through",
                       )}
                     >
                       {item.category}
@@ -271,7 +277,7 @@ export function EditModeInvoiceSidebar({
                     <span
                       className={cn(
                         "text-sm text-muted-foreground",
-                        item.isRemoved && "line-through"
+                        item.isRemoved && "line-through",
                       )}
                     >
                       {formatCurrency(item.unit)} × {item.qty}
@@ -284,7 +290,7 @@ export function EditModeInvoiceSidebar({
                     <span
                       className={cn(
                         "text-sm text-foreground",
-                        item.isRemoved && "line-through"
+                        item.isRemoved && "line-through",
                       )}
                     >
                       {formatCurrency(item.lineTotal)}

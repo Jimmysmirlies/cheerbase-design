@@ -36,7 +36,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/shadcn/alert-dialog";
-import { Trash2Icon, PlusIcon, ChevronsUpDownIcon, CheckIcon } from "lucide-react";
+import {
+  Trash2Icon,
+  PlusIcon,
+  ChevronsUpDownIcon,
+  CheckIcon,
+} from "lucide-react";
 import { divisionFullNames } from "@/data/divisions";
 import { PricingCardGrid } from "@/components/ui/cards/PricingCard";
 import type { Event, DivisionPricing } from "@/types/events";
@@ -59,7 +64,7 @@ export type PricingSectionProps = BaseSectionProps & {
 /** Compute pricing rows from availableDivisions */
 function computePricingRows(
   divisions: DivisionPricing[] | undefined,
-  earlyBirdEnabled: boolean
+  earlyBirdEnabled: boolean,
 ): PricingRow[] {
   if (!divisions || divisions.length === 0) return [];
 
@@ -111,7 +116,7 @@ function createEmptyRow(): EditablePricingRow {
 
 function rowsToDivisions(
   rows: EditablePricingRow[],
-  earlyBirdEnabled: boolean
+  earlyBirdEnabled: boolean,
 ): DivisionPricing[] {
   return rows
     .filter((row) => row.name)
@@ -173,7 +178,7 @@ function DivisionCombobox({
                   <CheckIcon
                     className={cn(
                       "mr-2 size-4",
-                      value === division ? "opacity-100" : "opacity-0"
+                      value === division ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {division}
@@ -196,7 +201,8 @@ export function PricingSection({
   eventData,
   onUpdate,
   pricingRows: propPricingRows,
-  pricingDeadlineLabel,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  pricingDeadlineLabel: _,
   organizerGradient,
 }: PricingSectionProps) {
   const earlyBirdEnabled = eventData.earlyBirdEnabled ?? false;
@@ -205,7 +211,8 @@ export function PricingSection({
   // VIEW MODE
   if (mode === "view") {
     // Use provided rows or compute from availableDivisions
-    const rows = propPricingRows || computePricingRows(divisions, earlyBirdEnabled);
+    const rows =
+      propPricingRows || computePricingRows(divisions, earlyBirdEnabled);
 
     return (
       <PricingCardGrid
@@ -248,7 +255,10 @@ function PricingEditor({
   const registrationDeadline = parseDate(eventData.registrationDeadline);
   const earlyBirdDeadline = parseDate(eventData.earlyBirdDeadline);
 
-  const normalizedRows = useMemo(() => buildEditableRows(divisions), [divisions]);
+  const normalizedRows = useMemo(
+    () => buildEditableRows(divisions),
+    [divisions],
+  );
   const initialRowsRef = useRef<EditablePricingRow[]>(normalizedRows);
   const [rows, setRows] = useState<EditablePricingRow[]>(normalizedRows);
   const [rowToRemove, setRowToRemove] = useState<{
@@ -295,7 +305,7 @@ function PricingEditor({
         });
       }
     },
-    [divisions, onUpdate, registrationStartDate]
+    [divisions, onUpdate, registrationStartDate],
   );
 
   // Handle early bird end date change
@@ -309,7 +319,7 @@ function PricingEditor({
         onUpdate({ earlyBirdDeadline: undefined });
       }
     },
-    [onUpdate]
+    [onUpdate],
   );
 
   const handleCellChange = useCallback(
@@ -327,14 +337,17 @@ function PricingEditor({
         return next;
       });
     },
-    []
+    [],
   );
 
   const promptRemoveRow = useCallback(
     (rowIndex: number, divisionName: string) => {
-      setRowToRemove({ index: rowIndex, name: divisionName || "this division" });
+      setRowToRemove({
+        index: rowIndex,
+        name: divisionName || "this division",
+      });
     },
-    []
+    [],
   );
 
   const confirmRemoveRow = useCallback(() => {
@@ -374,7 +387,7 @@ function PricingEditor({
 
   const hasChanges = useMemo(
     () => JSON.stringify(initialRowsRef.current) !== JSON.stringify(rows),
-    [rows]
+    [rows],
   );
 
   const columns = useMemo<ColumnDef<EditablePricingRow>[]>(() => {
@@ -387,7 +400,9 @@ function PricingEditor({
           return (
             <DivisionCombobox
               value={value}
-              onChange={(newValue) => handleCellChange(row.index, "name", newValue)}
+              onChange={(newValue) =>
+                handleCellChange(row.index, "name", newValue)
+              }
             />
           );
         },
@@ -449,7 +464,7 @@ function PricingEditor({
             </Button>
           </div>
         ),
-      }
+      },
     );
 
     return cols;
@@ -469,7 +484,10 @@ function PricingEditor({
       <div className="rounded-lg border bg-muted/30 p-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="early-bird-pricing-toggle" className="text-sm font-medium">
+            <Label
+              htmlFor="early-bird-pricing-toggle"
+              className="text-sm font-medium"
+            >
               Enable Early Bird Pricing
             </Label>
             <p className="text-sm text-muted-foreground">
@@ -543,7 +561,7 @@ function PricingEditor({
         <span
           className={cn(
             "text-xs font-medium",
-            hasChanges ? "text-amber-600" : "text-muted-foreground"
+            hasChanges ? "text-amber-600" : "text-muted-foreground",
           )}
         >
           {hasChanges ? "Unsaved changes" : "All changes saved"}
@@ -580,7 +598,10 @@ function PricingEditor({
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </th>
                   ))}
                 </tr>
@@ -600,7 +621,10 @@ function PricingEditor({
                             : undefined
                         }
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -630,11 +654,16 @@ function PricingEditor({
             <AlertDialogTitle>Remove division pricing?</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to remove pricing for{" "}
-              <span className="font-medium text-foreground">{rowToRemove?.name}</span>?
+              <span className="font-medium text-foreground">
+                {rowToRemove?.name}
+              </span>
+              ?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelRemoveRow}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelRemoveRow}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmRemoveRow}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -650,7 +679,9 @@ function PricingEditor({
 
 /** Check if section has data to display */
 PricingSection.hasData = (eventData: Partial<Event>): boolean => {
-  return !!(eventData.availableDivisions && eventData.availableDivisions.length > 0);
+  return !!(
+    eventData.availableDivisions && eventData.availableDivisions.length > 0
+  );
 };
 
 /** Empty state configuration */

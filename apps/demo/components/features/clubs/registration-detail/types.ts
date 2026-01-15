@@ -1,5 +1,8 @@
 import type { BrandGradient } from "@/lib/gradients";
-import type { TeamData, TeamMember } from "@/components/features/clubs/TeamCard";
+import type {
+  TeamData,
+  TeamMember,
+} from "@/components/features/clubs/TeamCard";
 
 export type LayoutVariant = "A" | "B" | "C";
 

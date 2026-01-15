@@ -136,11 +136,19 @@ export function PageTabs({
                     )
                   : cn(
                       "relative px-1 pb-3",
-                      isActive
+                      // Only use text-foreground class when no accentColor, otherwise use inline style
+                      isActive && !accentColor
                         ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground",
+                        : !isActive
+                          ? "text-muted-foreground hover:text-foreground"
+                          : "",
                     ),
               )}
+              style={
+                !isOutline && isActive && accentColor
+                  ? { color: accentColor }
+                  : undefined
+              }
             >
               {tab.label}
             </button>

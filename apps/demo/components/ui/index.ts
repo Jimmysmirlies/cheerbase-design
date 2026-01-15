@@ -8,7 +8,10 @@ export { OrganizerGlassCard } from "./cards/OrganizerGlassCard";
 export { EventCard } from "./cards/EventCard";
 export { EventRegisteredCard } from "./cards/EventRegisteredCard";
 export { PricingCard, PricingCardGrid } from "./cards/PricingCard";
-export type { PricingCardProps, PricingCardGridProps } from "./cards/PricingCard";
+export type {
+  PricingCardProps,
+  PricingCardGridProps,
+} from "./cards/PricingCard";
 
 // Controls
 export { QuickFilterRail } from "./QuickFilterRail";
@@ -16,6 +19,10 @@ export type { QuickFilter } from "./QuickFilterRail";
 export { PageTabs } from "./PageTabs";
 export type { PageTab } from "./PageTabs";
 export { LayoutToggle } from "./LayoutToggle";
+
+// Horizontal Scroll
+export { HorizontalScrollSection, HorizontalScrollCard } from "./HorizontalScrollSection";
+export type { HorizontalScrollSectionProps, HorizontalScrollCardProps } from "./HorizontalScrollSection";
 
 // Avatars
 export { GradientAvatar } from "./GradientAvatar";

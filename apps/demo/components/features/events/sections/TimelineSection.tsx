@@ -5,7 +5,6 @@ import { DatePicker } from "@workspace/ui/shadcn/date-picker";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Switch } from "@workspace/ui/shadcn/switch";
 import { cn } from "@workspace/ui/lib/utils";
-import { brandGradients } from "@/lib/gradients";
 import type { Event } from "@/types/events";
 import type { BaseSectionProps } from "./types";
 
@@ -98,48 +97,124 @@ function TimelinePreview({
       return { id, label, date, position, isToday: id === "today" };
     });
 
-    const segments: { id: string; label: string; startPosition: number; endPosition: number; color: string }[] = [];
-    const regStartPos = ((registrationStartDate.getTime() - minDate) / range) * 100;
-    const regEndPos = ((registrationDeadline.getTime() - minDate) / range) * 100;
+    const segments: {
+      id: string;
+      label: string;
+      startPosition: number;
+      endPosition: number;
+      color: string;
+    }[] = [];
+    const regStartPos =
+      ((registrationStartDate.getTime() - minDate) / range) * 100;
+    const regEndPos =
+      ((registrationDeadline.getTime() - minDate) / range) * 100;
 
     if (earlyBirdEnabled && earlyBirdDeadline) {
-      const earlyBirdEndPos = ((earlyBirdDeadline.getTime() - minDate) / range) * 100;
-      segments.push({ id: "earlyBird", label: "Early Bird", startPosition: regStartPos, endPosition: earlyBirdEndPos, color: "earlyBird" });
-      segments.push({ id: "regular", label: "Regular", startPosition: earlyBirdEndPos, endPosition: regEndPos, color: "regular" });
+      const earlyBirdEndPos =
+        ((earlyBirdDeadline.getTime() - minDate) / range) * 100;
+      segments.push({
+        id: "earlyBird",
+        label: "Early Bird",
+        startPosition: regStartPos,
+        endPosition: earlyBirdEndPos,
+        color: "earlyBird",
+      });
+      segments.push({
+        id: "regular",
+        label: "Regular",
+        startPosition: earlyBirdEndPos,
+        endPosition: regEndPos,
+        color: "regular",
+      });
     } else {
-      segments.push({ id: "registration", label: "Registration", startPosition: regStartPos, endPosition: regEndPos, color: "regular" });
+      segments.push({
+        id: "registration",
+        label: "Registration",
+        startPosition: regStartPos,
+        endPosition: regEndPos,
+        color: "regular",
+      });
     }
 
     return { markers, segments, hasValidData: true };
-  }, [today, registrationStartDate, registrationDeadline, earlyBirdDeadline, eventDate, earlyBirdEnabled]);
+  }, [
+    today,
+    registrationStartDate,
+    registrationDeadline,
+    earlyBirdDeadline,
+    eventDate,
+    earlyBirdEnabled,
+  ]);
 
   if (!hasValidData) return null;
 
-  const formatShortDate = (date: Date) => date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const formatShortDate = (date: Date) =>
+    date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
   return (
     <div className="rounded-lg border bg-muted/20 p-4">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">Timeline Preview</p>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+        Timeline Preview
+      </p>
       <div className="relative">
         <div className="h-1 bg-border rounded-full" />
         {segments.map((segment) => (
           <div
             key={segment.id}
-            className={cn("absolute top-0 h-1 rounded-full", segment.color === "earlyBird" && "bg-amber-500", segment.color === "regular" && "bg-primary")}
-            style={{ left: `${segment.startPosition}%`, width: `${segment.endPosition - segment.startPosition}%` }}
+            className={cn(
+              "absolute top-0 h-1 rounded-full",
+              segment.color === "earlyBird" && "bg-amber-500",
+              segment.color === "regular" && "bg-primary",
+            )}
+            style={{
+              left: `${segment.startPosition}%`,
+              width: `${segment.endPosition - segment.startPosition}%`,
+            }}
           />
         ))}
         {markers.map((marker) => (
-          <div key={marker.id} className="absolute -top-1" style={{ left: `${marker.position}%`, transform: "translateX(-50%)" }}>
-            <div className={cn("size-3 rounded-full border-2 border-background", marker.isToday && "bg-foreground ring-2 ring-foreground/20", marker.id === "regStart" && "bg-primary", marker.id === "earlyBirdEnd" && "bg-amber-500", marker.id === "regEnd" && "bg-primary", marker.id === "event" && "bg-muted-foreground")} />
+          <div
+            key={marker.id}
+            className="absolute -top-1"
+            style={{
+              left: `${marker.position}%`,
+              transform: "translateX(-50%)",
+            }}
+          >
+            <div
+              className={cn(
+                "size-3 rounded-full border-2 border-background",
+                marker.isToday && "bg-foreground ring-2 ring-foreground/20",
+                marker.id === "regStart" && "bg-primary",
+                marker.id === "earlyBirdEnd" && "bg-amber-500",
+                marker.id === "regEnd" && "bg-primary",
+                marker.id === "event" && "bg-muted-foreground",
+              )}
+            />
           </div>
         ))}
       </div>
       <div className="relative mt-3 h-10">
         {markers.map((marker) => (
-          <div key={marker.id} className="absolute flex flex-col items-center" style={{ left: `${marker.position}%`, transform: "translateX(-50%)" }}>
-            <span className={cn("text-[10px] font-medium whitespace-nowrap", marker.isToday ? "text-foreground" : "text-muted-foreground")}>{marker.label}</span>
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap">{formatShortDate(marker.date)}</span>
+          <div
+            key={marker.id}
+            className="absolute flex flex-col items-center"
+            style={{
+              left: `${marker.position}%`,
+              transform: "translateX(-50%)",
+            }}
+          >
+            <span
+              className={cn(
+                "text-[10px] font-medium whitespace-nowrap",
+                marker.isToday ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {marker.label}
+            </span>
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+              {formatShortDate(marker.date)}
+            </span>
           </div>
         ))}
       </div>
@@ -155,7 +230,8 @@ export function TimelineSection({
   mode,
   eventData,
   onUpdate,
-  organizerGradient = "primary",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  organizerGradient: _ = "primary",
   timelinePhases: propTimelinePhases,
 }: TimelineSectionProps) {
   const registrationEnabled = eventData.registrationEnabled ?? false;
@@ -184,7 +260,7 @@ export function TimelineSection({
         });
       }
     },
-    [onUpdate]
+    [onUpdate],
   );
 
   // Handle registration start date change
@@ -197,7 +273,11 @@ export function TimelineSection({
         startDate.setHours(0, 0, 0, 0);
         updates.registrationStartDate = startDate.toISOString();
 
-        if (earlyBirdEnabled && earlyBirdStartDate && earlyBirdStartDate < startDate) {
+        if (
+          earlyBirdEnabled &&
+          earlyBirdStartDate &&
+          earlyBirdStartDate < startDate
+        ) {
           updates.earlyBirdStartDate = startDate.toISOString();
         }
       } else {
@@ -206,7 +286,7 @@ export function TimelineSection({
 
       onUpdate?.(updates);
     },
-    [onUpdate, earlyBirdEnabled, earlyBirdStartDate]
+    [onUpdate, earlyBirdEnabled, earlyBirdStartDate],
   );
 
   // Handle registration end date change
@@ -219,7 +299,11 @@ export function TimelineSection({
         endDate.setHours(23, 59, 59, 999);
         updates.registrationDeadline = endDate.toISOString();
 
-        if (earlyBirdEnabled && earlyBirdDeadline && earlyBirdDeadline > endDate) {
+        if (
+          earlyBirdEnabled &&
+          earlyBirdDeadline &&
+          earlyBirdDeadline > endDate
+        ) {
           updates.earlyBirdDeadline = endDate.toISOString();
         }
       } else {
@@ -228,7 +312,7 @@ export function TimelineSection({
 
       onUpdate?.(updates);
     },
-    [onUpdate, earlyBirdEnabled, earlyBirdDeadline]
+    [onUpdate, earlyBirdEnabled, earlyBirdDeadline],
   );
 
   // VIEW MODE
@@ -269,7 +353,9 @@ export function TimelineSection({
               <div className="flex items-center gap-2 flex-1">
                 <p
                   className={`body-text font-semibold ${
-                    phase.isCurrent ? "text-foreground" : "text-muted-foreground"
+                    phase.isCurrent
+                      ? "text-foreground"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {phase.title}
@@ -277,7 +363,9 @@ export function TimelineSection({
                 {phase.subtitle && (
                   <>
                     <span className="body-text text-muted-foreground">•</span>
-                    <p className="body-text text-muted-foreground">{phase.subtitle}</p>
+                    <p className="body-text text-muted-foreground">
+                      {phase.subtitle}
+                    </p>
                   </>
                 )}
               </div>

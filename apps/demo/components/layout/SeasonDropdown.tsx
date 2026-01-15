@@ -9,7 +9,6 @@ export function SeasonDropdown() {
 
   return (
     <GlassSelect
-      label="Viewing Season"
       value={selectedSeasonId}
       onValueChange={setSelectedSeasonId}
       options={seasonSelectOptions}

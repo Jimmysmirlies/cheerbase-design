@@ -46,7 +46,10 @@ function computeDateParts(dateString?: string) {
     month: date.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
     day: date.getDate().toString(),
     weekday: date.toLocaleDateString("en-US", { weekday: "long" }),
-    fullDate: date.toLocaleDateString("en-US", { day: "numeric", month: "long" }),
+    fullDate: date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+    }),
   };
 }
 
@@ -80,7 +83,9 @@ export function DateTimeSection({
 
       return {
         original: scheduleDay,
-        month: date.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+        month: date
+          .toLocaleDateString("en-US", { month: "short" })
+          .toUpperCase(),
         day: date.getDate().toString(),
         weekday: date.toLocaleDateString("en-US", { weekday: "long" }),
         fullDate: date.toLocaleDateString("en-US", {
@@ -93,7 +98,8 @@ export function DateTimeSection({
 
   const gradient = brandGradients[organizerGradient];
   const gradientCss = gradient.css;
-  const firstGradientColor = gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
+  const firstGradientColor =
+    gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
 
   // VIEW MODE
   if (mode === "view") {
@@ -132,7 +138,8 @@ export function DateTimeSection({
                 </span>
                 <span className="body-small text-muted-foreground flex items-center gap-1.5">
                   <ClockIcon className="size-4" />
-                  {scheduleDay.original.startTime} - {scheduleDay.original.endTime}
+                  {scheduleDay.original.startTime} -{" "}
+                  {scheduleDay.original.endTime}
                 </span>
               </div>
             </div>
@@ -178,8 +185,8 @@ export function DateTimeSection({
           </span>
           <span className="text-sm text-muted-foreground flex items-center gap-1.5">
             <ClockIcon className="size-4" />
-            {eventData.startTime || "8:00 AM"} - {eventData.endTime || "6:00 PM"}{" "}
-            {eventData.timezone || "EST"}
+            {eventData.startTime || "8:00 AM"} -{" "}
+            {eventData.endTime || "6:00 PM"} {eventData.timezone || "EST"}
           </span>
         </div>
       </div>
@@ -208,9 +215,12 @@ export function DateTimeSection({
     onUpdate?.({ schedule: updated });
   };
 
-  const handleUpdateDay = (index: number, updates: Partial<EventScheduleDay>) => {
+  const handleUpdateDay = (
+    index: number,
+    updates: Partial<EventScheduleDay>,
+  ) => {
     const updated = scheduleData.map((day, i) =>
-      i === index ? { ...day, ...updates } : day
+      i === index ? { ...day, ...updates } : day,
     );
     onUpdate?.({ schedule: updated });
   };
@@ -220,7 +230,9 @@ export function DateTimeSection({
       {scheduleData.map((day, index) => (
         <div key={index} className="rounded-lg border border-border/60 p-4">
           <div className="flex items-center justify-between mb-4">
-            <span className="body-text text-muted-foreground">Day {index + 1}</span>
+            <span className="body-text text-muted-foreground">
+              Day {index + 1}
+            </span>
             {scheduleData.length > 1 && (
               <Button
                 variant="ghost"
@@ -239,7 +251,9 @@ export function DateTimeSection({
               <Input
                 type="date"
                 value={day.date}
-                onChange={(e) => handleUpdateDay(index, { date: e.target.value })}
+                onChange={(e) =>
+                  handleUpdateDay(index, { date: e.target.value })
+                }
                 className="w-full"
               />
             </div>
@@ -247,7 +261,9 @@ export function DateTimeSection({
               <Label>Label (optional)</Label>
               <Input
                 value={day.label}
-                onChange={(e) => handleUpdateDay(index, { label: e.target.value })}
+                onChange={(e) =>
+                  handleUpdateDay(index, { label: e.target.value })
+                }
                 placeholder="e.g., Preliminary Rounds"
                 className="w-full"
               />
@@ -261,7 +277,9 @@ export function DateTimeSection({
                 <Input
                   type="time"
                   value={day.startTime}
-                  onChange={(e) => handleUpdateDay(index, { startTime: e.target.value })}
+                  onChange={(e) =>
+                    handleUpdateDay(index, { startTime: e.target.value })
+                  }
                   className="w-full pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                   style={{ colorScheme: "light" }}
                 />
@@ -274,7 +292,9 @@ export function DateTimeSection({
                 <Input
                   type="time"
                   value={day.endTime}
-                  onChange={(e) => handleUpdateDay(index, { endTime: e.target.value })}
+                  onChange={(e) =>
+                    handleUpdateDay(index, { endTime: e.target.value })
+                  }
                   className="w-full pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                   style={{ colorScheme: "light" }}
                 />
@@ -299,7 +319,11 @@ export function DateTimeSection({
 
 /** Check if section has data to display */
 DateTimeSection.hasData = (eventData: Partial<Event>): boolean => {
-  return !!eventData.date || (eventData.schedule && eventData.schedule.length > 0) || false;
+  return (
+    !!eventData.date ||
+    (eventData.schedule && eventData.schedule.length > 0) ||
+    false
+  );
 };
 
 /** Empty state configuration */

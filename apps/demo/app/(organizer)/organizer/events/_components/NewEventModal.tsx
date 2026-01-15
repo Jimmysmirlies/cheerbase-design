@@ -102,7 +102,9 @@ export function NewEventModal({
               label="Event Type"
               value={newEventType}
               onValueChange={(value) =>
-                setNewEventType(value as "Championship" | "Friendly Competition")
+                setNewEventType(
+                  value as "Championship" | "Friendly Competition",
+                )
               }
               options={[
                 { value: "Championship", label: "Championship" },

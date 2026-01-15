@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/cards/EventRegisteredCard";
 import { CardSkeleton } from "@/components/ui";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { type BrandGradient } from "@/lib/gradients";
+import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useClubData } from "@/hooks/useClubData";
@@ -130,6 +130,7 @@ export default function ClubRegistrationsPage() {
             readOnly={isHistoricalSeason}
             selectedSeasonId={selectedSeasonId}
             onSelectSeason={setSelectedSeasonId}
+            clubGradient={clubGradient}
           />
         </motion.div>
       </div>
@@ -194,12 +195,14 @@ function RegistrationsContent({
   readOnly,
   selectedSeasonId,
   onSelectSeason,
+  clubGradient,
 }: {
   userId?: string;
   season: SeasonOption;
   readOnly: boolean;
   selectedSeasonId: string;
   onSelectSeason: (seasonId: string) => void;
+  clubGradient?: BrandGradient;
 }) {
   // DATA PIPELINE — "Command Center": pull club data, then memoize categorized + sectioned outputs
   const { data, loading, error } = useClubData(userId);
@@ -400,6 +403,9 @@ function RegistrationsContent({
             value={allEventsBucket}
             onValueChange={(value) =>
               setAllEventsBucket(value as "upcoming" | "past")
+            }
+            accentColor={
+              clubGradient ? getGradientStartColor(clubGradient) : undefined
             }
           />
         </motion.div>

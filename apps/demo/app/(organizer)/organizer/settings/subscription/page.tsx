@@ -27,11 +27,10 @@ import { useOrganizerGradient } from "@/hooks/useGradientSettings";
 
 export default function SubscriptionPage() {
   const router = useRouter();
-  const {
-    organizerId,
-    isLoading: organizerLoading,
-  } = useOrganizer();
-  const { gradient: organizerGradient } = useOrganizerGradient(organizerId ?? undefined);
+  const { organizerId, isLoading: organizerLoading } = useOrganizer();
+  const { gradient: organizerGradient } = useOrganizerGradient(
+    organizerId ?? undefined,
+  );
 
   // Get gradient styling for active card
   const gradientConfig = brandGradients[organizerGradient || "teal"];
@@ -203,75 +202,75 @@ export default function SubscriptionPage() {
                           </div>
                         </div>
                       )}
-                    <CardHeader className="relative z-10 p-6 pb-0">
-                      <div className="flex items-center gap-2">
-                        {isPro && (
-                          <SparklesIcon
-                            className="size-5"
-                            style={{ color: firstGradientColor }}
-                          />
-                        )}
-                        <CardTitle className="text-lg">{plan.name}</CardTitle>
-                      </div>
-                      <CardDescription>
-                        <span className="text-3xl font-bold text-foreground">
-                          {formatPlanPrice(plan)}
-                        </span>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="relative z-10 flex flex-1 flex-col space-y-6 p-6">
-                      {/* Features */}
-                      <ul className="space-y-3">
-                        {plan.features.map((feature, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start gap-2 text-sm"
-                          >
-                            <CheckIcon
-                              className="mt-0.5 size-4 shrink-0"
+                      <CardHeader className="relative z-10 p-6 pb-0">
+                        <div className="flex items-center gap-2">
+                          {isPro && (
+                            <SparklesIcon
+                              className="size-5"
                               style={{ color: firstGradientColor }}
                             />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
+                          )}
+                          <CardTitle className="text-lg">{plan.name}</CardTitle>
+                        </div>
+                        <CardDescription>
+                          <span className="text-3xl font-bold text-foreground">
+                            {formatPlanPrice(plan)}
+                          </span>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="relative z-10 flex flex-1 flex-col space-y-6 p-6">
+                        {/* Features */}
+                        <ul className="space-y-3">
+                          {plan.features.map((feature, index) => (
+                            <li
+                              key={index}
+                              className="flex items-start gap-2 text-sm"
+                            >
+                              <CheckIcon
+                                className="mt-0.5 size-4 shrink-0"
+                                style={{ color: firstGradientColor }}
+                              />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
 
-                      {/* Spacer to push button to bottom */}
-                      <div className="flex-1" />
+                        {/* Spacer to push button to bottom */}
+                        <div className="flex-1" />
 
-                      {/* Action button */}
-                      {isCurrentPlan ? (
-                        <Button
-                          className="w-full gap-2"
-                          variant="outline"
-                          disabled
-                          style={{
-                            borderColor: `${firstGradientColor}50`,
-                            color: firstGradientColor,
-                          }}
-                        >
-                          <CheckIcon className="size-4" />
-                          Current Plan
-                        </Button>
-                      ) : isPro ? (
-                        <Button
-                          className="w-full gap-2 text-white"
-                          style={{ backgroundImage: gradientCss }}
-                          onClick={() => handlePlanChange(plan.id)}
-                        >
-                          <SparklesIcon className="size-4" />
-                          Upgrade to Pro
-                        </Button>
-                      ) : (
-                        <Button
-                          className="w-full gap-2"
-                          variant="secondary"
-                          onClick={() => handlePlanChange(plan.id)}
-                        >
-                          Downgrade to Free
-                        </Button>
-                      )}
-                    </CardContent>
+                        {/* Action button */}
+                        {isCurrentPlan ? (
+                          <Button
+                            className="w-full gap-2"
+                            variant="outline"
+                            disabled
+                            style={{
+                              borderColor: `${firstGradientColor}50`,
+                              color: firstGradientColor,
+                            }}
+                          >
+                            <CheckIcon className="size-4" />
+                            Current Plan
+                          </Button>
+                        ) : isPro ? (
+                          <Button
+                            className="w-full gap-2 text-white"
+                            style={{ backgroundImage: gradientCss }}
+                            onClick={() => handlePlanChange(plan.id)}
+                          >
+                            <SparklesIcon className="size-4" />
+                            Upgrade to Pro
+                          </Button>
+                        ) : (
+                          <Button
+                            className="w-full gap-2"
+                            variant="secondary"
+                            onClick={() => handlePlanChange(plan.id)}
+                          >
+                            Downgrade to Free
+                          </Button>
+                        )}
+                      </CardContent>
                     </div>
                   </div>
                 );
@@ -294,9 +293,9 @@ export default function SubscriptionPage() {
                     </p>
                     <p>
                       <strong className="text-foreground">Platform fee:</strong>{" "}
-                      All plans include a {Math.round(PLATFORM_TAKE_RATE * 100)}%
-                      platform fee on each registration, which is deducted from
-                      your revenue (clubs don&apos;t see this fee).
+                      All plans include a {Math.round(PLATFORM_TAKE_RATE * 100)}
+                      % platform fee on each registration, which is deducted
+                      from your revenue (clubs don&apos;t see this fee).
                     </p>
                     {subscription.renewsAt && (
                       <p>

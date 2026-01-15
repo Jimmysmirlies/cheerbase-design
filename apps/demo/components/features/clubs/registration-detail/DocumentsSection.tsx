@@ -38,7 +38,12 @@ export function DocumentsSection({ documents }: DocumentsSectionProps) {
                     </p>
                   </div>
                 </div>
-                <Button asChild variant="outline" size="sm" className="shrink-0">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                >
                   <Link href={doc.href}>Download</Link>
                 </Button>
               </div>

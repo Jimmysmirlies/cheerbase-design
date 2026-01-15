@@ -67,7 +67,7 @@ type EventEditorContextValue = {
 };
 
 const EventEditorContext = createContext<EventEditorContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 type EventEditorProviderProps = {
@@ -98,7 +98,7 @@ export function EventEditorProvider({
 
   // Track current event ID (may change on first save in create mode)
   const [currentEventId, setCurrentEventId] = useState<string | undefined>(
-    initialEventId
+    initialEventId,
   );
 
   // Check if event was previously published (from storage or initial data)
@@ -173,26 +173,29 @@ export function EventEditorProvider({
   const canDelete = (!isPublished || isCancelled) && !hasRegistrations;
 
   // Field name mapping for display
-  const fieldDisplayNames: Record<string, string> = {
-    name: "Event Title",
-    description: "Description",
-    date: "Event Date",
-    location: "Location",
-    venue: "Venue",
-    registrationStartDate: "Registration Opens",
-    registrationDeadline: "Registration Closes",
-    registrationEnabled: "Registration",
-    earlyBirdEnabled: "Early Bird Pricing",
-    earlyBirdDeadline: "Early Bird Deadline",
-    earlyBirdDiscount: "Early Bird Discount",
-    availableDivisions: "Division Pricing",
-    gallery: "Gallery",
-    image: "Cover Image",
-    documents: "Documents",
-    status: "Status",
-    visibility: "Visibility",
-    slots: "Team Capacity",
-  };
+  const fieldDisplayNames: Record<string, string> = useMemo(
+    () => ({
+      name: "Event Title",
+      description: "Description",
+      date: "Event Date",
+      location: "Location",
+      venue: "Venue",
+      registrationStartDate: "Registration Opens",
+      registrationDeadline: "Registration Closes",
+      registrationEnabled: "Registration",
+      earlyBirdEnabled: "Early Bird Pricing",
+      earlyBirdDeadline: "Early Bird Deadline",
+      earlyBirdDiscount: "Early Bird Discount",
+      availableDivisions: "Division Pricing",
+      gallery: "Gallery",
+      image: "Cover Image",
+      documents: "Documents",
+      status: "Status",
+      visibility: "Visibility",
+      slots: "Team Capacity",
+    }),
+    [],
+  );
 
   // Format value for display
   const formatValueForDisplay = useCallback(
@@ -254,7 +257,7 @@ export function EventEditorProvider({
       }
       return strValue;
     },
-    []
+    [],
   );
 
   // Update event data
@@ -271,7 +274,9 @@ export function EventEditorProvider({
 
             // Only track if value actually changed
             if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
-              const existingIndex = updatedLog.findIndex((c) => c.field === key);
+              const existingIndex = updatedLog.findIndex(
+                (c) => c.field === key,
+              );
               const formattedNew = formatValueForDisplay(key, newValue);
 
               if (existingIndex >= 0) {
@@ -300,7 +305,7 @@ export function EventEditorProvider({
 
           // Filter out changes where old and new are the same (reverted changes)
           return updatedLog.filter(
-            (change) => change.oldValue !== change.newValue
+            (change) => change.oldValue !== change.newValue,
           );
         });
 
@@ -309,7 +314,7 @@ export function EventEditorProvider({
 
       setIsDirty(true);
     },
-    [formatValueForDisplay]
+    [formatValueForDisplay, fieldDisplayNames],
   );
 
   // Save a section (or any partial update)
@@ -353,7 +358,7 @@ export function EventEditorProvider({
       isPublished,
       saveDraft,
       router,
-    ]
+    ],
   );
 
   // Publish the event
@@ -462,14 +467,7 @@ export function EventEditorProvider({
 
     toast.success("Event cancelled. Registered attendees will be notified.");
     router.push("/organizer/events");
-  }, [
-    currentEventId,
-    canCancel,
-    eventData,
-    saveDraft,
-    deleteDraft,
-    router,
-  ]);
+  }, [currentEventId, canCancel, eventData, saveDraft, deleteDraft, router]);
 
   // Delete event - permanently removes
   const deleteEventAction = useCallback(() => {
@@ -530,7 +528,7 @@ export function EventEditorProvider({
       canUnpublish,
       canCancel,
       canDelete,
-    ]
+    ],
   );
 
   return (

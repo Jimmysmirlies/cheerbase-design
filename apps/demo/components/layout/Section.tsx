@@ -2,6 +2,8 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@workspace/ui/lib/utils";
+import { useEventSection } from "@/components/features/events/EventSectionContext";
+import { getGradientStartColor } from "@/lib/gradients";
 
 type SectionProps = {
   /** Section title */
@@ -42,6 +44,25 @@ export function Section({
   titleIcon,
   className,
 }: SectionProps) {
+  const { activeSection, gradient } = useEventSection();
+  const isActive = id ? activeSection === id : false;
+  const dotColor = getGradientStartColor(gradient);
+
+  const TitleContent = (
+    <>
+      {titleIcon}
+      {title}
+    </>
+  );
+
+  // Active dot indicator - shown to the right of the title with pulse animation
+  const ActiveDot = isActive ? (
+    <span
+      className="ml-3 size-2 shrink-0 animate-pulse rounded-full"
+      style={{ backgroundColor: dotColor }}
+    />
+  ) : null;
+
   return (
     <div id={id} className={className}>
       {showDivider && <div className="h-px w-full bg-border" />}
@@ -52,12 +73,12 @@ export function Section({
             <div className="flex flex-col gap-1">
               <p
                 className={cn(
-                  "heading-4",
-                  titleIcon && "flex items-center gap-2",
+                  "heading-4 flex items-center",
+                  titleIcon && "gap-2",
                 )}
               >
-                {titleIcon}
-                {title}
+                {TitleContent}
+                {ActiveDot}
               </p>
               {description && (
                 <p className="body-text text-muted-foreground">{description}</p>
@@ -69,12 +90,12 @@ export function Section({
           <div className="flex flex-col gap-1">
             <p
               className={cn(
-                "heading-4",
-                titleIcon && "flex items-center gap-2",
+                "heading-4 flex items-center",
+                titleIcon && "gap-2",
               )}
             >
-              {titleIcon}
-              {title}
+              {TitleContent}
+              {ActiveDot}
             </p>
             {description && (
               <p className="body-text text-muted-foreground">{description}</p>

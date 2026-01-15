@@ -3,7 +3,11 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeftIcon, ChevronRightIcon, HelpCircleIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  HelpCircleIcon,
+} from "lucide-react";
 
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -95,7 +99,9 @@ export function Sidebar({
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto">
             {navSections.map((section, index) => (
-              <div key={section.label ?? section.nickname ?? `section-${index}`}>
+              <div
+                key={section.label ?? section.nickname ?? `section-${index}`}
+              >
                 {section.label && (
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
                     {section.label}
@@ -275,7 +281,10 @@ export function Sidebar({
                       {buttonContent}
                     </Link>
                   ) : (
-                    <div className={buttonClasses} aria-disabled={item.disabled}>
+                    <div
+                      className={buttonClasses}
+                      aria-disabled={item.disabled}
+                    >
                       {buttonContent}
                     </div>
                   )}

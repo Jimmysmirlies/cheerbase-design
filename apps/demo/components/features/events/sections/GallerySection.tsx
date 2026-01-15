@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Label } from "@workspace/ui/shadcn/label";
 import { ImageIcon, XIcon, UploadIcon } from "lucide-react";
@@ -23,7 +23,7 @@ export function GallerySection({
   onUpdate,
   galleryImages: propGalleryImages,
 }: GallerySectionProps) {
-  const gallery = eventData.gallery || [];
+  const gallery = useMemo(() => eventData.gallery || [], [eventData.gallery]);
   const [isDragging, setIsDragging] = useState(false);
 
   // Use provided gallery images or fall back to event data
@@ -46,7 +46,7 @@ export function GallerySection({
         onUpdate?.({ gallery: [...gallery, ...newImages] });
       }
     },
-    [gallery, onUpdate]
+    [gallery, onUpdate],
   );
 
   const handleDrop = useCallback(
@@ -55,7 +55,7 @@ export function GallerySection({
       setIsDragging(false);
       handleFileSelect(e.dataTransfer.files);
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -72,7 +72,7 @@ export function GallerySection({
       const updated = gallery.filter((_, i) => i !== index);
       onUpdate?.({ gallery: updated });
     },
-    [gallery, onUpdate]
+    [gallery, onUpdate],
   );
 
   const moveImage = useCallback(
@@ -83,7 +83,7 @@ export function GallerySection({
       updated.splice(toIndex, 0, moved);
       onUpdate?.({ gallery: updated });
     },
-    [gallery, onUpdate]
+    [gallery, onUpdate],
   );
 
   // VIEW MODE

@@ -86,10 +86,9 @@ export function EditModeMobileStickyBar({
   removedTeamsCount,
   onSubmit,
 }: EditModeMobileStickyBarProps) {
-  const changesDescription =
-    editModeInvoice.hasChanges
-      ? `${addedTeamsCount > 0 ? `+${addedTeamsCount} added` : ""}${addedTeamsCount > 0 && removedTeamsCount > 0 ? ", " : ""}${removedTeamsCount > 0 ? `${removedTeamsCount} removed` : ""}`
-      : "Review changes before submitting";
+  const changesDescription = editModeInvoice.hasChanges
+    ? `${addedTeamsCount > 0 ? `+${addedTeamsCount} added` : ""}${addedTeamsCount > 0 && removedTeamsCount > 0 ? ", " : ""}${removedTeamsCount > 0 ? `${removedTeamsCount} removed` : ""}`
+    : "Review changes before submitting";
 
   return (
     <>
@@ -100,7 +99,9 @@ export function EditModeMobileStickyBar({
               {editModeInvoice.hasChanges ? "New Total: " : "Total: "}
               {formatCurrency(editModeInvoice.total)}
             </p>
-            <p className="text-xs text-muted-foreground">{changesDescription}</p>
+            <p className="text-xs text-muted-foreground">
+              {changesDescription}
+            </p>
           </div>
           <Button
             size="sm"

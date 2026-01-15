@@ -84,6 +84,21 @@ export type RegistrationTableRow = {
   invoiceTotal: number;
 };
 
+export type InvoiceHistoryEntry = {
+  id: string;
+  invoiceNumber: string;
+  teamName: string;
+  teamId: string;
+  clubOwner: string;
+  eventName: string;
+  eventId: string;
+  changeDate: Date;
+  changeDateFormatted: string;
+  paidByOrganizer: string;
+  paymentNote: string;
+  status: RegistrationStatus;
+};
+
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -457,4 +472,54 @@ export function formatCurrency(amount: number): string {
  */
 export function formatPercentage(value: number): string {
   return `${value.toFixed(1)}%`;
+}
+
+/**
+ * Get invoice history entries for an organizer (payments and changes)
+ * Returns entries sorted by change date (newest first)
+ */
+export function getInvoiceHistory(organizerId: string): InvoiceHistoryEntry[] {
+  const registrations = getOrganizerRegistrations(organizerId);
+
+  // Build team lookup
+  const teamMap = new Map(demoTeams.map((t) => [t.id, t]));
+
+  // Filter to only paid registrations (they have history)
+  const paidRegistrations = registrations.filter(
+    (reg) => reg.status === "paid" && reg.paidAt,
+  );
+
+  const entries: InvoiceHistoryEntry[] = paidRegistrations.map((reg) => {
+    const team = teamMap.get(reg.teamId);
+    const changeDate = new Date(reg.paidAt!);
+
+    // Generate invoice number
+    const invoiceNumber = formatInvoiceNumber(reg.id, reg.eventId);
+
+    return {
+      id: reg.id,
+      invoiceNumber,
+      teamName: team?.name ?? reg.teamId,
+      teamId: reg.teamId,
+      clubOwner: reg.clubOwner ?? "Unknown",
+      eventName: reg.eventName,
+      eventId: reg.eventId,
+      changeDate,
+      changeDateFormatted: changeDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      paidByOrganizer: reg.paidByOrganizer ?? "Unknown",
+      paymentNote: reg.paymentNote ?? "",
+      status: "paid" as RegistrationStatus,
+    };
+  });
+
+  // Sort by change date (newest first)
+  entries.sort((a, b) => b.changeDate.getTime() - a.changeDate.getTime());
+
+  return entries;
 }

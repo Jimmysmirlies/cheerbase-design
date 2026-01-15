@@ -5,6 +5,8 @@ import { Section } from "@/components/layout/Section";
 import { InlineEditCard } from "@/components/features/events/editor/InlineEditCard";
 import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
 import { inlineExpandCollapse, fadeInUp } from "@/lib/animations";
+import { useEventSection } from "@/components/features/events/EventSectionContext";
+import { getGradientStartColor } from "@/lib/gradients";
 import type { SectionWrapperProps } from "./types";
 
 /**
@@ -28,6 +30,10 @@ export function SectionWrapper({
   emptyState,
   hasData,
 }: SectionWrapperProps) {
+  const { activeSection, gradient } = useEventSection();
+  const isActive = id ? activeSection === id : false;
+  const dotColor = getGradientStartColor(gradient);
+
   // Pure view mode (no edit capability)
   if (!onStartEdit) {
     // In view-only mode, hide empty sections entirely
@@ -35,12 +41,25 @@ export function SectionWrapper({
 
     return (
       <motion.div variants={fadeInUp}>
-        <Section id={id} title={title} titleRight={titleRight} showDivider={showDivider}>
+        <Section
+          id={id}
+          title={title}
+          titleRight={titleRight}
+          showDivider={showDivider}
+        >
           {viewContent}
         </Section>
       </motion.div>
     );
   }
+
+  // Active dot indicator - shown to the right of the title with pulse animation
+  const ActiveDot = isActive ? (
+    <span
+      className="ml-3 size-2 shrink-0 animate-pulse rounded-full"
+      style={{ backgroundColor: dotColor }}
+    />
+  ) : null;
 
   // Editable mode - matches Section component layout (py-8 gap-6)
   return (
@@ -50,7 +69,10 @@ export function SectionWrapper({
 
         <div className="flex flex-col gap-6 py-8">
           <div className="flex items-center justify-between">
-            <p className="heading-4">{title}</p>
+            <p className="heading-4 flex items-center">
+              {title}
+              {ActiveDot}
+            </p>
             {titleRight}
             {!isEditing && (
               <button
@@ -88,16 +110,14 @@ export function SectionWrapper({
           {/* View content or Empty state */}
           {!isEditing && (
             <>
-              {hasData ? (
-                viewContent
-              ) : (
-                emptyState || (
-                  <EmptyStateButton
-                    title={`Add ${title.toLowerCase()}`}
-                    description={`Configure ${title.toLowerCase()} for your event`}
-                  />
-                )
-              )}
+              {hasData
+                ? viewContent
+                : emptyState || (
+                    <EmptyStateButton
+                      title={`Add ${title.toLowerCase()}`}
+                      description={`Configure ${title.toLowerCase()} for your event`}
+                    />
+                  )}
             </>
           )}
         </div>

@@ -95,14 +95,14 @@ export function EventSettingsSidebar({
     (date: Date | undefined) => {
       updateEventData({ registrationStartDate: formatDateToISO(date) });
     },
-    [updateEventData]
+    [updateEventData],
   );
 
   const handleRegistrationEndChange = useCallback(
     (date: Date | undefined) => {
       updateEventData({ registrationDeadline: formatDateToISO(date) });
     },
-    [updateEventData]
+    [updateEventData],
   );
 
   const handleCapacityChange = useCallback(
@@ -115,7 +115,7 @@ export function EventSettingsSidebar({
         },
       });
     },
-    [eventData.slots?.filled, updateEventData]
+    [eventData.slots?.filled, updateEventData],
   );
 
   // Shared danger zone content
@@ -267,7 +267,7 @@ export function EventSettingsSidebar({
         <aside
           className={cn(
             "flex h-full shrink-0 flex-col border-l border-sidebar-border bg-sidebar transition-[width] duration-200 ease-out",
-            collapsed ? "w-14" : "w-80"
+            collapsed ? "w-14" : "w-80",
           )}
         >
           {/* Toggle button */}
@@ -309,7 +309,7 @@ export function EventSettingsSidebar({
           <div
             className={cn(
               "flex flex-1 flex-col space-y-6 overflow-y-auto p-6 pt-2 transition-opacity duration-200",
-              collapsed ? "pointer-events-none opacity-0" : "opacity-100"
+              collapsed ? "pointer-events-none opacity-0" : "opacity-100",
             )}
           >
             {/* Registration Section */}

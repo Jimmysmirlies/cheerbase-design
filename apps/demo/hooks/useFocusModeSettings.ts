@@ -13,7 +13,8 @@ const defaultSettings: FocusModeSettings = {
 };
 
 export function useFocusModeSettings() {
-  const [settings, setSettingsState] = useState<FocusModeSettings>(defaultSettings);
+  const [settings, setSettingsState] =
+    useState<FocusModeSettings>(defaultSettings);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Load from localStorage on mount

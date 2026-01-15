@@ -3,15 +3,19 @@ import { ColorSwatch } from "@workspace/ui/components/color-swatch";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 const gradientUsage: Record<BrandGradient, string> = {
-  primary: "Default brand gradient. Featured content, primary headers, hero sections.",
+  primary:
+    "Default brand gradient. Featured content, primary headers, hero sections.",
   teal: "Fresh, modern accents. Health, wellness, or secondary brand moments.",
   blue: "Trust and stability. Informational content, links, professional contexts.",
-  mustard: "Warmth and energy. Highlights, warnings (non-destructive), premium tiers.",
+  mustard:
+    "Warmth and energy. Highlights, warnings (non-destructive), premium tiers.",
   red: "Passion and urgency. Featured events, competition highlights, deadlines.",
   orange: "Enthusiasm and creativity. Call-to-actions, promotional content.",
-  green: "Success and growth. Confirmations, positive metrics, eco-friendly themes.",
+  green:
+    "Success and growth. Confirmations, positive metrics, eco-friendly themes.",
   indigo: "Depth and sophistication. Premium features, advanced settings.",
-  purple: "Creativity and luxury. Special events, VIP content, unique offerings.",
+  purple:
+    "Creativity and luxury. Special events, VIP content, unique offerings.",
 };
 
 const colors = [
@@ -198,8 +202,7 @@ export default function ColorsPage() {
               {(Object.keys(brandGradients) as BrandGradient[]).map((key) => {
                 const gradient = brandGradients[key];
                 // Extract hex colors from the CSS gradient string
-                const hexColors =
-                  gradient.css.match(/#[0-9A-Fa-f]{6}/g) || [];
+                const hexColors = gradient.css.match(/#[0-9A-Fa-f]{6}/g) || [];
 
                 return (
                   <article key={key} className="flex flex-col gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { MapPinIcon } from "lucide-react";
 import { Input } from "@workspace/ui/shadcn/input";
@@ -103,13 +103,17 @@ export function LocationSection({
   cityState: propCityState,
 }: LocationSectionProps) {
   // Parse location data
-  const venue = eventData.venue || {
-    streetAddress: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "United States",
-  };
+  const venue = useMemo(
+    () =>
+      eventData.venue || {
+        streetAddress: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "United States",
+      },
+    [eventData.venue],
+  );
   const location = eventData.location || "";
   const locationParts = location.split(", ");
   const venueName = propVenueName || venue.name || locationParts[0] || location;
@@ -139,7 +143,7 @@ export function LocationSection({
         location: locationString,
       });
     },
-    [venue, onUpdate]
+    [venue, onUpdate],
   );
 
   // VIEW MODE
@@ -156,7 +160,9 @@ export function LocationSection({
           <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
             <MapPinIcon className="size-5 text-primary" />
           </div>
-          <span className="text-sm font-medium text-foreground">{venueName}</span>
+          <span className="text-sm font-medium text-foreground">
+            {venueName}
+          </span>
         </Link>
         {/* Venue info */}
         <div className="flex flex-col gap-0.5">
@@ -244,7 +250,9 @@ export function LocationSection({
             id="zip-code"
             value={venue.zipCode || ""}
             onChange={(e) => updateVenue({ zipCode: e.target.value })}
-            placeholder={venue.country === "Canada" ? "Postal code" : "Zip code"}
+            placeholder={
+              venue.country === "Canada" ? "Postal code" : "Zip code"
+            }
             className="w-full"
           />
         </div>

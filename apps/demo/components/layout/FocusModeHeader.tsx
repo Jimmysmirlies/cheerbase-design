@@ -20,7 +20,12 @@ type FocusModeHeaderProps = {
   title?: string;
 };
 
-export function FocusModeHeader({ backHref, onBack, onOpenMobileSettings, title = "Event Editor" }: FocusModeHeaderProps) {
+export function FocusModeHeader({
+  backHref,
+  onBack,
+  onOpenMobileSettings,
+  title = "Event Editor",
+}: FocusModeHeaderProps) {
   const { organizer } = useOrganizer();
   const gradientCss = organizer?.gradient
     ? brandGradients[organizer.gradient]?.css
@@ -41,7 +46,12 @@ export function FocusModeHeader({ backHref, onBack, onOpenMobileSettings, title 
               <ArrowLeftIcon className="size-4" />
             </Button>
           ) : backHref ? (
-            <Button variant="ghost" size="icon" className="-ml-2 h-10 w-10" asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-ml-2 h-10 w-10"
+              asChild
+            >
               <Link href={backHref}>
                 <ArrowLeftIcon className="size-4" />
               </Link>

@@ -30,6 +30,9 @@ export type Registration = {
   registrationDeadline?: string; // ISO string in demo
   status?: "pending" | "paid";
   paidAt?: string;
+  paidByOrganizer?: string; // Name of organizer who marked as paid
+  paymentNote?: string; // Note provided when marking paid
+  clubOwner?: string; // Club owner name for this registration
   submittedAt?: string; // ISO string - when registration was submitted
   snapshotTakenAt?: string;
   snapshotSourceTeamId?: string;

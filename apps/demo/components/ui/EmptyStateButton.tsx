@@ -114,10 +114,7 @@ export function EmptyStateButton({
   if (!isInteractive) {
     return (
       <div
-        className={cn(
-          "relative rounded-md p-8 text-left w-full",
-          className,
-        )}
+        className={cn("relative rounded-md p-8 text-left w-full", className)}
       >
         {content}
       </div>

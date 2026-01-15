@@ -12,8 +12,8 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-export const divisionCategories: RegistrationDivisionCategory[] = divisionCatalog.map(
-  (category) => {
+export const divisionCategories: RegistrationDivisionCategory[] =
+  divisionCatalog.map((category) => {
     const divisions = category.tiers.flatMap((tier) =>
       tier.levels.map((level) => `${tier.name} - ${level}`),
     );
@@ -23,8 +23,7 @@ export const divisionCategories: RegistrationDivisionCategory[] = divisionCatalo
       label: category.name,
       divisions,
     };
-  },
-);
+  });
 
 export const allDivisions = divisionCategories.flatMap((category) =>
   category.divisions.map((division) => `${category.label} - ${division}`),

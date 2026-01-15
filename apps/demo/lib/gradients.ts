@@ -87,3 +87,13 @@ export const noiseTexture =
  */
 export const noiseTextureLight =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7 0.7' numOctaves='3' stitchTiles='stitch' seed='4313'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E\")";
+
+/**
+ * Extract the first (left-most) color from a gradient's CSS string
+ */
+export function getGradientStartColor(key: BrandGradient): string {
+  const gradient = brandGradients[key];
+  // Match the first hex color in the CSS gradient string
+  const match = gradient.css.match(/#[0-9A-Fa-f]{6}/);
+  return match ? match[0] : "#000000";
+}

@@ -11,7 +11,8 @@ export type ResultsSectionProps = Omit<BaseSectionProps, "onUpdate">;
  * ResultsSection displays event results and leaderboard.
  * This section is currently view-only (not editable).
  */
-export function ResultsSection({ mode }: ResultsSectionProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function ResultsSection(_: ResultsSectionProps) {
   // Results section is always the same regardless of mode
   // (not currently editable)
   return (
@@ -33,7 +34,8 @@ export function ResultsSection({ mode }: ResultsSectionProps) {
 }
 
 /** Check if section has data to display - always show results section */
-ResultsSection.hasData = (_eventData: Partial<Event>): boolean => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ResultsSection.hasData = (_: Partial<Event>): boolean => {
   return true; // Results section always shows (even if just "Coming soon")
 };
 

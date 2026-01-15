@@ -72,6 +72,7 @@ apps/demo/
 Create a subfolder when you have **4+ related files**. Use these patterns:
 
 **Page-specific components** - Use `_components/` convention:
+
 ```
 app/(organizer)/organizer/events/
 ├── page.tsx                    # Main page (orchestration only)
@@ -84,6 +85,7 @@ app/(organizer)/organizer/events/
 ```
 
 **Feature components** - Use kebab-case folder names:
+
 ```
 components/features/clubs/
 ├── registration-detail/        # Complex feature with 4+ files
@@ -101,6 +103,7 @@ components/features/clubs/
 ```
 
 **Layout components** - Use kebab-case folder names:
+
 ```
 components/layout/
 ├── NavBar.tsx                  # Main component (imports from subfolder)
@@ -149,6 +152,7 @@ components/ui/
 ```
 
 **Rules:**
+
 - Single components stay at UI root (not in subfolders)
 - Use `index.ts` for barrel exports
 - Export types alongside components
@@ -182,6 +186,7 @@ data/
 ### Import Patterns
 
 Prefer importing from barrel exports:
+
 ```typescript
 // Good - use barrel export
 import { demoTeams, getEventsByOrganizerId } from "@/data";
@@ -220,6 +225,7 @@ hooks/
 ### Hook Patterns
 
 **Settings hooks** - Use generic base with convenience wrappers:
+
 ```typescript
 // Generic hook
 export function useGradientSettings(options: GradientSettingsOptions) { ... }
@@ -243,6 +249,7 @@ export function useClubGradient(clubId: string | undefined) {
 ```
 
 **Storage hooks** - Pair state with localStorage:
+
 ```typescript
 export function useOrganizerLayout() {
   const [layout, setLayoutState] = useState<"A" | "B">("A");
@@ -287,15 +294,15 @@ types/
 
 ### Files and Folders
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `EventCard.tsx` |
-| Hooks | camelCase with `use` prefix | `useOrganizer.ts` |
-| Utilities | camelCase | `formatCurrency.ts` |
-| Types | camelCase | `types/club.ts` |
-| Folders | kebab-case | `nav-bar-components/` |
-| Page folders | kebab-case | `registration-detail/` |
-| Private folders | `_` prefix | `_components/` |
+| Type            | Convention                  | Example                |
+| --------------- | --------------------------- | ---------------------- |
+| Components      | PascalCase                  | `EventCard.tsx`        |
+| Hooks           | camelCase with `use` prefix | `useOrganizer.ts`      |
+| Utilities       | camelCase                   | `formatCurrency.ts`    |
+| Types           | camelCase                   | `types/club.ts`        |
+| Folders         | kebab-case                  | `nav-bar-components/`  |
+| Page folders    | kebab-case                  | `registration-detail/` |
+| Private folders | `_` prefix                  | `_components/`         |
 
 ### Component Names
 
@@ -468,11 +475,13 @@ Teams use a row-based layout similar to registration flows:
 ### Creating Reusable Components
 
 1. **Determine location:**
+
    - `ui/` - Generic, reusable across features
    - `features/{feature}/` - Specific to one feature area
    - `layout/` - Page structure components
 
 2. **File organization:**
+
    - Single file if < 300 lines
    - Create subfolder if 4+ related components
    - Always include barrel export (`index.ts`)
@@ -488,6 +497,7 @@ When a file exceeds 500-800 lines:
 
 1. Create a subfolder with the component name (kebab-case)
 2. Extract into focused files:
+
    - `types.ts` - Shared types and interfaces
    - `use{Feature}.ts` - Custom hook for complex state logic
    - `{Section}Section.tsx` - Logical UI sections

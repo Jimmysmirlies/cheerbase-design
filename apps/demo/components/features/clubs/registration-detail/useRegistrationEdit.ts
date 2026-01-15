@@ -81,7 +81,7 @@ export function useRegistrationEdit({
   // Convert array back to Map for easier lookups (original teams)
   const originalTeamsByDivision = useMemo(
     () => new Map<string, RegisteredTeamData[]>(teamsByDivisionArray),
-    [teamsByDivisionArray]
+    [teamsByDivisionArray],
   );
 
   // Merge original teams (minus removed) with added teams, applying roster modifications
@@ -169,7 +169,7 @@ export function useRegistrationEdit({
     addedTeams.forEach((team) => {
       // Look up pricing for this team's division
       const divisionPriceInfo = divisionPricing.find(
-        (d) => d.name === team.division
+        (d) => d.name === team.division,
       );
       const unitPrice =
         divisionPriceInfo?.regular?.price ??
@@ -193,7 +193,7 @@ export function useRegistrationEdit({
     const activeItems = items.filter((item) => !item.isRemoved);
     const newSubtotal = activeItems.reduce(
       (sum, item) => sum + item.lineTotal,
-      0
+      0,
     );
     const taxRate = subtotal > 0 ? totalTax / subtotal : 0.15;
     const newTax = newSubtotal * taxRate;
@@ -266,14 +266,14 @@ export function useRegistrationEdit({
         `${newTeams.length} team${newTeams.length === 1 ? "" : "s"} imported`,
         {
           description: `${duplicateCount} duplicate${duplicateCount === 1 ? " was" : "s were"} skipped.`,
-        }
+        },
       );
     } else {
       toast.success(
         `${newTeams.length} team${newTeams.length === 1 ? "" : "s"} imported`,
         {
           description: "Teams have been added to your registration.",
-        }
+        },
       );
     }
 
@@ -363,7 +363,7 @@ export function useRegistrationEdit({
 
   // Convert team members to RegistrationMember format for editor
   const getTeamMembersForEditor = (
-    team: RegisteredTeamData | null
+    team: RegisteredTeamData | null,
   ): RegistrationMember[] => {
     if (!team?.members) return [];
     return team.members.map((m) => {
@@ -383,7 +383,7 @@ export function useRegistrationEdit({
 
   const handleSaveRoster = (
     team: RegisteredTeamData,
-    members: RegistrationMember[]
+    members: RegistrationMember[],
   ) => {
     // Convert RegistrationMember[] to TeamMember[]
     const updatedMembers: TeamMember[] = members.map((m, idx) => ({
@@ -402,8 +402,8 @@ export function useRegistrationEdit({
     if (isAddedTeam) {
       setAddedTeams((prev) =>
         prev.map((t) =>
-          t.id === team.id ? { ...t, members: updatedMembers } : t
-        )
+          t.id === team.id ? { ...t, members: updatedMembers } : t,
+        ),
       );
     } else {
       setModifiedRosters((prev) => {

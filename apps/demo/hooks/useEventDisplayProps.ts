@@ -55,14 +55,16 @@ export type EventDisplayProps = {
  */
 export function useEventDisplayProps(
   eventData: Partial<Event>,
-  organizerGradient: BrandGradient = "teal"
+  organizerGradient: BrandGradient = "teal",
 ): EventDisplayProps {
   return useMemo(() => {
     // Gallery images
     const galleryImages = eventData.gallery || [];
 
     // Date computation
-    const competitionDate = eventData.date ? new Date(eventData.date) : new Date();
+    const competitionDate = eventData.date
+      ? new Date(eventData.date)
+      : new Date();
     const isValidDate = !isNaN(competitionDate.getTime());
 
     const eventDateParts: EventDateParts = isValidDate
@@ -71,7 +73,9 @@ export function useEventDisplayProps(
             .toLocaleDateString("en-US", { month: "short" })
             .toUpperCase(),
           day: competitionDate.getDate().toString(),
-          weekday: competitionDate.toLocaleDateString("en-US", { weekday: "long" }),
+          weekday: competitionDate.toLocaleDateString("en-US", {
+            weekday: "long",
+          }),
           fullDate: competitionDate.toLocaleDateString("en-US", {
             day: "numeric",
             month: "long",
@@ -239,7 +243,9 @@ export function useEventDisplayProps(
     const pricingRows: PricingRow[] = divisionsForPricing.map((division) => ({
       label: division.name,
       subtitle: "",
-      before: formatAmount(division.earlyBird?.price ?? division.regular?.price ?? null),
+      before: formatAmount(
+        division.earlyBird?.price ?? division.regular?.price ?? null,
+      ),
       after: formatAmount(division.regular?.price ?? null),
     }));
 

@@ -49,7 +49,7 @@ export function IconBox({
         sizeClasses[size],
         iconSizeClasses[size],
         !gradient && "bg-muted text-muted-foreground",
-        className
+        className,
       )}
       style={
         gradient && primaryColor

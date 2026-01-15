@@ -29,7 +29,10 @@ import { motion } from "framer-motion";
 
 import { OrganizerEventActionBar } from "@/components/features/events/OrganizerEventActionBar";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { type BrandGradient, brandGradients } from "@/lib/gradients";
+import {
+  type BrandGradient,
+  getGradientStartColor,
+} from "@/lib/gradients";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import {
   DataTable,
@@ -713,7 +716,7 @@ export function OrganizerEventDetailContent({
           activeTab={activeTab}
           onTabChange={setActiveTab}
           variant="unstyled"
-          accentColor={brandGradients[gradientKey]?.css}
+          accentColor={getGradientStartColor(gradientKey)}
         />
       </div>
 
@@ -733,7 +736,6 @@ export function OrganizerEventDetailContent({
             organizerFollowers={organizerFollowers}
             organizerEventsCount={organizerEventsCount}
             organizerHostingDuration={organizerHostingDuration}
-            layout="A"
             hideRegistration
             displayProps={{
               galleryImages,

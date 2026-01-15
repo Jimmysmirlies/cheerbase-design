@@ -21,6 +21,7 @@ import {
   LogOutIcon,
   LayoutDashboardIcon,
   CalendarIcon,
+  PaletteIcon,
 } from "lucide-react";
 
 import { AuthSignUp } from "@/components/features/auth/AuthSignUp";
@@ -77,6 +78,11 @@ export function NavBarAuthMenu({
                   onClick: () => router.push("/organizer/events"),
                 },
               ]),
+          {
+            label: "Style Guide",
+            icon: PaletteIcon,
+            onClick: () => router.push("/style-guide"),
+          },
           {
             label: "Sign out",
             icon: LogOutIcon,
@@ -155,6 +161,14 @@ export function NavBarAuthMenu({
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push("/style-guide")}
+                aria-label="Style Guide"
+              >
+                <PaletteIcon className="size-5" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"

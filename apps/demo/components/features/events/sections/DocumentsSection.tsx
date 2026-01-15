@@ -48,7 +48,7 @@ export function DocumentsSection({
         onUpdate?.({ documents: [...currentDocs, ...newDocs] });
       }
     },
-    [eventData.documents, onUpdate]
+    [eventData.documents, onUpdate],
   );
 
   const handleDrop = useCallback(
@@ -57,7 +57,7 @@ export function DocumentsSection({
       setIsDragging(false);
       handleFileSelect(e.dataTransfer.files);
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -73,11 +73,11 @@ export function DocumentsSection({
     (index: number, updates: Partial<EventDocument>) => {
       const currentDocs = eventData.documents || [];
       const updated = currentDocs.map((doc, i) =>
-        i === index ? { ...doc, ...updates } : doc
+        i === index ? { ...doc, ...updates } : doc,
       );
       onUpdate?.({ documents: updated });
     },
-    [eventData.documents, onUpdate]
+    [eventData.documents, onUpdate],
   );
 
   const removeDocument = useCallback(
@@ -86,7 +86,7 @@ export function DocumentsSection({
       const updated = currentDocs.filter((_, i) => i !== index);
       onUpdate?.({ documents: updated });
     },
-    [eventData.documents, onUpdate]
+    [eventData.documents, onUpdate],
   );
 
   // VIEW MODE
