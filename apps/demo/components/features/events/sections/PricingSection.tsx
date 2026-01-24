@@ -10,9 +10,6 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
-import { Label } from "@workspace/ui/shadcn/label";
-import { Switch } from "@workspace/ui/shadcn/switch";
-import { DatePicker } from "@workspace/ui/shadcn/date-picker";
 import {
   Popover,
   PopoverContent,
@@ -41,9 +38,12 @@ import {
   PlusIcon,
   ChevronsUpDownIcon,
   CheckIcon,
+  SparklesIcon,
+  Settings2Icon,
 } from "lucide-react";
 import { divisionFullNames } from "@/data/divisions";
 import { PricingCardGrid } from "@/components/ui/cards/PricingCard";
+import { useFocusModeSettings } from "@/hooks/useFocusModeSettings";
 import type { Event, DivisionPricing } from "@/types/events";
 import type { BaseSectionProps } from "./types";
 
@@ -90,12 +90,6 @@ type EditablePricingRow = {
 };
 
 const ACTIONS_COLUMN_WIDTH = 56;
-
-function parseDate(dateString: string | undefined): Date | undefined {
-  if (!dateString) return undefined;
-  const date = new Date(dateString);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
 
 function buildEditableRows(divisions: DivisionPricing[]): EditablePricingRow[] {
   if (!divisions?.length) return [];
@@ -200,6 +194,7 @@ export function PricingSection({
   mode,
   eventData,
   onUpdate,
+  onCloseEdit,
   pricingRows: propPricingRows,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   pricingDeadlineLabel: _,
@@ -232,6 +227,7 @@ export function PricingSection({
     <PricingEditor
       eventData={eventData}
       onUpdate={onUpdate!}
+      onCloseEdit={onCloseEdit}
       earlyBirdEnabled={earlyBirdEnabled}
       divisions={divisions}
     />
@@ -242,18 +238,17 @@ export function PricingSection({
 function PricingEditor({
   eventData,
   onUpdate,
+  onCloseEdit,
   earlyBirdEnabled,
   divisions,
 }: {
   eventData: Partial<Event>;
   onUpdate: (updates: Partial<Event>) => void;
+  onCloseEdit?: () => void;
   earlyBirdEnabled: boolean;
   divisions: DivisionPricing[];
 }) {
-  // Parse dates
-  const registrationStartDate = parseDate(eventData.registrationStartDate);
-  const registrationDeadline = parseDate(eventData.registrationDeadline);
-  const earlyBirdDeadline = parseDate(eventData.earlyBirdDeadline);
+  const { setSidebarOpen, requestMobileSheetOpen } = useFocusModeSettings();
 
   const normalizedRows = useMemo(
     () => buildEditableRows(divisions),
@@ -283,44 +278,12 @@ function PricingEditor({
     }
   }, [rows, earlyBirdEnabled, onUpdate, eventData.availableDivisions]);
 
-  // Toggle early bird
-  const handleToggleEarlyBird = useCallback(
-    (enabled: boolean) => {
-      if (enabled) {
-        const updates: Partial<Event> = { earlyBirdEnabled: true };
-        if (registrationStartDate) {
-          updates.earlyBirdStartDate = registrationStartDate.toISOString();
-        }
-        onUpdate(updates);
-      } else {
-        const updatedDivisions = divisions.map((div) => ({
-          ...div,
-          earlyBird: undefined,
-        }));
-        onUpdate({
-          earlyBirdEnabled: false,
-          earlyBirdStartDate: undefined,
-          earlyBirdDeadline: undefined,
-          availableDivisions: updatedDivisions,
-        });
-      }
-    },
-    [divisions, onUpdate, registrationStartDate],
-  );
-
-  // Handle early bird end date change
-  const handleEarlyBirdEndChange = useCallback(
-    (date: Date | undefined) => {
-      if (date) {
-        const endDate = new Date(date);
-        endDate.setHours(23, 59, 59, 999);
-        onUpdate({ earlyBirdDeadline: endDate.toISOString() });
-      } else {
-        onUpdate({ earlyBirdDeadline: undefined });
-      }
-    },
-    [onUpdate],
-  );
+  const handleOpenSettings = useCallback(() => {
+    // Close the edit card and open the settings sidebar (or mobile sheet)
+    onCloseEdit?.();
+    setSidebarOpen(true);
+    requestMobileSheetOpen();
+  }, [onCloseEdit, setSidebarOpen, requestMobileSheetOpen]);
 
   const handleCellChange = useCallback(
     (rowIndex: number, columnId: keyof EditablePricingRow, value: string) => {
@@ -480,57 +443,45 @@ function PricingEditor({
 
   return (
     <div className="flex flex-col gap-4 pt-2">
-      {/* Early Bird Toggle */}
-      <div className="rounded-lg border bg-muted/30 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <Label
-              htmlFor="early-bird-pricing-toggle"
-              className="text-sm font-medium"
-            >
-              Enable Early Bird Pricing
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Offer discounted prices before a deadline
-            </p>
-          </div>
-          <Switch
-            id="early-bird-pricing-toggle"
-            checked={earlyBirdEnabled}
-            onCheckedChange={handleToggleEarlyBird}
-          />
-        </div>
-
-        {earlyBirdEnabled && (
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex flex-col gap-2">
-              <Label className="text-sm">Early Bird End Date</Label>
-              <DatePicker
-                date={earlyBirdDeadline}
-                onDateChange={handleEarlyBirdEndChange}
-                placeholder="Select end date"
-                fromDate={registrationStartDate}
-                toDate={registrationDeadline}
-              />
-              <p className="text-xs text-muted-foreground">
-                Early bird pricing starts when registration opens
-                {registrationStartDate && (
-                  <>
-                    {" "}
-                    (
-                    {registrationStartDate.toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                    )
-                  </>
-                )}
+      {/* Early Bird Notice - shown when not enabled */}
+      {!earlyBirdEnabled && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-800/50 dark:bg-amber-900/20">
+          <SparklesIcon className="mt-0.5 size-5 shrink-0 text-amber-500" />
+          <div className="flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <p className="body-small font-medium text-amber-900 dark:text-amber-100">
+                Want to offer early bird pricing?
+              </p>
+              <p className="body-small text-amber-700 dark:text-amber-300">
+                Enable early bird pricing in Event Settings to add discounted
+                rates for teams that register before a deadline.
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-fit border-amber-300 bg-white text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-900/50"
+              onClick={handleOpenSettings}
+            >
+              <Settings2Icon className="mr-2 size-4" />
+              Open Event Settings
+            </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Early Bird Active indicator - shown when enabled */}
+      {earlyBirdEnabled && (
+        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50/50 px-4 py-3 dark:border-green-800/50 dark:bg-green-900/20">
+          <SparklesIcon className="size-4 text-green-600 dark:text-green-400" />
+          <p className="body-small font-medium text-green-800 dark:text-green-200">
+            Early bird pricing is enabled
+          </p>
+          <span className="body-small text-green-600 dark:text-green-400">
+            — Set discounted prices in the Early Bird column below
+          </span>
+        </div>
+      )}
 
       {/* Action Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">

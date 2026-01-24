@@ -36,7 +36,7 @@ export function PricingBreakdownCard({
   ...panelProps
 }: PricingBreakdownCardProps) {
   return (
-    <Card className={cn("rounded-3xl p-6 shadow-sm", className)}>
+    <Card className={cn("rounded-3xl p-6", className)}>
       <PricingBreakdownPanel {...panelProps} />
       {children ? <div>{children}</div> : null}
     </Card>

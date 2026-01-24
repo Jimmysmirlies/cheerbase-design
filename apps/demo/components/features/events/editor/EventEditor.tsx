@@ -19,6 +19,7 @@ import { UnifiedEventDetailBody } from "@/components/features/events/UnifiedEven
 import { EventTitleHeader } from "@/components/features/events/EventTitleHeader";
 import { EventSettingsSidebar } from "./EventSettingsSidebar";
 import { UnsavedChangesModal } from "./UnsavedChangesModal";
+import { ChangeHistoryBar } from "./ChangeHistoryBar";
 
 export function EventEditor() {
   const router = useRouter();
@@ -27,13 +28,17 @@ export function EventEditor() {
     updateEventData,
     saveSection,
     publishEvent,
+    discardChanges,
     organizerGradient,
     isPublished,
     isPublishing,
     isDirty,
+    changeLog,
+    hasUnpublishedChanges,
   } = useEventEditor();
 
-  const { sidebarOpen, toggleSidebar, isHydrated } = useFocusModeSettings();
+  const { sidebarOpen, toggleSidebar, isHydrated, MOBILE_SHEET_EVENT } =
+    useFocusModeSettings();
 
   // Compute display props for WYSIWYG preview
   const displayProps = useEventDisplayProps(eventData, organizerGradient);
@@ -63,12 +68,20 @@ export function EventEditor() {
     return () => mediaQuery.removeListener(handleChange);
   }, []);
 
-  const handleSave = useCallback(
-    async (updates: Partial<typeof eventData>) => {
-      await saveSection(updates);
-    },
-    [saveSection],
-  );
+  // Listen for mobile sheet open requests from other components
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleMobileSheetRequest = () => {
+      if (isMobile) {
+        setMobileSheetOpen(true);
+      }
+    };
+
+    window.addEventListener(MOBILE_SHEET_EVENT, handleMobileSheetRequest);
+    return () =>
+      window.removeEventListener(MOBILE_SHEET_EVENT, handleMobileSheetRequest);
+  }, [isMobile, MOBILE_SHEET_EVENT]);
 
   const handlePublish = useCallback(() => {
     publishEvent();
@@ -115,12 +128,22 @@ export function EventEditor() {
         gradient={organizerGradient}
         badge={
           isPublished ? (
-            <Badge
-              variant="outline"
-              className="border-green-500 text-green-600"
-            >
-              Published
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-green-500 text-green-600"
+              >
+                Published
+              </Badge>
+              {hasUnpublishedChanges && (
+                <Badge
+                  variant="outline"
+                  className="border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-300"
+                >
+                  Unpublished Changes
+                </Badge>
+              )}
+            </div>
           ) : (
             <Badge variant="outline" className="text-muted-foreground">
               Draft
@@ -158,10 +181,14 @@ export function EventEditor() {
           <main className="p-8">
             <section className="mx-auto w-full max-w-7xl">
               {headerContent}
+              <ChangeHistoryBar
+                changes={changeLog}
+                onDiscard={discardChanges}
+                gradient={organizerGradient}
+              />
               <UnifiedEventDetailBody
                 eventData={eventData}
                 onUpdate={updateEventData}
-                onSave={handleSave}
                 organizerGradient={organizerGradient}
                 editable
                 hideRegistration
@@ -189,10 +216,14 @@ export function EventEditor() {
           <main className="p-8">
             <section className="mx-auto w-full max-w-7xl">
               {headerContent}
+              <ChangeHistoryBar
+                changes={changeLog}
+                onDiscard={discardChanges}
+                gradient={organizerGradient}
+              />
               <UnifiedEventDetailBody
                 eventData={eventData}
                 onUpdate={updateEventData}
-                onSave={handleSave}
                 organizerGradient={organizerGradient}
                 editable
                 hideRegistration

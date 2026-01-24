@@ -125,13 +125,13 @@ export function RegisterTeamModal({
           <div
             className={cn(
               "h-1.5 flex-1 rounded-full transition-colors",
-              step >= 1 ? "bg-primary" : "bg-muted"
+              step >= 1 ? "bg-primary" : "bg-muted",
             )}
           />
           <div
             className={cn(
               "h-1.5 flex-1 rounded-full transition-colors",
-              step >= 2 ? "bg-primary" : "bg-muted"
+              step >= 2 ? "bg-primary" : "bg-muted",
             )}
           />
         </div>
@@ -139,7 +139,9 @@ export function RegisterTeamModal({
         {/* Step 1: Division Selection */}
         {step === 1 && (
           <div className="space-y-3 pt-0">
-            <label className="label text-muted-foreground">Select Division</label>
+            <label className="label text-muted-foreground">
+              Select Division
+            </label>
             <div className="flex flex-wrap gap-3 pt-2">
               {divisions.map((div) => {
                 const teamsInDivision = divisionTeamsMap.get(div) ?? [];
@@ -210,7 +212,11 @@ export function RegisterTeamModal({
                 <ArrowLeftIcon className="size-4" />
                 Back
               </Button>
-              <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+              >
                 Add Team
               </Button>
             </>
@@ -243,7 +249,8 @@ function DivisionBadge({
         selected
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-background hover:border-primary/40 hover:bg-muted/50",
-        disabled && "cursor-not-allowed opacity-40 hover:border-border hover:bg-background",
+        disabled &&
+          "cursor-not-allowed opacity-40 hover:border-border hover:bg-background",
       )}
     >
       {division}

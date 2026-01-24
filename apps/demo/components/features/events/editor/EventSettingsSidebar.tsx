@@ -1,18 +1,20 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   XIcon,
   Settings2Icon,
   EyeOffIcon,
   XCircleIcon,
   Trash2Icon,
+  SparklesIcon,
 } from "lucide-react";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Separator } from "@workspace/ui/shadcn/separator";
 import { DatePicker } from "@workspace/ui/shadcn/date-picker";
 import { Button } from "@workspace/ui/shadcn/button";
+import { Switch } from "@workspace/ui/shadcn/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -118,6 +120,50 @@ export function EventSettingsSidebar({
     [eventData.slots?.filled, updateEventData],
   );
 
+  // Early bird handlers
+  const earlyBirdEnabled = eventData.earlyBirdEnabled ?? false;
+  const registrationStartDate = parseDate(eventData.registrationStartDate);
+  const registrationDeadline = parseDate(eventData.registrationDeadline);
+  const earlyBirdDeadline = parseDate(eventData.earlyBirdDeadline);
+
+  const handleToggleEarlyBird = useCallback(
+    (enabled: boolean) => {
+      if (enabled) {
+        const updates: Partial<typeof eventData> = { earlyBirdEnabled: true };
+        if (registrationStartDate) {
+          updates.earlyBirdStartDate = registrationStartDate.toISOString();
+        }
+        updateEventData(updates);
+      } else {
+        // When disabling, clear early bird prices from divisions
+        const updatedDivisions = eventData.availableDivisions?.map((div) => ({
+          ...div,
+          earlyBird: undefined,
+        }));
+        updateEventData({
+          earlyBirdEnabled: false,
+          earlyBirdStartDate: undefined,
+          earlyBirdDeadline: undefined,
+          availableDivisions: updatedDivisions,
+        });
+      }
+    },
+    [eventData.availableDivisions, updateEventData, registrationStartDate],
+  );
+
+  const handleEarlyBirdEndChange = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        const endDate = new Date(date);
+        endDate.setHours(23, 59, 59, 999);
+        updateEventData({ earlyBirdDeadline: endDate.toISOString() });
+      } else {
+        updateEventData({ earlyBirdDeadline: undefined });
+      }
+    },
+    [updateEventData],
+  );
+
   // Shared danger zone content
   const dangerZoneContent = (
     <div className="space-y-4">
@@ -134,7 +180,7 @@ export function EventSettingsSidebar({
             Unpublish Event
           </Button>
           {!canUnpublish && hasRegistrations && (
-            <p className="text-xs text-muted-foreground">
+            <p className="body-small text-muted-foreground">
               Cannot unpublish events with registrations
             </p>
           )}
@@ -153,7 +199,7 @@ export function EventSettingsSidebar({
             <XCircleIcon className="mr-2 size-4" />
             Cancel Event
           </Button>
-          <p className="text-xs text-muted-foreground">
+          <p className="body-small text-muted-foreground">
             {hasRegistrations
               ? "Attendees will be notified of cancellation"
               : "Mark event as cancelled"}
@@ -173,7 +219,7 @@ export function EventSettingsSidebar({
           Delete Event
         </Button>
         {!canDelete && (
-          <p className="text-xs text-muted-foreground">
+          <p className="body-small text-muted-foreground">
             {isPublished && !isCancelled
               ? "Cancel or unpublish before deleting"
               : hasRegistrations
@@ -315,13 +361,13 @@ export function EventSettingsSidebar({
             {/* Registration Section */}
             <div className="space-y-4">
               <h3 className="heading-3">Event Settings</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="body-small text-muted-foreground">
                 Configure when registration opens and closes. This does not
                 affect the event date.
               </p>
 
               <div className="space-y-2">
-                <Label className="text-sm">Opens</Label>
+                <Label className="body-small">Opens</Label>
                 <DatePicker
                   date={parseDate(eventData.registrationStartDate)}
                   onDateChange={handleRegistrationStartChange}
@@ -331,7 +377,7 @@ export function EventSettingsSidebar({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm">Closes</Label>
+                <Label className="body-small">Closes</Label>
                 <DatePicker
                   date={parseDate(eventData.registrationDeadline)}
                   onDateChange={handleRegistrationEndChange}
@@ -341,7 +387,7 @@ export function EventSettingsSidebar({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm">Team Capacity</Label>
+                <Label className="body-small">Team Capacity</Label>
                 <Input
                   type="number"
                   min={0}
@@ -350,6 +396,63 @@ export function EventSettingsSidebar({
                   placeholder="Unlimited"
                 />
               </div>
+            </div>
+
+            <Separator />
+
+            {/* Early Bird Pricing Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <SparklesIcon className="size-4 text-amber-500" />
+                <h3 className="heading-4">Early Bird Pricing</h3>
+              </div>
+              <p className="body-small text-muted-foreground">
+                Offer discounted prices to encourage early registration.
+              </p>
+
+              <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+                <div className="flex flex-col gap-0.5">
+                  <Label
+                    htmlFor="early-bird-toggle"
+                    className="body-small font-medium"
+                  >
+                    Enable Early Bird
+                  </Label>
+                </div>
+                <Switch
+                  id="early-bird-toggle"
+                  checked={earlyBirdEnabled}
+                  onCheckedChange={handleToggleEarlyBird}
+                />
+              </div>
+
+              {earlyBirdEnabled && (
+                <div className="space-y-2">
+                  <Label className="body-small">Ends On</Label>
+                  <DatePicker
+                    date={earlyBirdDeadline}
+                    onDateChange={handleEarlyBirdEndChange}
+                    placeholder="Select end date"
+                    fromDate={registrationStartDate}
+                    toDate={registrationDeadline}
+                  />
+                  <p className="body-small text-muted-foreground">
+                    Early bird pricing starts when registration opens
+                    {registrationStartDate && (
+                      <>
+                        {" "}
+                        (
+                        {registrationStartDate.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                        )
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Spacer to push danger zone to bottom */}
@@ -373,13 +476,13 @@ export function EventSettingsSidebar({
         {/* Registration Section */}
         <div className="space-y-4">
           <h3 className="heading-3">Event Settings</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="body-small text-muted-foreground">
             Configure when registration opens and closes. This does not affect
             the event date.
           </p>
 
           <div className="space-y-2">
-            <Label className="text-sm">Opens</Label>
+            <Label className="body-small">Opens</Label>
             <DatePicker
               date={parseDate(eventData.registrationStartDate)}
               onDateChange={handleRegistrationStartChange}
@@ -389,7 +492,7 @@ export function EventSettingsSidebar({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm">Closes</Label>
+            <Label className="body-small">Closes</Label>
             <DatePicker
               date={parseDate(eventData.registrationDeadline)}
               onDateChange={handleRegistrationEndChange}
@@ -399,7 +502,7 @@ export function EventSettingsSidebar({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm">Team Capacity</Label>
+            <Label className="body-small">Team Capacity</Label>
             <Input
               type="number"
               min={0}
@@ -408,6 +511,63 @@ export function EventSettingsSidebar({
               placeholder="Unlimited"
             />
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Early Bird Pricing Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <SparklesIcon className="size-4 text-amber-500" />
+            <h3 className="heading-4">Early Bird Pricing</h3>
+          </div>
+          <p className="body-small text-muted-foreground">
+            Offer discounted prices to encourage early registration.
+          </p>
+
+          <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+            <div className="flex flex-col gap-0.5">
+              <Label
+                htmlFor="early-bird-toggle-mobile"
+                className="body-small font-medium"
+              >
+                Enable Early Bird
+              </Label>
+            </div>
+            <Switch
+              id="early-bird-toggle-mobile"
+              checked={earlyBirdEnabled}
+              onCheckedChange={handleToggleEarlyBird}
+            />
+          </div>
+
+          {earlyBirdEnabled && (
+            <div className="space-y-2">
+              <Label className="body-small">Ends On</Label>
+              <DatePicker
+                date={earlyBirdDeadline}
+                onDateChange={handleEarlyBirdEndChange}
+                placeholder="Select end date"
+                fromDate={registrationStartDate}
+                toDate={registrationDeadline}
+              />
+              <p className="body-small text-muted-foreground">
+                Early bird pricing starts when registration opens
+                {registrationStartDate && (
+                  <>
+                    {" "}
+                    (
+                    {registrationStartDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                    )
+                  </>
+                )}
+              </p>
+            </div>
+          )}
         </div>
 
         <Separator />

@@ -523,8 +523,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Summer Series"],
         gallery: getLocalGalleryImages("spring-regional"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 108, deadline: "2026-04-15" }, regular: { price: 128 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 50, deadline: "2026-04-15" }, regular: { price: 68 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 108, deadline: "2026-04-15" },
+            regular: { price: 128 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 50, deadline: "2026-04-15" },
+            regular: { price: 68 },
+          },
         ],
       },
       {
@@ -551,8 +559,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Fall Kickoff"],
         gallery: getLocalGalleryImages("southwest-showdown"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 105, deadline: "2026-07-20" }, regular: { price: 125 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 48, deadline: "2026-07-20" }, regular: { price: 65 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 105, deadline: "2026-07-20" },
+            regular: { price: 125 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 48, deadline: "2026-07-20" },
+            regular: { price: 65 },
+          },
         ],
       },
       {
@@ -580,8 +596,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Nationals Qualifier"],
         gallery: getLocalGalleryImages("pacific-prestige"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 120, deadline: "2026-09-01" }, regular: { price: 140 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 55, deadline: "2026-09-01" }, regular: { price: 75 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 120, deadline: "2026-09-01" },
+            regular: { price: 140 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 55, deadline: "2026-09-01" },
+            regular: { price: 75 },
+          },
         ],
       },
       {
@@ -608,8 +632,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Spring Series"],
         gallery: getLocalGalleryImages("pacific-prestige"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 100, deadline: "2026-01-15" }, regular: { price: 120 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 45, deadline: "2026-01-15" }, regular: { price: 60 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 100, deadline: "2026-01-15" },
+            regular: { price: 120 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 45, deadline: "2026-01-15" },
+            regular: { price: 60 },
+          },
         ],
       },
       {
@@ -631,13 +663,20 @@ export const eventCategories: EventCategory[] = [
           filled: 22,
           capacity: 35,
         },
-        description:
-          "Northern California's premier spring championship event.",
+        description: "Northern California's premier spring championship event.",
         tags: ["Regional Championship"],
         gallery: getLocalGalleryImages("pacific-prestige"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 110, deadline: "2026-03-24" }, regular: { price: 130 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 52, deadline: "2026-03-24" }, regular: { price: 70 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 110, deadline: "2026-03-24" },
+            regular: { price: 130 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 52, deadline: "2026-03-24" },
+            regular: { price: 70 },
+          },
         ],
       },
       {
@@ -664,8 +703,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Winter Series"],
         gallery: getLocalGalleryImages("metro-finals"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 108, deadline: "2025-12-22" }, regular: { price: 128 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 50, deadline: "2025-12-22" }, regular: { price: 68 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 108, deadline: "2025-12-22" },
+            regular: { price: 128 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 50, deadline: "2025-12-22" },
+            regular: { price: 68 },
+          },
         ],
       },
       {
@@ -692,8 +739,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Invitational"],
         gallery: getLocalGalleryImages("metro-finals"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 102, deadline: "2026-02-05" }, regular: { price: 122 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 46, deadline: "2026-02-05" }, regular: { price: 64 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 102, deadline: "2026-02-05" },
+            regular: { price: 122 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 46, deadline: "2026-02-05" },
+            regular: { price: 64 },
+          },
         ],
       },
       {
@@ -720,8 +775,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Summer Showcase"],
         gallery: getLocalGalleryImages("metro-finals"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 105, deadline: "2026-04-28" }, regular: { price: 125 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 48, deadline: "2026-04-28" }, regular: { price: 66 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 105, deadline: "2026-04-28" },
+            regular: { price: 125 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 48, deadline: "2026-04-28" },
+            regular: { price: 66 },
+          },
         ],
       },
       {
@@ -749,8 +812,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Season Finale"],
         gallery: getLocalGalleryImages("summer-series"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 115, deadline: "2026-09-22" }, regular: { price: 135 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 54, deadline: "2026-09-22" }, regular: { price: 72 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 115, deadline: "2026-09-22" },
+            regular: { price: 135 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 54, deadline: "2026-09-22" },
+            regular: { price: 72 },
+          },
         ],
       },
       {
@@ -777,8 +848,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Texas Circuit"],
         gallery: getLocalGalleryImages("summer-series"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 100, deadline: "2026-01-08" }, regular: { price: 120 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 45, deadline: "2026-01-08" }, regular: { price: 62 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 100, deadline: "2026-01-08" },
+            regular: { price: 120 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 45, deadline: "2026-01-08" },
+            regular: { price: 62 },
+          },
         ],
       },
       {
@@ -805,8 +884,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Gulf Coast"],
         gallery: getLocalGalleryImages("summer-series"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 112, deadline: "2026-03-10" }, regular: { price: 132 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 52, deadline: "2026-03-10" }, regular: { price: 70 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 112, deadline: "2026-03-10" },
+            regular: { price: 132 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 52, deadline: "2026-03-10" },
+            regular: { price: 70 },
+          },
         ],
       },
       {
@@ -834,8 +921,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Flagship Event"],
         gallery: getLocalGalleryImages("atlantic-showdown"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 125, deadline: "2026-08-18" }, regular: { price: 145 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 58, deadline: "2026-08-18" }, regular: { price: 78 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 125, deadline: "2026-08-18" },
+            regular: { price: 145 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 58, deadline: "2026-08-18" },
+            regular: { price: 78 },
+          },
         ],
       },
       {
@@ -857,13 +952,20 @@ export const eventCategories: EventCategory[] = [
           filled: 14,
           capacity: 26,
         },
-        description:
-          "Winter classic with cozy New England hospitality.",
+        description: "Winter classic with cozy New England hospitality.",
         tags: ["Winter Classic"],
         gallery: getLocalGalleryImages("atlantic-showdown"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 105, deadline: "2025-12-15" }, regular: { price: 125 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 48, deadline: "2025-12-15" }, regular: { price: 66 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 105, deadline: "2025-12-15" },
+            regular: { price: 125 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 48, deadline: "2025-12-15" },
+            regular: { price: 66 },
+          },
         ],
       },
       {
@@ -890,8 +992,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Grand Prix"],
         gallery: getLocalGalleryImages("atlantic-showdown"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 115, deadline: "2026-04-07" }, regular: { price: 135 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 54, deadline: "2026-04-07" }, regular: { price: 72 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 115, deadline: "2026-04-07" },
+            regular: { price: 135 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 54, deadline: "2026-04-07" },
+            regular: { price: 72 },
+          },
         ],
       },
       {
@@ -918,8 +1028,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Elite Only"],
         gallery: getLocalGalleryImages("national-championship"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 118, deadline: "2026-02-26" }, regular: { price: 138 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 55, deadline: "2026-02-26" }, regular: { price: 73 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 118, deadline: "2026-02-26" },
+            regular: { price: 138 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 55, deadline: "2026-02-26" },
+            regular: { price: 73 },
+          },
         ],
       },
       {
@@ -947,8 +1065,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Summer Nationals"],
         gallery: getLocalGalleryImages("national-championship"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 122, deadline: "2026-05-12" }, regular: { price: 142 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 58, deadline: "2026-05-12" }, regular: { price: 76 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 122, deadline: "2026-05-12" },
+            regular: { price: 142 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 58, deadline: "2026-05-12" },
+            regular: { price: 76 },
+          },
         ],
       },
       {
@@ -975,8 +1101,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Training Focus"],
         gallery: getLocalGalleryImages("northeast-open"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 95, deadline: "2026-01-22" }, regular: { price: 115 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 42, deadline: "2026-01-22" }, regular: { price: 58 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 95, deadline: "2026-01-22" },
+            regular: { price: 115 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 42, deadline: "2026-01-22" },
+            regular: { price: 58 },
+          },
         ],
       },
       {
@@ -1003,8 +1137,16 @@ export const eventCategories: EventCategory[] = [
         tags: ["Prestige Level"],
         gallery: getLocalGalleryImages("northeast-open"),
         availableDivisions: [
-          { name: eventDivisionNames.worlds, earlyBird: { price: 112, deadline: "2026-04-21" }, regular: { price: 132 } },
-          { name: eventDivisionNames.prepNovice, earlyBird: { price: 52, deadline: "2026-04-21" }, regular: { price: 70 } },
+          {
+            name: eventDivisionNames.worlds,
+            earlyBird: { price: 112, deadline: "2026-04-21" },
+            regular: { price: 132 },
+          },
+          {
+            name: eventDivisionNames.prepNovice,
+            earlyBird: { price: 52, deadline: "2026-04-21" },
+            regular: { price: 70 },
+          },
         ],
       },
     ],

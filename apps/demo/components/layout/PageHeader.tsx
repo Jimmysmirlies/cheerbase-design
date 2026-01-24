@@ -268,7 +268,7 @@ export function PageHeader({
                           <span className="heading-2 leading-none">
                             {segment.value.toString().padStart(2, "0")}
                           </span>
-                          <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/60">
+                          <span className="label text-white/60">
                             {segment.label}
                           </span>
                         </div>

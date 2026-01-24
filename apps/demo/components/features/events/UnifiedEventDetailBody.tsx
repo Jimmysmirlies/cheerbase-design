@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@workspace/ui/shadcn/button";
-import { toast } from "@workspace/ui/shadcn/sonner";
 
 import { fadeInUp, staggerSections } from "@/lib/animations";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -56,12 +55,12 @@ export type UnifiedEventDetailBodyProps = {
   editable?: boolean;
   /** Callback for data updates (required when editable=true) */
   onUpdate?: (updates: Partial<Event>) => void;
-  /** Callback to save section (required when editable=true) */
-  onSave?: (updates: Partial<Event>) => Promise<void>;
   /** Hide registration sidebar and mobile footer */
   hideRegistration?: boolean;
   /** Show organizer card at top instead of in section */
   showOrganizerCardAtTop?: boolean;
+  /** Hide the top divider on the Overview section (e.g., for organizer pages where tabs provide separation) */
+  hideOverviewDivider?: boolean;
   /** Pre-computed display values */
   displayProps?: {
     galleryImages?: string[];
@@ -92,9 +91,9 @@ export function UnifiedEventDetailBody({
   organizerHostingDuration,
   editable = false,
   onUpdate,
-  onSave,
   hideRegistration = false,
   showOrganizerCardAtTop = false,
+  hideOverviewDivider = false,
   displayProps = {},
 }: UnifiedEventDetailBodyProps) {
   // Edit mode state
@@ -132,21 +131,12 @@ export function UnifiedEventDetailBody({
     [editable, eventData],
   );
 
-  const handleSaveSection = useCallback(async () => {
-    if (!onSave || !onUpdate) return;
-    setIsSaving(true);
-    try {
-      onUpdate(localDraft);
-      await onSave(localDraft);
-      toast.success("Section saved");
-      setEditingSection(null);
-    } catch (error) {
-      toast.error("Failed to save");
-      console.error(error);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [localDraft, onUpdate, onSave]);
+  const handleSaveSection = useCallback(() => {
+    if (!onUpdate) return;
+    // Only update in-memory state - actual save happens via "Save Draft" button
+    onUpdate(localDraft);
+    setEditingSection(null);
+  }, [localDraft, onUpdate]);
 
   const handleCancelEdit = useCallback(() => {
     setLocalDraft({});
@@ -185,7 +175,7 @@ export function UnifiedEventDetailBody({
           <SectionWrapper
             id="overview"
             title="Overview"
-            showDivider
+            showDivider={!hideOverviewDivider}
             isEditing={editingSection === "overview"}
             onStartEdit={
               editable ? () => handleStartEdit("overview") : undefined
@@ -268,6 +258,7 @@ export function UnifiedEventDetailBody({
                   mode="edit"
                   eventData={localDraft}
                   onUpdate={updateLocalDraft}
+                  onCloseEdit={handleCancelEdit}
                   organizerGradient={organizerGradient}
                 />
               }
@@ -461,7 +452,9 @@ export function UnifiedEventDetailBody({
             onSave={handleSaveSection}
             onCancel={handleCancelEdit}
             isSaving={isSaving}
-            hasData={DocumentsSection.hasData(displayData) || documents.length > 0}
+            hasData={
+              DocumentsSection.hasData(displayData) || documents.length > 0
+            }
             viewContent={
               <DocumentsSection
                 mode="view"

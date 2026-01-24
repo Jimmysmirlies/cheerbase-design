@@ -35,7 +35,7 @@ export default function TeamHeaderCard({
       <CardContent className="px-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
+            <h1 className="heading-3">{name}</h1>
             <TeamSettingsDialog
               initialName={name}
               initialDivision={division}

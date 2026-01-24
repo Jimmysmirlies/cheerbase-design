@@ -6,6 +6,7 @@ import {
   useState,
   useCallback,
   useMemo,
+  useEffect,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -25,7 +26,134 @@ type FieldChange = {
   displayName: string;
   oldValue: string;
   newValue: string;
+  /** Raw JSON for comparison (not displayed) */
+  rawOld?: string;
+  rawNew?: string;
 };
+
+/** Get localStorage key for changeLog persistence */
+function getChangeLogStorageKey(eventId: string): string {
+  return `cheerbase-event-changelog-${eventId}`;
+}
+
+/** Division type for price tracking */
+type DivisionForTracking = {
+  name: string;
+  regular?: { price?: number };
+  earlyBird?: { price?: number };
+};
+
+/** Compare divisions and add individual price changes to the log */
+function compareDivisionsAndAddChanges(
+  log: FieldChange[],
+  oldDivisions: DivisionForTracking[] | undefined,
+  newDivisions: DivisionForTracking[] | undefined,
+) {
+  const oldMap = new Map((oldDivisions || []).map((d) => [d.name, d]));
+  const newMap = new Map((newDivisions || []).map((d) => [d.name, d]));
+
+  // Track changes for each division in the new list
+  for (const [name, newDiv] of newMap) {
+    const oldDiv = oldMap.get(name);
+
+    // Track regular price changes
+    const oldRegular = oldDiv?.regular?.price;
+    const newRegular = newDiv.regular?.price;
+    if (oldRegular !== newRegular) {
+      const fieldKey = `division_${name}_regular`;
+      const existingIndex = log.findIndex((c) => c.field === fieldKey);
+      const formattedOld = oldRegular !== undefined ? `$${oldRegular}` : "not set";
+      const formattedNew = newRegular !== undefined ? `$${newRegular}` : "not set";
+
+      if (existingIndex >= 0) {
+        const existing = log[existingIndex];
+        if (existing) {
+          log[existingIndex] = {
+            ...existing,
+            newValue: formattedNew,
+            rawNew: String(newRegular),
+          };
+        }
+      } else {
+        log.push({
+          field: fieldKey,
+          displayName: `${name} price`,
+          oldValue: formattedOld,
+          newValue: formattedNew,
+          rawOld: String(oldRegular),
+          rawNew: String(newRegular),
+        });
+      }
+    }
+
+    // Track early bird price changes
+    const oldEarlyBird = oldDiv?.earlyBird?.price;
+    const newEarlyBird = newDiv.earlyBird?.price;
+    if (oldEarlyBird !== newEarlyBird) {
+      const fieldKey = `division_${name}_earlyBird`;
+      const existingIndex = log.findIndex((c) => c.field === fieldKey);
+      const formattedOld = oldEarlyBird !== undefined ? `$${oldEarlyBird}` : "not set";
+      const formattedNew = newEarlyBird !== undefined ? `$${newEarlyBird}` : "not set";
+
+      if (existingIndex >= 0) {
+        const existing = log[existingIndex];
+        if (existing) {
+          log[existingIndex] = {
+            ...existing,
+            newValue: formattedNew,
+            rawNew: String(newEarlyBird),
+          };
+        }
+      } else {
+        log.push({
+          field: fieldKey,
+          displayName: `${name} early bird price`,
+          oldValue: formattedOld,
+          newValue: formattedNew,
+          rawOld: String(oldEarlyBird),
+          rawNew: String(newEarlyBird),
+        });
+      }
+    }
+  }
+
+  // Track removed divisions
+  for (const [name] of oldMap) {
+    if (!newMap.has(name)) {
+      const fieldKey = `division_${name}_removed`;
+      const existingIndex = log.findIndex((c) => c.field === fieldKey);
+      if (existingIndex < 0) {
+        log.push({
+          field: fieldKey,
+          displayName: name,
+          oldValue: "exists",
+          newValue: "removed",
+          rawOld: "exists",
+          rawNew: "removed",
+        });
+      }
+    }
+  }
+
+  // Track added divisions
+  for (const [name, newDiv] of newMap) {
+    if (!oldMap.has(name)) {
+      const fieldKey = `division_${name}_added`;
+      const existingIndex = log.findIndex((c) => c.field === fieldKey);
+      const price = newDiv.regular?.price;
+      if (existingIndex < 0) {
+        log.push({
+          field: fieldKey,
+          displayName: name,
+          oldValue: "not set",
+          newValue: price !== undefined ? `added @ $${price}` : "added",
+          rawOld: "not set",
+          rawNew: "added",
+        });
+      }
+    }
+  }
+}
 
 type EventEditorContextValue = {
   // Event data
@@ -43,6 +171,7 @@ type EventEditorContextValue = {
   isPublished: boolean;
   isCancelled: boolean;
   hasRegistrations: boolean;
+  hasUnpublishedChanges: boolean;
   isSaving: boolean;
   isPublishing: boolean;
   /** Detailed list of changes with before/after values */
@@ -159,8 +288,10 @@ export function EventEditorProvider({
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [changeLog, setChangeLog] = useState<FieldChange[]>([]);
+  const [changeLogInitialized, setChangeLogInitialized] = useState(false);
 
   const isPublished = eventData.status === "published" || wasPublished;
+  const hasUnpublishedChanges = isPublished && changeLog.length > 0;
   // Note: "cancelled" status is not currently in the Event type, so always false for now
   const isCancelled = false;
   // For demo purposes, check if slots.filled > 0 to simulate registrations
@@ -197,7 +328,7 @@ export function EventEditorProvider({
     [],
   );
 
-  // Format value for display
+  // Format value for display (declared early for use in changeLog computation)
   const formatValueForDisplay = useCallback(
     (key: string, value: unknown): string => {
       if (value === null || value === undefined) return "empty";
@@ -230,7 +361,29 @@ export function EventEditorProvider({
       // Handle arrays (like gallery, documents, availableDivisions)
       if (Array.isArray(value)) {
         if (key === "availableDivisions") {
-          return `${value.length} division${value.length !== 1 ? "s" : ""}`;
+          // Show division names and prices for meaningful display
+          const divisions = value as Array<{
+            name: string;
+            regular?: { price?: number };
+            earlyBird?: { price?: number };
+          }>;
+          if (divisions.length === 0) return "no divisions";
+          if (divisions.length === 1) {
+            const div = divisions[0];
+            const price = div?.regular?.price;
+            return price !== undefined ? `${div?.name} @ $${price}` : div?.name || "1 division";
+          }
+          // For multiple divisions, show count and price range
+          const prices = divisions
+            .map((d) => d.regular?.price)
+            .filter((p): p is number => p !== undefined);
+          if (prices.length > 0) {
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            const priceRange = min === max ? `$${min}` : `$${min}-$${max}`;
+            return `${divisions.length} divisions (${priceRange})`;
+          }
+          return `${divisions.length} divisions`;
         }
         if (key === "gallery") {
           return `${value.length} image${value.length !== 1 ? "s" : ""}`;
@@ -250,15 +403,106 @@ export function EventEditorProvider({
         return JSON.stringify(value);
       }
 
-      // Handle strings - truncate if too long
+      // Handle strings - truncate if too long but include length for uniqueness
       const strValue = String(value);
       if (strValue.length > 50) {
-        return strValue.substring(0, 47) + "...";
+        // Include character count to distinguish different long texts
+        return `${strValue.substring(0, 35)}... (${strValue.length} chars)`;
       }
       return strValue;
     },
     [],
   );
+
+  // Load changeLog from localStorage or compute from draft vs published
+  useEffect(() => {
+    if (changeLogInitialized) return;
+    if (!currentEventId) {
+      setChangeLogInitialized(true);
+      return;
+    }
+
+    // Try to load saved changeLog from localStorage
+    const storageKey = getChangeLogStorageKey(currentEventId);
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as FieldChange[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setChangeLog(parsed);
+          setChangeLogInitialized(true);
+          return;
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+
+    // If no saved changeLog, compute from draft vs published
+    if (mode === "edit" && wasPublished) {
+      const published = getPublishedEvent(currentEventId);
+      if (published) {
+        const computedLog: FieldChange[] = [];
+        const fieldsToCompare = Object.keys(fieldDisplayNames);
+
+        for (const key of fieldsToCompare) {
+          // Special handling for availableDivisions - track individual price changes
+          if (key === "availableDivisions") {
+            compareDivisionsAndAddChanges(
+              computedLog,
+              published.availableDivisions as DivisionForTracking[] | undefined,
+              eventData.availableDivisions as DivisionForTracking[] | undefined,
+            );
+            continue;
+          }
+
+          const publishedValue = published[key as keyof Event];
+          const currentValue = eventData[key as keyof Event];
+          const rawOld = JSON.stringify(publishedValue);
+          const rawNew = JSON.stringify(currentValue);
+
+          if (rawOld !== rawNew) {
+            computedLog.push({
+              field: key,
+              displayName: fieldDisplayNames[key] || key,
+              oldValue: formatValueForDisplay(key, publishedValue),
+              newValue: formatValueForDisplay(key, currentValue),
+              rawOld,
+              rawNew,
+            });
+          }
+        }
+
+        if (computedLog.length > 0) {
+          setChangeLog(computedLog);
+        }
+      }
+    }
+
+    setChangeLogInitialized(true);
+  }, [
+    currentEventId,
+    mode,
+    wasPublished,
+    getPublishedEvent,
+    eventData,
+    fieldDisplayNames,
+    formatValueForDisplay,
+    changeLogInitialized,
+  ]);
+
+  // Persist changeLog to localStorage when it changes
+  useEffect(() => {
+    if (!changeLogInitialized) return;
+    if (!currentEventId) return;
+
+    const storageKey = getChangeLogStorageKey(currentEventId);
+    if (changeLog.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(changeLog));
+    } else {
+      localStorage.removeItem(storageKey);
+    }
+  }, [changeLog, currentEventId, changeLogInitialized]);
 
   // Update event data
   const updateEventData = useCallback(
@@ -270,17 +514,30 @@ export function EventEditorProvider({
 
           for (const [key, newValue] of Object.entries(updates)) {
             const oldValue = prev[key as keyof Event];
+
+            // Special handling for availableDivisions - track individual price changes
+            if (key === "availableDivisions") {
+              compareDivisionsAndAddChanges(
+                updatedLog,
+                oldValue as DivisionForTracking[] | undefined,
+                newValue as DivisionForTracking[],
+              );
+              continue;
+            }
+
             const displayName = fieldDisplayNames[key] || key;
+            const rawOld = JSON.stringify(oldValue);
+            const rawNew = JSON.stringify(newValue);
 
             // Only track if value actually changed
-            if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+            if (rawOld !== rawNew) {
               const existingIndex = updatedLog.findIndex(
                 (c) => c.field === key,
               );
               const formattedNew = formatValueForDisplay(key, newValue);
 
               if (existingIndex >= 0) {
-                // Update existing entry, keep original oldValue
+                // Update existing entry, keep original oldValue and rawOld
                 const existing = updatedLog[existingIndex];
                 if (existing) {
                   updatedLog[existingIndex] = {
@@ -288,6 +545,8 @@ export function EventEditorProvider({
                     displayName: existing.displayName,
                     oldValue: existing.oldValue,
                     newValue: formattedNew,
+                    rawOld: existing.rawOld,
+                    rawNew,
                   };
                 }
               } else {
@@ -298,14 +557,16 @@ export function EventEditorProvider({
                   displayName,
                   oldValue: formattedOld,
                   newValue: formattedNew,
+                  rawOld,
+                  rawNew,
                 });
               }
             }
           }
 
-          // Filter out changes where old and new are the same (reverted changes)
+          // Filter out changes where raw values are the same (reverted changes)
           return updatedLog.filter(
-            (change) => change.oldValue !== change.newValue,
+            (change) => change.rawOld !== change.rawNew,
           );
         });
 
@@ -396,6 +657,11 @@ export function EventEditorProvider({
         deleteDraft(currentEventId);
       }
 
+      // Clear changeLog from localStorage
+      const storageKey = getChangeLogStorageKey(finalEventId);
+      localStorage.removeItem(storageKey);
+      setChangeLog([]);
+
       toast.success("Event published successfully!");
       router.push(`/events/${finalEvent.id}`);
     } catch (error) {
@@ -421,6 +687,9 @@ export function EventEditorProvider({
     if (published) {
       setEventData(published);
       deleteDraft(currentEventId);
+      // Clear changeLog from localStorage
+      const storageKey = getChangeLogStorageKey(currentEventId);
+      localStorage.removeItem(storageKey);
       setIsDirty(false);
       setChangeLog([]);
       toast.success("Changes discarded");
@@ -493,6 +762,7 @@ export function EventEditorProvider({
       isPublished,
       isCancelled,
       hasRegistrations,
+      hasUnpublishedChanges,
       isSaving,
       isPublishing,
       changeLog,
@@ -516,6 +786,7 @@ export function EventEditorProvider({
       isPublished,
       isCancelled,
       hasRegistrations,
+      hasUnpublishedChanges,
       isSaving,
       isPublishing,
       changeLog,

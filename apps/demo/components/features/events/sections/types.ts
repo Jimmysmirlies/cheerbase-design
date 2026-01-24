@@ -13,6 +13,8 @@ export type BaseSectionProps = {
   eventData: Partial<Event>;
   /** Callback when editing changes data (only used in edit mode) */
   onUpdate?: (updates: Partial<Event>) => void;
+  /** Callback to close edit mode (only used in edit mode) */
+  onCloseEdit?: () => void;
   /** Organizer gradient for styling */
   organizerGradient?: BrandGradient;
 };
@@ -29,8 +31,8 @@ export type SectionWrapperProps = {
   isEditing?: boolean;
   /** Callback to start editing (if undefined, section is view-only) */
   onStartEdit?: () => void;
-  /** Callback to save changes */
-  onSave?: () => Promise<void>;
+  /** Callback when done editing (commits to in-memory state) */
+  onSave?: () => void;
   /** Callback to cancel editing */
   onCancel?: () => void;
   /** Whether save is in progress */

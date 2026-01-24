@@ -29,10 +29,7 @@ import { motion } from "framer-motion";
 
 import { OrganizerEventActionBar } from "@/components/features/events/OrganizerEventActionBar";
 import { PageTitle } from "@/components/layout/PageTitle";
-import {
-  type BrandGradient,
-  getGradientStartColor,
-} from "@/lib/gradients";
+import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import {
   DataTable,
@@ -378,15 +375,13 @@ function EventRegistrationsTab({
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="body-small font-medium text-muted-foreground">
                   Total Registrations
                 </p>
                 <CalendarIcon className="size-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold">
-                  {overview.totalRegistrations}
-                </p>
+                <p className="heading-3">{overview.totalRegistrations}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   For this event
                 </p>
@@ -394,13 +389,13 @@ function EventRegistrationsTab({
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="body-small font-medium text-muted-foreground">
                   Total Participants
                 </p>
                 <UsersIcon className="size-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold">
+                <p className="heading-3">
                   {overview.totalParticipants.toLocaleString()}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -410,13 +405,13 @@ function EventRegistrationsTab({
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="body-small font-medium text-muted-foreground">
                   Revenue Collected
                 </p>
                 <DollarSignIcon className="size-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold">
+                <p className="heading-3">
                   {formatCurrency(overview.revenuePaid)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -426,7 +421,7 @@ function EventRegistrationsTab({
             </Card>
             <Card className={hasOverdue ? "border-amber-500/50" : ""}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="body-small font-medium text-muted-foreground">
                   Outstanding Balance
                 </p>
                 {hasOverdue ? (
@@ -437,7 +432,7 @@ function EventRegistrationsTab({
               </CardHeader>
               <CardContent>
                 <p
-                  className={`text-2xl font-semibold ${hasOverdue ? "text-amber-600" : ""}`}
+                  className={`heading-3 ${hasOverdue ? "text-amber-600" : ""}`}
                 >
                   {formatCurrency(overview.revenueOutstanding)}
                 </p>
@@ -737,6 +732,7 @@ export function OrganizerEventDetailContent({
             organizerEventsCount={organizerEventsCount}
             organizerHostingDuration={organizerHostingDuration}
             hideRegistration
+            hideOverviewDivider
             displayProps={{
               galleryImages,
               eventDateParts,

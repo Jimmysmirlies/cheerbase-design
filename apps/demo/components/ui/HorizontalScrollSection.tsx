@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ArrowRightIcon,
+} from "lucide-react";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { cn } from "@workspace/ui/lib/utils";
@@ -154,7 +158,7 @@ export function HorizontalScrollCard({
         "w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px]",
         // Prevent shrinking and enable snap
         "flex-shrink-0 snap-start",
-        className
+        className,
       )}
     >
       {children}

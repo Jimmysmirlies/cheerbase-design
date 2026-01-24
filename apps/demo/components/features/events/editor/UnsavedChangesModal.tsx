@@ -1,15 +1,12 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@workspace/ui/shadcn/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/shadcn/dialog";
 import { Button } from "@workspace/ui/shadcn/button";
 
 type UnsavedChangesModalProps = {
@@ -26,27 +23,25 @@ export function UnsavedChangesModal({
   onSaveDraft,
 }: UnsavedChangesModalProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Unsaved Changes</DialogTitle>
+          <DialogDescription>
             You have unsaved changes. Backing out will result in lost progress.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <Button variant="outline" onClick={onSaveDraft}>
-            Save Draft
-          </Button>
-          <AlertDialogAction
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-between pt-4">
+          <Button
+            variant="outline"
             onClick={onDiscard}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
             Discard Changes
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+          <Button onClick={onSaveDraft}>Save Draft</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

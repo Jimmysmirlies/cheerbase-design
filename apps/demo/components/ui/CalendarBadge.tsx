@@ -13,14 +13,14 @@ export function CalendarBadge({
 }: CalendarBadgeProps) {
   return (
     <div
-      className={`bg-card border-border text-primary flex w-32 flex-col overflow-hidden rounded-2xl border shadow-sm ${className ?? ""}`}
+      className={`bg-card border-border text-primary flex w-32 flex-col overflow-hidden rounded-2xl border ${className ?? ""}`}
     >
-      <div className="bg-primary text-primary-foreground flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wide">
+      <div className="bg-primary text-primary-foreground flex items-center gap-2 px-4 py-2 label">
         <CalendarDaysIcon className="size-4" />
         <span>{monthLabel}</span>
       </div>
       <div className="flex flex-1 items-center justify-center px-4 py-3">
-        <span className="text-3xl font-bold">{dayLabel}</span>
+        <span className="heading-2 font-bold">{dayLabel}</span>
       </div>
     </div>
   );

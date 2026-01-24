@@ -4,8 +4,15 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-import { Hero, HorizontalScrollSection, HorizontalScrollCard } from "@/components/ui";
-import { EventCardV2, getRegistrationStatus } from "@/components/ui/cards/EventCardV2";
+import {
+  Hero,
+  HorizontalScrollSection,
+  HorizontalScrollCard,
+} from "@/components/ui";
+import {
+  EventCardV2,
+  getRegistrationStatus,
+} from "@/components/ui/cards/EventCardV2";
 import { fadeInUp } from "@/lib/animations";
 import { heroSlides, listEvents } from "@/data/events";
 import { getProvinceFromLocation } from "@/data/events/locations";
@@ -51,7 +58,7 @@ export default function HomePage() {
   // Get organizers with events, in preferred order
   const organizersWithEvents = useMemo(() => {
     const withEvents = ORGANIZER_ORDER.filter(
-      (name) => (eventsByOrganizer[name]?.length ?? 0) > 0
+      (name) => (eventsByOrganizer[name]?.length ?? 0) > 0,
     );
     // Add any organizers not in the order list
     Object.keys(eventsByOrganizer).forEach((name) => {

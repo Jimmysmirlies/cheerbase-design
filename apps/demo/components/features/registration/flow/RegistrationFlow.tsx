@@ -419,13 +419,13 @@ export function RegistrationFlow({
                 {stats.map((stat) => (
                   <div
                     key={stat.label}
-                    className="border-border/60 bg-card/70 text-card-foreground flex items-center justify-between rounded-2xl border px-4 py-3 shadow-sm"
+                    className="border-border/60 bg-card/70 text-card-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
                   >
                     <div className="space-y-0.5">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <p className="label text-muted-foreground">
                         {stat.label}
                       </p>
-                      <p className="text-2xl font-semibold">{stat.value}</p>
+                      <p className="heading-3">{stat.value}</p>
                     </div>
                     <stat.icon
                       className="text-muted-foreground size-5"

@@ -57,11 +57,11 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
       <PageTitle
-          title={eventDetails.name}
-          gradient={gradient}
-          dateLabel={dateLabel}
-          locationLabel={eventDetails.location}
-        />
+        title={eventDetails.name}
+        gradient={gradient}
+        dateLabel={dateLabel}
+        locationLabel={eventDetails.location}
+      />
 
       <NewRegistrationContent
         eventId={eventId}

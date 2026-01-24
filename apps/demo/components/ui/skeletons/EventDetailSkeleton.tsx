@@ -78,7 +78,7 @@ export function EventDetailSkeleton() {
 
           {/* Sidebar - Registration card */}
           <div className="hidden lg:block lg:sticky lg:top-8 lg:self-start">
-            <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+            <div className="rounded-2xl border border-border/60 bg-card p-6">
               <div className="space-y-4">
                 <Skeleton className="h-5 w-36 rounded" />
                 <div className="space-y-3">

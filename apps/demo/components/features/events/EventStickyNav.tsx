@@ -29,15 +29,12 @@ const SCROLL_OFFSET = NAV_HEIGHT + STICKY_NAV_HEIGHT + 20; // Extra padding for 
 type EventStickyNavProps = {
   /** The organizer's brand gradient for active indicator */
   gradient?: BrandGradient;
-  /** ID of the title element to watch for scroll position */
-  titleElementId?: string;
   /** Custom sections list (optional, uses default if not provided) */
   sections?: Array<{ id: string; label: string }>;
 };
 
 export function EventStickyNav({
   gradient = "teal",
-  titleElementId = "event-title",
   sections = SECTIONS as unknown as Array<{ id: string; label: string }>,
 }: EventStickyNavProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -85,22 +82,14 @@ export function EventStickyNav({
     return window;
   }, []);
 
-  // Check if we should show the sticky nav based on title position
+  // Check if we should show the sticky nav based on scroll position
   const updateVisibility = useCallback(() => {
-    const titleElement = document.getElementById(titleElementId);
-    if (!titleElement) {
-      // If no title element, show after scrolling past 200px
-      const container = getScrollContainer();
-      const scrollTop =
-        container instanceof Window ? container.scrollY : container.scrollTop;
-      setIsVisible(scrollTop > 200);
-      return;
-    }
-
-    const titleRect = titleElement.getBoundingClientRect();
-    // Show sticky nav when title has scrolled past the navbar
-    setIsVisible(titleRect.bottom < NAV_HEIGHT);
-  }, [titleElementId, getScrollContainer]);
+    const container = getScrollContainer();
+    const scrollTop =
+      container instanceof Window ? container.scrollY : container.scrollTop;
+    // Show sticky nav as soon as user starts scrolling (small threshold to avoid flicker)
+    setIsVisible(scrollTop > 10);
+  }, [getScrollContainer]);
 
   // Determine which section is currently in view
   const updateActiveSection = useCallback(() => {
@@ -252,7 +241,7 @@ export function EventStickyNav({
                 type="button"
                 onClick={() => scrollToSection(section.id)}
                 className={cn(
-                  "relative shrink-0 whitespace-nowrap px-1 text-sm font-medium transition-colors",
+                  "relative shrink-0 whitespace-nowrap px-1 body-small font-medium transition-colors",
                   !isActive && "text-muted-foreground hover:text-foreground",
                 )}
                 style={isActive ? { color: accentColor } : undefined}

@@ -103,7 +103,7 @@ export function Sidebar({
                 key={section.label ?? section.nickname ?? `section-${index}`}
               >
                 {section.label && (
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                  <p className="mb-2 label text-muted-foreground/80">
                     {section.label}
                   </p>
                 )}
@@ -115,7 +115,7 @@ export function Sidebar({
                       href={item.href}
                       onClick={onClose}
                       className={cn(
-                        "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-3.5 text-base font-medium transition-colors",
+                        "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-3.5 body-text font-medium transition-colors",
                         isActive
                           ? "bg-muted text-foreground"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -124,7 +124,7 @@ export function Sidebar({
                       {item.icon}
                       {item.label}
                       {item.badge && (
-                        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 label text-muted-foreground">
                           {item.badge}
                         </span>
                       )}
@@ -133,7 +133,7 @@ export function Sidebar({
                     <div
                       key={item.key}
                       className={cn(
-                        "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-3.5 text-base font-medium",
+                        "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-3.5 body-text font-medium",
                         isActive
                           ? "bg-muted text-foreground"
                           : "text-muted-foreground",
@@ -143,7 +143,7 @@ export function Sidebar({
                       {item.icon}
                       {item.label}
                       {item.badge && (
-                        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 label text-muted-foreground">
                           {item.badge}
                         </span>
                       )}
@@ -156,8 +156,8 @@ export function Sidebar({
 
           {/* Support Card */}
           <div className="mt-auto rounded-xl bg-primary px-4 py-4 text-primary-foreground">
-            <div className="text-sm font-semibold">{supportTitle}</div>
-            <div className="text-xs opacity-90">{supportText}</div>
+            <div className="body-small font-semibold">{supportTitle}</div>
+            <div className="body-small opacity-90">{supportText}</div>
           </div>
         </aside>
       </>
@@ -214,7 +214,7 @@ export function Sidebar({
           >
             {/* Section label - hidden when collapsed */}
             {!isCollapsed && section.label && (
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+              <p className="mb-2 px-3 label text-muted-foreground/80">
                 {section.label}
               </p>
             )}
@@ -228,7 +228,7 @@ export function Sidebar({
                   <span className="flex-shrink-0">{item.icon}</span>
                   {!isCollapsed && <span className="flex-1">{item.label}</span>}
                   {!isCollapsed && item.badge && (
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                    <span className="rounded-full bg-muted px-2 py-0.5 label text-muted-foreground">
                       {item.badge}
                     </span>
                   )}
@@ -236,7 +236,7 @@ export function Sidebar({
               );
 
               const buttonClasses = cn(
-                "relative mb-0.5 flex w-full items-center rounded-lg text-sm font-medium transition-all duration-150",
+                "relative mb-0.5 flex w-full items-center rounded-lg body-small font-medium transition-all duration-150",
                 isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
                 isActive
                   ? "bg-muted text-foreground"
@@ -246,7 +246,7 @@ export function Sidebar({
 
               const tooltip = isCollapsed && isHovered && (
                 <div
-                  className="pointer-events-none absolute left-full top-1/2 z-[1000] -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background shadow-lg"
+                  className="pointer-events-none absolute left-full top-1/2 z-[1000] -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-2 body-small font-medium text-background shadow-lg"
                   style={{ marginLeft: "12px" }}
                 >
                   {item.label}
@@ -312,7 +312,7 @@ export function Sidebar({
             </button>
             {hoveredItem === "help" && (
               <div
-                className="pointer-events-none absolute left-full top-1/2 z-[1000] -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background shadow-lg"
+                className="pointer-events-none absolute left-full top-1/2 z-[1000] -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-2 body-small font-medium text-background shadow-lg"
                 style={{ marginLeft: "12px" }}
               >
                 {supportTitle}
@@ -332,8 +332,8 @@ export function Sidebar({
           </>
         ) : (
           <div className="rounded-xl bg-primary px-4 py-4 text-primary-foreground">
-            <div className="text-sm font-semibold">{supportTitle}</div>
-            <div className="text-xs opacity-90">{supportText}</div>
+            <div className="body-small font-semibold">{supportTitle}</div>
+            <div className="body-small opacity-90">{supportText}</div>
           </div>
         )}
       </div>

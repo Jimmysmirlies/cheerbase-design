@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { OrganizerEventDetailContent } from "@/components/features/events/OrganizerEventDetailContent";
-import {
-  findEventByIdIncludingDrafts,
-  isRegistrationClosed,
-} from "@/data/events";
+import { findEventById, isRegistrationClosed } from "@/data/events";
 import {
   findOrganizerByName,
   formatFollowers,
@@ -31,11 +28,11 @@ export default function OrganizerEventViewPage() {
     BrandGradient | undefined
   >(undefined);
 
-  // Load event (including drafts)
+  // Load published event only (drafts visible in edit view)
   const event = useMemo(() => {
     if (!eventId) return null;
-    return findEventByIdIncludingDrafts(eventId, organizerId || undefined);
-  }, [eventId, organizerId]);
+    return findEventById(eventId);
+  }, [eventId]);
 
   // Load organizer gradient
   useEffect(() => {

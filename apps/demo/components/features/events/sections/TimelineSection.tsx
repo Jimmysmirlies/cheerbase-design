@@ -206,13 +206,13 @@ function TimelinePreview({
           >
             <span
               className={cn(
-                "text-[10px] font-medium whitespace-nowrap",
+                "label whitespace-nowrap",
                 marker.isToday ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {marker.label}
             </span>
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+            <span className="label text-muted-foreground whitespace-nowrap">
               {formatShortDate(marker.date)}
             </span>
           </div>

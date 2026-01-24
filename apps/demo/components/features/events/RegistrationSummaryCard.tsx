@@ -103,19 +103,19 @@ export function RegistrationSummaryCard({
                   {/* Calendar icon */}
                   <div className="flex flex-col items-center rounded-lg border bg-muted/30 overflow-hidden min-w-[56px]">
                     <div className="w-full bg-muted px-3 py-0.5 text-center">
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="label text-muted-foreground">
                         {eventDateParts.month}
                       </span>
                     </div>
                     <div className="px-3 py-1">
-                      <span className="text-2xl font-semibold text-foreground">
+                      <span className="heading-3 text-foreground">
                         {eventDateParts.day}
                       </span>
                     </div>
                   </div>
                   {/* Date text */}
                   <div className="flex flex-col">
-                    <span className="text-lg font-semibold text-foreground">
+                    <span className="heading-4 text-foreground">
                       {eventDateParts.weekday}, {eventDateParts.fullDate}
                     </span>
                     {eventStartTime && (

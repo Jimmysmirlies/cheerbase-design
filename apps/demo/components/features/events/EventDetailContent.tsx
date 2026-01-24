@@ -1,11 +1,110 @@
 "use client";
 
+import { useState } from "react";
+import { HeartIcon, Share2Icon, CheckIcon } from "lucide-react";
+import { Button } from "@workspace/ui/shadcn/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/shadcn/tooltip";
+import { toast } from "@workspace/ui/shadcn/sonner";
 import { PageTitle } from "@/components/layout/PageTitle";
+import { HeroGallery } from "@/components/ui";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import { EventStickyNav } from "./EventStickyNav";
 import { EventSectionProvider } from "./EventSectionContext";
 import type { BrandGradient } from "@/lib/gradients";
 import type { TimelinePhase, PricingRow } from "./sections";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Event Action Buttons (Favorite & Share)
+// ─────────────────────────────────────────────────────────────────────────────
+
+type EventActionButtonsProps = {
+  eventId: string;
+  eventName: string;
+};
+
+function EventActionButtons({ eventId, eventName }: EventActionButtonsProps) {
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [justCopied, setJustCopied] = useState(false);
+
+  const handleFavorite = () => {
+    setIsFavorited(!isFavorited);
+    toast.success(
+      isFavorited ? "Removed from favorites" : "Added to favorites",
+      {
+        description: isFavorited
+          ? `${eventName} has been removed from your favorites.`
+          : `${eventName} has been saved to your favorites.`,
+      },
+    );
+  };
+
+  const handleShare = async () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = {
+      title: eventName,
+      text: `Check out ${eventName}`,
+      url: shareUrl,
+    };
+
+    // Try native share first (mobile)
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // User cancelled or share failed, fall through to clipboard
+      }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setJustCopied(true);
+      toast.success("Link copied", {
+        description: "Event link has been copied to your clipboard.",
+      });
+      setTimeout(() => setJustCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleShare}
+        aria-label="Share event"
+      >
+        {justCopied ? (
+          <CheckIcon className="size-4 text-green-600" />
+        ) : (
+          <Share2Icon className="size-4" />
+        )}
+        {justCopied ? "Copied" : "Share"}
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleFavorite}
+        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+      >
+        <HeartIcon
+          className={
+            isFavorited ? "size-4 fill-red-500 text-red-500" : "size-4"
+          }
+        />
+        {isFavorited ? "Saved" : "Save"}
+      </Button>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -63,12 +162,23 @@ export function EventDetailContent(props: EventDetailContentProps) {
       />
 
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
+        {/* Hero Gallery */}
+        {props.galleryImages.length > 0 && (
+          <HeroGallery images={props.galleryImages} alt={props.event.name} />
+        )}
+
         <div id="event-title">
           <PageTitle
             title={props.event.name}
             gradient={props.organizerGradient}
             dateLabel={formatDateLabel(props.event.date)}
             locationLabel={props.event.location}
+            actions={
+              <EventActionButtons
+                eventId={props.event.id}
+                eventName={props.event.name}
+              />
+            }
           />
         </div>
 

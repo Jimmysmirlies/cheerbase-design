@@ -43,10 +43,8 @@ export default function EventCategoriesSection({
             <div className="space-y-6">
               {/* Category header: title and supporting subtitle */}
               <header className="space-y-2">
-                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                  {category.title}
-                </h2>
-                <p className="text-sm text-muted-foreground">
+                <h2 className="heading-3 sm:heading-2">{category.title}</h2>
+                <p className="body-small text-muted-foreground">
                   {category.subtitle}
                 </p>
               </header>

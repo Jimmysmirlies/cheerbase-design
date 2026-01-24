@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 
 const STORAGE_KEY = "cheerbase-focus-mode-sidebar";
+const EVENT_NAME = "focus-mode-settings-changed";
+const MOBILE_SHEET_EVENT = "focus-mode-mobile-sheet";
 
 type FocusModeSettings = {
   sidebarOpen: boolean;
@@ -33,11 +35,28 @@ export function useFocusModeSettings() {
     setIsHydrated(true);
   }, []);
 
+  // Listen for cross-component state changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleSettingsChange = (event: Event) => {
+      const customEvent = event as CustomEvent<FocusModeSettings>;
+      setSettingsState(customEvent.detail);
+    };
+
+    window.addEventListener(EVENT_NAME, handleSettingsChange);
+    return () => window.removeEventListener(EVENT_NAME, handleSettingsChange);
+  }, []);
+
   const updateSettings = useCallback((updates: Partial<FocusModeSettings>) => {
     setSettingsState((prev) => {
       const next = { ...prev, ...updates };
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        // Dispatch event to sync other components (deferred to avoid React render conflicts)
+        queueMicrotask(() => {
+          window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: next }));
+        });
       } catch {
         // Ignore storage errors
       }
@@ -49,10 +68,20 @@ export function useFocusModeSettings() {
     updateSettings({ sidebarOpen: !settings.sidebarOpen });
   }, [settings.sidebarOpen, updateSettings]);
 
+  // Request mobile sheet to open (for cross-component communication)
+  const requestMobileSheetOpen = useCallback(() => {
+    queueMicrotask(() => {
+      window.dispatchEvent(new CustomEvent(MOBILE_SHEET_EVENT));
+    });
+  }, []);
+
   return {
     sidebarOpen: settings.sidebarOpen,
     setSidebarOpen: (open: boolean) => updateSettings({ sidebarOpen: open }),
     toggleSidebar,
+    requestMobileSheetOpen,
     isHydrated,
+    // Export event name for listeners
+    MOBILE_SHEET_EVENT,
   };
 }

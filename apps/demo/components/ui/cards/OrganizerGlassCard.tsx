@@ -45,9 +45,9 @@ export function OrganizerGlassCard({
       </div>
       {/* Text content */}
       <div className="mt-4 space-y-1">
-        <h3 className="text-sm font-semibold text-foreground">{name}</h3>
-        <p className="text-xs text-muted-foreground">{region}</p>
-        <Badge variant="outline" className="px-2 py-0.5 text-[10px] uppercase">
+        <h3 className="body-small font-semibold text-foreground">{name}</h3>
+        <p className="body-small text-muted-foreground">{region}</p>
+        <Badge variant="outline" className="px-2 py-0.5 label">
           {visibility}
         </Badge>
       </div>

@@ -492,17 +492,17 @@ export function InvoiceView({
                         {item.category}
                       </span>
                       {item.changeStatus === "new" && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
+                        <span className="label text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
                           New
                         </span>
                       )}
                       {item.changeStatus === "modified" && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
+                        <span className="label text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
                           Modified
                         </span>
                       )}
                       {item.changeStatus === "removed" && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded">
+                        <span className="label text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded">
                           Removed
                         </span>
                       )}

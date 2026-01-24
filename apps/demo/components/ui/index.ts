@@ -21,8 +21,14 @@ export type { PageTab } from "./PageTabs";
 export { LayoutToggle } from "./LayoutToggle";
 
 // Horizontal Scroll
-export { HorizontalScrollSection, HorizontalScrollCard } from "./HorizontalScrollSection";
-export type { HorizontalScrollSectionProps, HorizontalScrollCardProps } from "./HorizontalScrollSection";
+export {
+  HorizontalScrollSection,
+  HorizontalScrollCard,
+} from "./HorizontalScrollSection";
+export type {
+  HorizontalScrollSectionProps,
+  HorizontalScrollCardProps,
+} from "./HorizontalScrollSection";
 
 // Avatars
 export { GradientAvatar } from "./GradientAvatar";
@@ -43,6 +49,7 @@ export { GlassCard } from "./GlassCard";
 // Gallery
 export { EventGallery } from "./EventGallery";
 export { GalleryLightbox } from "./GalleryLightbox";
+export { HeroGallery } from "./HeroGallery";
 
 // Calendar
 export { CalendarBadge } from "./CalendarBadge";

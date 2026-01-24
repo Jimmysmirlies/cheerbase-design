@@ -52,13 +52,11 @@ export default function OrganizersSection({
         <div className="mx-auto max-w-7xl space-y-6 px-6">
           <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                {title}
-              </h2>
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
+              <h2 className="heading-3 sm:heading-2">{title}</h2>
+              <p className="body-small text-muted-foreground">{subtitle}</p>
             </div>
             <Link
-              className="text-sm font-semibold text-primary underline-offset-4 hover:text-primary/80 hover:underline"
+              className="body-small font-semibold text-primary underline-offset-4 hover:text-primary/80 hover:underline"
               href={ctaHref}
             >
               {ctaLabel}

@@ -122,10 +122,10 @@ export function DateTimeSection({
                     backgroundPosition: "center",
                   }}
                 />
-                <span className="relative z-10 text-[11px] font-medium uppercase tracking-wide leading-none pt-1 text-foreground">
+                <span className="relative z-10 label leading-none pt-1 text-foreground">
                   {scheduleDay.month}
                 </span>
-                <span className="relative z-10 text-2xl font-semibold leading-none pb-0.5 text-foreground">
+                <span className="relative z-10 heading-3 leading-none pb-0.5 text-foreground">
                   {scheduleDay.day}
                 </span>
               </div>
@@ -172,18 +172,18 @@ export function DateTimeSection({
               backgroundPosition: "center",
             }}
           />
-          <span className="relative z-10 text-[11px] font-medium uppercase tracking-wide leading-none pt-1 text-foreground">
+          <span className="relative z-10 label leading-none pt-1 text-foreground">
             {eventDateParts.month}
           </span>
-          <span className="relative z-10 text-2xl font-semibold leading-none pb-0.5 text-foreground">
+          <span className="relative z-10 heading-3 leading-none pb-0.5 text-foreground">
             {eventDateParts.day}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-semibold text-foreground">
+          <span className="body-small font-semibold text-foreground">
             {eventDateParts.weekday}, {eventDateParts.fullDate}
           </span>
-          <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+          <span className="body-small text-muted-foreground flex items-center gap-1.5">
             <ClockIcon className="size-4" />
             {eventData.startTime || "8:00 AM"} -{" "}
             {eventData.endTime || "6:00 PM"} {eventData.timezone || "EST"}

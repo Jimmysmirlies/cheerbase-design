@@ -100,6 +100,7 @@ export function SectionWrapper({
                   onSave={onSave!}
                   onCancel={onCancel!}
                   isSaving={isSaving}
+                  saveButtonText="Done"
                 >
                   {editContent}
                 </InlineEditCard>
