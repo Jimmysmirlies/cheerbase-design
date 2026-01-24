@@ -156,10 +156,7 @@ export function EventDetailContent(props: EventDetailContentProps) {
   return (
     <EventSectionProvider initialGradient={props.organizerGradient}>
       {/* Airbnb-style sticky section navigation */}
-      <EventStickyNav
-        gradient={props.organizerGradient}
-        titleElementId="event-title"
-      />
+      <EventStickyNav gradient={props.organizerGradient} />
 
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
         {/* Hero Gallery */}
