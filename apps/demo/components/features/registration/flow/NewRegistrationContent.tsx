@@ -483,49 +483,52 @@ export function NewRegistrationContent({
       whileInView="visible"
       viewport={{ once: true }}
     >
-      <div className="flex flex-col gap-4 px-1">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <p className="heading-4">Register Teams</p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setBulkUploadOpen(true)}
-              >
-                <UploadIcon className="size-4" />
-                Bulk Upload
-              </Button>
-              <WalkthroughSpotlight
-                step="register-team"
-                side="bottom"
-                align="end"
-                advanceOnClick
-              >
-                <Button size="sm" onClick={() => setRegisterTeamOpen(true)}>
-                  <PlusIcon className="size-4" />
-                  Register Team
-                </Button>
-              </WalkthroughSpotlight>
-            </div>
-          </div>
+      {/* Top border divider */}
+      <div className="h-px w-full bg-border" />
 
-          {/* Informational notice */}
-          <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-            Add teams to register for this event.
-            {registrationDeadline ? (
-              <>
-                {" "}
-                Registration must be completed before{" "}
-                <span className="font-medium text-foreground">
-                  {registrationDeadline}
-                </span>
-                .
-              </>
-            ) : null}
+      <div className="flex flex-col gap-6 py-8">
+        {/* Section header with title and actions */}
+        <div className="flex items-center justify-between">
+          <p className="heading-4">Register Teams</p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBulkUploadOpen(true)}
+            >
+              <UploadIcon className="size-4" />
+              Bulk Upload
+            </Button>
+            <WalkthroughSpotlight
+              step="register-team"
+              side="bottom"
+              align="end"
+              advanceOnClick
+            >
+              <Button size="sm" onClick={() => setRegisterTeamOpen(true)}>
+                <PlusIcon className="size-4" />
+                Register Team
+              </Button>
+            </WalkthroughSpotlight>
           </div>
         </div>
 
+        {/* Informational notice */}
+        <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          Add teams to register for this event.
+          {registrationDeadline ? (
+            <>
+              {" "}
+              Registration must be completed before{" "}
+              <span className="font-medium text-foreground">
+                {registrationDeadline}
+              </span>
+              .
+            </>
+          ) : null}
+        </div>
+
+        {/* Division groups */}
         <div className="flex flex-col gap-6 min-w-0">
           {allDivisions.length > 0 ? (
             allDivisions.map((division) => {
@@ -701,7 +704,7 @@ export function NewRegistrationContent({
 
   return (
     <>
-      <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
+      <div className="min-w-0">
         <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
           <div className="space-y-8 min-w-0">{TeamsSection}</div>
           {InvoiceSidebar}

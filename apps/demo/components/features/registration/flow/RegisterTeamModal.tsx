@@ -12,9 +12,13 @@ import {
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
 
+import { ArrowLeftIcon } from "lucide-react";
+
 import { GradientAvatar } from "@/components/ui/GradientAvatar";
 
 import type { RegistrationEntry, TeamOption } from "./types";
+
+type Step = 1 | 2;
 
 type RegisterTeamModalProps = {
   open: boolean;
@@ -31,12 +35,14 @@ export function RegisterTeamModal({
   teams,
   onSubmit,
 }: RegisterTeamModalProps) {
+  const [step, setStep] = useState<Step>(1);
   const [division, setDivision] = useState<string>("");
   const [teamId, setTeamId] = useState<string>("");
 
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
+      setStep(1);
       setDivision("");
       setTeamId("");
     }
@@ -91,29 +97,57 @@ export function RegisterTeamModal({
     setTeamId(""); // Reset team selection when division changes
   };
 
+  const handleContinue = () => {
+    if (division) {
+      setStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    setStep(1);
+    setTeamId("");
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-2xl rounded-md gap-6">
         <DialogHeader>
           <DialogTitle className="heading-4">Register a Team</DialogTitle>
           <DialogDescription className="body-small">
-            Select a division and team to add to your registration.
+            {step === 1
+              ? "Select a division to register your team in."
+              : `Select a team to register in ${division}.`}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Step 1: Division Selection */}
+        {/* Progress indicator */}
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "h-1.5 flex-1 rounded-full transition-colors",
+              step >= 1 ? "bg-primary" : "bg-muted"
+            )}
+          />
+          <div
+            className={cn(
+              "h-1.5 flex-1 rounded-full transition-colors",
+              step >= 2 ? "bg-primary" : "bg-muted"
+            )}
+          />
+        </div>
+
+        {/* Step 1: Division Selection */}
+        {step === 1 && (
           <div className="space-y-3 pt-0">
-            <label className="label text-muted-foreground">Division</label>
-            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
+            <label className="label text-muted-foreground">Select Division</label>
+            <div className="flex flex-wrap gap-3 pt-2">
               {divisions.map((div) => {
                 const teamsInDivision = divisionTeamsMap.get(div) ?? [];
                 const hasTeamsInDivision = teamsInDivision.length > 0;
                 return (
-                  <DivisionCard
+                  <DivisionBadge
                     key={div}
                     division={div}
-                    teamCount={teamsInDivision.length}
                     selected={division === div}
                     disabled={!hasTeamsInDivision}
                     onClick={() => handleDivisionSelect(div)}
@@ -122,58 +156,79 @@ export function RegisterTeamModal({
               })}
             </div>
           </div>
+        )}
 
-          {/* Step 2: Team Selection - only shown after division is selected */}
-          {division && (
-            <div className="space-y-3">
-              <label className="label text-muted-foreground">Team</label>
-              {availableTeams.length > 0 ? (
-                <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
-                  {availableTeams.map((team) => (
-                    <SelectableTeamCard
-                      key={team.id}
-                      team={team}
-                      selected={teamId === team.id}
-                      onClick={() => setTeamId(team.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="body-small text-muted-foreground py-4 text-center border border-dashed rounded-md">
-                  No teams available to register.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Step 2: Team Selection */}
+        {step === 2 && (
+          <div className="space-y-3">
+            <label className="label text-muted-foreground">Select Team</label>
+            {availableTeams.length > 0 ? (
+              <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+                {availableTeams.map((team) => (
+                  <SelectableTeamCard
+                    key={team.id}
+                    team={team}
+                    selected={teamId === team.id}
+                    onClick={() => setTeamId(team.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="body-small text-muted-foreground py-4 text-center border border-dashed rounded-md">
+                No teams available to register in this division.
+              </div>
+            )}
+          </div>
+        )}
 
         <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
-            Add Team
-          </Button>
+          {step === 1 ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleContinue}
+                disabled={!division}
+              >
+                Continue
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleBack}
+                className="gap-2"
+              >
+                <ArrowLeftIcon className="size-4" />
+                Back
+              </Button>
+              <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
+                Add Team
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-// Division card - selectable grid item
-function DivisionCard({
+// Division badge - selectable badge item
+function DivisionBadge({
   division,
-  teamCount,
   selected,
   disabled,
   onClick,
 }: {
   division: string;
-  teamCount: number;
   selected: boolean;
   disabled: boolean;
   onClick: () => void;
@@ -184,21 +239,14 @@ function DivisionCard({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "rounded-md border p-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "rounded-full border px-3 py-1.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         selected
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border/60 hover:border-primary/40",
-        disabled && "cursor-not-allowed opacity-50 hover:border-border/60",
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-background hover:border-primary/40 hover:bg-muted/50",
+        disabled && "cursor-not-allowed opacity-40 hover:border-border hover:bg-background",
       )}
     >
-      <p className="body-text font-medium">{division}</p>
-      <p className="body-small text-muted-foreground">
-        {teamCount === 0
-          ? "No teams available to register"
-          : teamCount === 1
-            ? "1 team available"
-            : `${teamCount} teams available`}
-      </p>
+      {division}
     </button>
   );
 }

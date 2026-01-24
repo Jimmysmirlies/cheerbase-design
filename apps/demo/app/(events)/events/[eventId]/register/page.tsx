@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { NewRegistrationContent } from "@/components/features/registration/flow/NewRegistrationContent";
 import { findEventById } from "@/data/events";
 import { findOrganizerByName } from "@/data/events/organizers";
@@ -43,24 +43,25 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
   registrationDeadline.setDate(registrationDeadline.getDate() - 1);
   const registrationDeadlineLabel = formatFriendlyDate(registrationDeadline);
 
+  // Format date label to match event detail page
+  const dateLabel = eventDate.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   // Build rosters from club data
   const rosters = clubData.rosters ?? [];
 
   return (
-    <section className="flex flex-1 flex-col">
-      <PageHeader
-        title={eventDetails.name}
-        hideBorder
-        gradient={gradient}
-        breadcrumbs={[
-          { label: "Events", href: "/events/search" },
-          {
-            label: eventDetails.name,
-            href: `/events/${encodeURIComponent(eventId)}`,
-          },
-          { label: "Register" },
-        ]}
-      />
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
+      <PageTitle
+          title={eventDetails.name}
+          gradient={gradient}
+          dateLabel={dateLabel}
+          locationLabel={eventDetails.location}
+        />
 
       <NewRegistrationContent
         eventId={eventId}

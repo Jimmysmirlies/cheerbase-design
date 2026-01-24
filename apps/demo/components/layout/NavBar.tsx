@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/shadcn/button";
 
 import Link from "next/link";
+import { SearchIcon, XIcon } from "lucide-react";
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useOrganizer } from "@/hooks/useOrganizer";
@@ -56,6 +57,13 @@ export function NavBar({
   const [clubGradient, setClubGradient] = useState<string | undefined>(
     undefined,
   );
+
+  // Get search components (desktop and mobile separately)
+  const searchComponents = NavBarSearch({
+    isNarrow,
+    mobileSearchExpanded,
+    setMobileSearchExpanded,
+  });
 
   // Load organizer settings if applicable
   useEffect(() => {
@@ -145,7 +153,7 @@ export function NavBar({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const query = window.matchMedia("(max-width: 1023px)");
+    const query = window.matchMedia("(max-width: 767px)");
     const sync = (target: Pick<MediaQueryList, "matches">) =>
       setIsNarrow(target.matches);
     sync(query);
@@ -263,12 +271,8 @@ export function NavBar({
           </Link>
         </div>
 
-        {/* Search */}
-        <NavBarSearch
-          isNarrow={isNarrow}
-          mobileSearchExpanded={mobileSearchExpanded}
-          setMobileSearchExpanded={setMobileSearchExpanded}
-        />
+        {/* Desktop Search */}
+        {searchComponents.DesktopSearch}
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
@@ -288,6 +292,22 @@ export function NavBar({
             />
           )}
 
+          {/* Mobile search toggle - left of avatar */}
+          {isNarrow && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSearchExpanded(!mobileSearchExpanded)}
+              aria-label={mobileSearchExpanded ? "Close search" : "Open search"}
+            >
+              {mobileSearchExpanded ? (
+                <XIcon className="size-5" />
+              ) : (
+                <SearchIcon className="size-5" />
+              )}
+            </Button>
+          )}
+
           {/* Auth Menu */}
           <NavBarAuthMenu
             isDark={isDark}
@@ -298,6 +318,9 @@ export function NavBar({
           />
         </div>
       </div>
+
+      {/* Mobile search - outside main row to push content down */}
+      {searchComponents.MobileSearch}
     </header>
   );
 }

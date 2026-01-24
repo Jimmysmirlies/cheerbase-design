@@ -4,9 +4,8 @@ import { useRef, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
-import { SearchIcon, XIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import { eventCategories } from "@/data/events/categories";
 import type { SearchItem } from "./types";
@@ -125,78 +124,64 @@ export function NavBarSearch({
     </div>
   );
 
-  return (
-    <>
-      {/* Mobile search toggle */}
-      {isNarrow && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileSearchExpanded(!mobileSearchExpanded)}
-          aria-label={mobileSearchExpanded ? "Close search" : "Open search"}
-        >
-          {mobileSearchExpanded ? (
-            <XIcon className="size-5" />
-          ) : (
-            <SearchIcon className="size-5" />
-          )}
-        </Button>
-      )}
-
-      {/* Desktop search - hidden on mobile */}
-      <div className="hidden flex-1 px-4 lg:block lg:max-w-xl">
-        <form className="relative w-full" onSubmit={handleSubmit}>
-          <Input
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              if (e.target.value.trim().length > 0) setSearchOpen(true);
-            }}
-            onFocus={() => {
-              if (searchTerm.trim().length > 0) setSearchOpen(true);
-            }}
-            onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
-            placeholder="Search events, divisions, organizers, and locations"
-            className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
-          />
-          <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-          {searchOpen && debouncedTerm && <SearchResults />}
-        </form>
-      </div>
-
-      {/* Mobile search - animated with Framer Motion */}
-      <AnimatePresence>
-        {mobileSearchExpanded && isNarrow && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute left-0 right-0 top-full overflow-hidden bg-sidebar/80 backdrop-blur-md"
-          >
-            <div className="px-6 py-3">
-              <form className="relative w-full" onSubmit={handleSubmit}>
-                <Input
-                  ref={searchInputRef}
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    if (e.target.value.trim().length > 0) setSearchOpen(true);
-                  }}
-                  onFocus={() => {
-                    if (searchTerm.trim().length > 0) setSearchOpen(true);
-                  }}
-                  onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
-                  placeholder="Search events, divisions, organizers, and locations"
-                  className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
-                />
-                <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-                {searchOpen && debouncedTerm && <SearchResults />}
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+  // Desktop search component (rendered inline in navbar row)
+  const DesktopSearch = (
+    <div className="hidden px-4 md:block md:flex-1 md:max-w-xl">
+      <form className="relative w-full" onSubmit={handleSubmit}>
+        <Input
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (e.target.value.trim().length > 0) setSearchOpen(true);
+          }}
+          onFocus={() => {
+            if (searchTerm.trim().length > 0) setSearchOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
+          placeholder="Search events, divisions, organizers, and locations"
+          className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
+        />
+        <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+        {searchOpen && debouncedTerm && <SearchResults />}
+      </form>
+    </div>
   );
+
+  // Mobile search component (rendered outside navbar row to push content down)
+  const MobileSearch = (
+    <AnimatePresence>
+      {mobileSearchExpanded && isNarrow && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="w-full overflow-hidden bg-sidebar/80 backdrop-blur-md md:hidden"
+        >
+          <div className="px-6 py-3">
+            <form className="relative w-full" onSubmit={handleSubmit}>
+              <Input
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  if (e.target.value.trim().length > 0) setSearchOpen(true);
+                }}
+                onFocus={() => {
+                  if (searchTerm.trim().length > 0) setSearchOpen(true);
+                }}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
+                placeholder="Search events, divisions, organizers, and locations"
+                className="w-full rounded-full border border-border/60 bg-card/80 pl-10 pr-4 text-sm shadow-sm backdrop-blur-sm focus:border-primary focus:ring-2 focus:ring-primary/30"
+              />
+              <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+              {searchOpen && debouncedTerm && <SearchResults />}
+            </form>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  return { DesktopSearch, MobileSearch };
 }
