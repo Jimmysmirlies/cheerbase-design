@@ -674,7 +674,7 @@ export default function OrganizerInvoicesPage() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto w-full max-w-7xl">
+      <section className="mx-auto w-full max-w-6xl">
         <PageTitle title="Invoices" gradient={gradientValue} />
         <div className="pt-6">
           <SeasonDropdown />
@@ -692,7 +692,7 @@ export default function OrganizerInvoicesPage() {
 
   if (!overview) {
     return (
-      <section className="mx-auto w-full max-w-7xl">
+      <section className="mx-auto w-full max-w-6xl">
         <PageTitle title="Invoices" gradient={gradientValue} />
         <div className="pt-6">
           <SeasonDropdown />
@@ -714,7 +714,7 @@ export default function OrganizerInvoicesPage() {
   const hasOverdue = overview.overdueAmount > 0;
 
   return (
-    <section className="mx-auto w-full max-w-7xl">
+    <section className="mx-auto w-full max-w-6xl">
       {/* Header */}
       <PageTitle title="Invoices" gradient={gradientValue} />
 

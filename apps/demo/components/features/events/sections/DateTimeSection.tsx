@@ -5,6 +5,7 @@ import { ClockIcon, PlusIcon } from "lucide-react";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Button } from "@workspace/ui/shadcn/button";
+import { DatePicker } from "@workspace/ui/shadcn/date-picker";
 import { brandGradients } from "@/lib/gradients";
 import type { Event, EventScheduleDay } from "@/types/events";
 import type { BaseSectionProps } from "./types";
@@ -54,6 +55,54 @@ function computeDateParts(dateString?: string) {
 }
 
 /**
+ * Convert various date formats to ISO YYYY-MM-DD format
+ * Handles: "Mar 28, 2026", "March 28, 2026", "2026-03-28", etc.
+ */
+function toISODate(dateString?: string): string {
+  if (!dateString) return "";
+  // Already in ISO format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Parse ISO date string to Date object (local timezone)
+ */
+function parseISODate(dateString?: string): Date | undefined {
+  if (!dateString) return undefined;
+  // Parse YYYY-MM-DD as local date to avoid timezone shifts
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const parts = dateString.split("-").map(Number);
+    const year = parts[0] ?? 0;
+    const month = parts[1] ?? 1;
+    const day = parts[2] ?? 1;
+    const parsed = new Date(year, month - 1, day);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }
+  // Handle other formats
+  const parsed = new Date(dateString);
+  return isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+/**
+ * Format Date to ISO string for storage
+ */
+function formatDateToISO(date: Date | undefined): string {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * DateTimeSection displays the event date and time.
  * Supports both view and edit modes, including multi-day schedules.
  */
@@ -100,6 +149,41 @@ export function DateTimeSection({
   const gradientCss = gradient.css;
   const firstGradientColor =
     gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
+
+  // Initialize schedule data for edit mode (must be before any early returns)
+  const scheduleData = useMemo(() => {
+    if (eventData.schedule && eventData.schedule.length > 0) {
+      return eventData.schedule;
+    }
+
+    // Convert single-day event to schedule format
+    if (eventData.date) {
+      // Parse time strings like "8:00 AM" to 24h format "08:00"
+      const parseTimeTo24h = (timeStr?: string): string => {
+        if (!timeStr) return "08:00";
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (!match) return "08:00";
+        let hours = parseInt(match[1] || "8", 10);
+        const minutes = match[2] || "00";
+        const period = match[3]?.toUpperCase();
+        if (period === "PM" && hours < 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+        return `${hours.toString().padStart(2, "0")}:${minutes}`;
+      };
+
+      return [
+        {
+          date: toISODate(eventData.date), // Convert "Mar 28, 2026" to "2026-03-28"
+          label: "",
+          startTime: parseTimeTo24h(eventData.startTime),
+          endTime: parseTimeTo24h(eventData.endTime),
+        },
+      ];
+    }
+
+    // Fallback to empty day
+    return [{ date: "", label: "", startTime: "08:00", endTime: "18:00" }];
+  }, [eventData.schedule, eventData.date, eventData.startTime, eventData.endTime]);
 
   // VIEW MODE
   if (mode === "view") {
@@ -194,12 +278,6 @@ export function DateTimeSection({
   }
 
   // EDIT MODE - Multi-day schedule
-  // Initialize with one empty day if no schedule exists
-  const scheduleData =
-    eventData.schedule && eventData.schedule.length > 0
-      ? eventData.schedule
-      : [{ date: "", label: "", startTime: "08:00", endTime: "18:00" }];
-
   const handleAddDay = () => {
     const newDay: EventScheduleDay = {
       date: "",
@@ -248,13 +326,12 @@ export function DateTimeSection({
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="space-y-2">
               <Label>Date</Label>
-              <Input
-                type="date"
-                value={day.date}
-                onChange={(e) =>
-                  handleUpdateDay(index, { date: e.target.value })
+              <DatePicker
+                date={parseISODate(day.date)}
+                onDateChange={(date) =>
+                  handleUpdateDay(index, { date: formatDateToISO(date) })
                 }
-                className="w-full"
+                placeholder="Select date"
               />
             </div>
             <div className="space-y-2">

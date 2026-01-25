@@ -179,7 +179,7 @@ export default function OrganizerSettingsPage() {
 
   if (isLoading || subscriptionLoading) {
     return (
-      <section className="mx-auto w-full max-w-7xl">
+      <section className="mx-auto w-full max-w-6xl">
         <div className="h-10 w-32 animate-pulse rounded bg-muted" />
         <div className="flex flex-col gap-8 pt-8">
           <div className="h-64 animate-pulse rounded-lg bg-muted" />
@@ -191,7 +191,7 @@ export default function OrganizerSettingsPage() {
   const gradientOptions = getGradientOptions();
 
   return (
-    <section className="mx-auto w-full max-w-7xl">
+    <section className="mx-auto w-full max-w-6xl">
       {/* Header */}
       <h1
         className="heading-2 bg-clip-text text-transparent"

@@ -15,6 +15,8 @@ type HeroGalleryProps = {
   alt?: string;
   /** Optional className for container */
   className?: string;
+  /** Optional overlay actions (shown on mobile in top-right corner) */
+  overlayActions?: React.ReactNode;
 };
 
 /**
@@ -24,7 +26,8 @@ type HeroGalleryProps = {
  * Click any image to open the full lightbox slideshow.
  * Uses 2:1 aspect ratio (Airbnb-style).
  *
- * Layouts:
+ * Mobile: Single hero image with optional overlay actions
+ * Desktop:
  * - 1 image: Full width 2:1
  * - 2 images: 2/3 left + 1/3 top-right (blank below)
  * - 3 images: 2/3 left + 2 stacked right
@@ -34,6 +37,7 @@ export function HeroGallery({
   images,
   alt = "Event photo",
   className,
+  overlayActions,
 }: HeroGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -54,23 +58,34 @@ export function HeroGallery({
   const imageStyles =
     "object-cover transition-transform duration-300 hover:scale-[1.02]";
 
-  // Single image - full width 16:9
+  // Single image - full width
   if (images.length === 1) {
     return (
       <div className={cn("w-full", className)}>
-        <button
-          type="button"
-          onClick={() => openLightbox(0)}
-          className={cn(buttonStyles, "aspect-[2/1] w-full")}
-        >
-          <Image
-            src={images[0]!}
-            alt={`${alt} 1`}
-            fill
-            className={imageStyles}
-            sizes="(max-width: 768px) 100vw, 1280px"
-          />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => openLightbox(0)}
+            className={cn(
+              buttonStyles,
+              "aspect-[4/3] w-full md:aspect-[2/1]",
+            )}
+          >
+            <Image
+              src={images[0]!}
+              alt={`${alt} 1`}
+              fill
+              className={imageStyles}
+              sizes="(max-width: 768px) 100vw, 1280px"
+            />
+          </button>
+          {/* Overlay actions (mobile only) */}
+          {overlayActions && (
+            <div className="absolute right-3 top-3 flex items-center gap-2 md:hidden">
+              {overlayActions}
+            </div>
+          )}
+        </div>
         <GalleryLightbox
           images={images}
           alt={alt}
@@ -86,24 +101,31 @@ export function HeroGallery({
   if (images.length === 2) {
     return (
       <div className={cn("w-full", className)}>
-        {/* Mobile: stacked */}
-        <div className="flex flex-col gap-2 md:hidden">
-          {displayImages.map((src, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => openLightbox(index)}
-              className={cn(buttonStyles, "aspect-[4/3] w-full")}
-            >
-              <Image
-                src={src}
-                alt={`${alt} ${index + 1}`}
-                fill
-                className={imageStyles}
-                sizes="100vw"
-              />
-            </button>
-          ))}
+        {/* Mobile: single hero image with overlay actions */}
+        <div className="relative md:hidden">
+          <button
+            type="button"
+            onClick={() => openLightbox(0)}
+            className={cn(buttonStyles, "aspect-[4/3] w-full")}
+          >
+            <Image
+              src={images[0]!}
+              alt={`${alt} 1`}
+              fill
+              className={imageStyles}
+              sizes="100vw"
+            />
+          </button>
+          {/* Image count indicator */}
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
+            1 / {images.length}
+          </div>
+          {/* Overlay actions */}
+          {overlayActions && (
+            <div className="absolute right-3 top-3 flex items-center gap-2">
+              {overlayActions}
+            </div>
+          )}
         </div>
 
         {/* Desktop: grid layout */}
@@ -153,45 +175,31 @@ export function HeroGallery({
   // Three or more images - 2/3 left + 2 stacked right
   return (
     <div className={cn("w-full", className)}>
-      {/* Mobile: stacked */}
-      <div className="flex flex-col gap-2 md:hidden">
-        {displayImages.map((src, index) => {
-          const isLastWithMore = index === 2 && remainingCount > 0;
-
-          return (
-            <button
-              key={index}
-              type="button"
-              onClick={() => openLightbox(index)}
-              className={cn(
-                buttonStyles,
-                "aspect-[4/3] w-full",
-                isLastWithMore && "group",
-              )}
-            >
-              <Image
-                src={src}
-                alt={`${alt} ${index + 1}`}
-                fill
-                className={cn(
-                  "object-cover transition-transform duration-300",
-                  isLastWithMore
-                    ? "group-hover:scale-[1.02]"
-                    : "hover:scale-[1.02]",
-                )}
-                sizes="100vw"
-              />
-              {isLastWithMore && (
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 transition-colors group-hover:bg-black/50">
-                  <LayoutGridIcon className="size-5 text-white" />
-                  <span className="text-sm font-semibold text-white">
-                    +{remainingCount} more
-                  </span>
-                </div>
-              )}
-            </button>
-          );
-        })}
+      {/* Mobile: single hero image with overlay actions */}
+      <div className="relative md:hidden">
+        <button
+          type="button"
+          onClick={() => openLightbox(0)}
+          className={cn(buttonStyles, "aspect-[4/3] w-full")}
+        >
+          <Image
+            src={displayImages[0]!}
+            alt={`${alt} 1`}
+            fill
+            className={imageStyles}
+            sizes="100vw"
+          />
+        </button>
+        {/* Image count indicator */}
+        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
+          1 / {images.length}
+        </div>
+        {/* Overlay actions */}
+        {overlayActions && (
+          <div className="absolute right-3 top-3 flex items-center gap-2">
+            {overlayActions}
+          </div>
+        )}
       </div>
 
       {/* Desktop: grid layout */}

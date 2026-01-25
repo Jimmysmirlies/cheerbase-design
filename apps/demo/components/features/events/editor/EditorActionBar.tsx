@@ -36,7 +36,7 @@ export function EditorActionBar({
 
   return (
     <div className="w-full border-b border-border/60 bg-background">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
         {/* Left side: Back button */}
         <Button variant="ghost" size="sm" asChild className="-ml-2">
           <Link href={backHref}>

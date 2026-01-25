@@ -148,22 +148,41 @@ export function LocationSection({
 
   // VIEW MODE
   if (mode === "view") {
+    const googleMapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+    const hasLocation = location && location !== "Location to be announced";
+
     return (
       <div className="flex flex-col gap-4">
-        {/* Map placeholder */}
-        <Link
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex aspect-[2/1] w-full flex-col items-center justify-center gap-2 rounded-xl bg-muted/50 transition-colors hover:bg-muted/70"
-        >
-          <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <MapPinIcon className="size-5 text-primary" />
-          </div>
-          <span className="text-sm font-medium text-foreground">
-            {venueName}
-          </span>
-        </Link>
+        {/* Google Maps embed */}
+        <div className="relative aspect-[2/1] w-full overflow-hidden rounded-xl border border-border/70 bg-muted/50">
+          {hasLocation ? (
+            <>
+              <iframe
+                src={`https://www.google.com/maps?q=${encodeURIComponent(location)}&output=embed`}
+                className="absolute inset-0 h-full w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title={`Map of ${venueName}`}
+              />
+              <Link
+                href={googleMapsHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 z-10"
+                aria-label={`Open ${venueName} in Google Maps`}
+              />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+              <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+                <MapPinIcon className="size-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">
+                Location to be announced
+              </span>
+            </div>
+          )}
+        </div>
         {/* Venue info */}
         <div className="flex flex-col gap-0.5">
           <span className="text-base font-semibold text-foreground">

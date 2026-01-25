@@ -179,7 +179,7 @@ export function EventEditor() {
         <FocusModeHeader onBack={handleBack} />
         <div className="h-[calc(100vh-68px)] overflow-y-auto scrollbar-hide">
           <main className="p-8">
-            <section className="mx-auto w-full max-w-7xl">
+            <section className="mx-auto w-full max-w-6xl">
               {headerContent}
               <ChangeHistoryBar
                 changes={changeLog}
@@ -214,7 +214,7 @@ export function EventEditor() {
         {/* Main content area */}
         <div className="flex-1 overflow-y-auto scrollbar-hide">
           <main className="p-8">
-            <section className="mx-auto w-full max-w-7xl">
+            <section className="mx-auto w-full max-w-6xl">
               {headerContent}
               <ChangeHistoryBar
                 changes={changeLog}

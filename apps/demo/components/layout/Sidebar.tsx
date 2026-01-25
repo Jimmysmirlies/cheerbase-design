@@ -202,9 +202,6 @@ export function Sidebar({
       {/* Season Selector / Header Slot - hidden when collapsed */}
       {!isCollapsed && headerSlot && <div className="mb-5">{headerSlot}</div>}
 
-      {/* Spacer when collapsed to align nav items */}
-      {isCollapsed && <div className="h-[52px]" />}
-
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto">
         {navSections.map((section, index) => (

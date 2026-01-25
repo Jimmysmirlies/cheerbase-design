@@ -10,7 +10,7 @@ import {
   formatHostingDuration,
 } from "@/data/events/organizers";
 import { buildEventGalleryImages } from "@/app/(events)/events/[eventId]/image-gallery";
-import { brandGradients, type BrandGradient } from "@/lib/gradients";
+import { type BrandGradient } from "@/lib/gradients";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function OrganizerEventViewPage() {
@@ -96,7 +96,7 @@ export default function OrganizerEventViewPage() {
 
   if (status === "loading" || !event) {
     return (
-      <section className="mx-auto w-full max-w-7xl">
+      <section className="mx-auto w-full max-w-6xl">
         <div className="h-10 w-64 animate-pulse rounded bg-muted" />
         <div className="h-4 w-96 animate-pulse rounded bg-muted mt-2" />
       </section>
@@ -105,14 +105,6 @@ export default function OrganizerEventViewPage() {
 
   const galleryImages = buildEventGalleryImages(event);
   const organizer = findOrganizerByName(event.organizer);
-
-  // Format timeline dates
-  const formatTimelineDate = (date: Date) =>
-    date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
 
   const competitionDate = new Date(event.date);
   // Handle invalid dates (e.g., from draft events with missing date field)
@@ -153,131 +145,10 @@ export default function OrganizerEventViewPage() {
 
   const registrationClosed = isRegistrationClosed(event);
 
-  // Build timeline phases
-  const now = new Date();
+  // Early bird deadline for pricing display
   const earlyBirdDeadline = event.earlyBirdDeadline
     ? new Date(event.earlyBirdDeadline)
     : null;
-  const registrationDeadline = event.registrationDeadline
-    ? new Date(event.registrationDeadline)
-    : dayBefore;
-
-  type RegistrationPhase = "early-bird" | "regular" | "closed";
-
-  const msUntilEarlyBird = earlyBirdDeadline
-    ? earlyBirdDeadline.getTime() - now.getTime()
-    : null;
-  const earlyBirdActive =
-    !!earlyBirdDeadline && !!msUntilEarlyBird && msUntilEarlyBird > 0;
-
-  const msUntilClose = registrationDeadline.getTime() - now.getTime();
-  const registrationOpen = msUntilClose > 0;
-
-  const getEarlyBirdCard = () => {
-    if (!earlyBirdDeadline) {
-      return {
-        title: "Early Bird Pricing",
-        subtitle: null,
-      };
-    }
-    return {
-      title: "Early Bird Pricing",
-      subtitle: `Ends ${formatTimelineDate(earlyBirdDeadline)}`,
-    };
-  };
-
-  const getRegistrationCard = () => {
-    return {
-      title: "Registration Open",
-      subtitle: `Ends ${formatTimelineDate(registrationDeadline)}`,
-    };
-  };
-
-  const getClosedCard = () => {
-    return {
-      title: "Registration Closed",
-      subtitle: formatTimelineDate(registrationDeadline),
-    };
-  };
-
-  const earlyBirdCardContent = getEarlyBirdCard();
-  const registrationCardContent = getRegistrationCard();
-  const closedCardContent = getClosedCard();
-
-  type TimelinePhase = {
-    id: RegistrationPhase;
-    title: string;
-    subtitle: string | null;
-    description: string;
-    show: boolean;
-  };
-
-  const allPhases: TimelinePhase[] = [
-    {
-      id: "early-bird" as const,
-      title: earlyBirdCardContent.title,
-      subtitle: earlyBirdCardContent.subtitle,
-      description: "",
-      show: !!earlyBirdDeadline,
-    },
-    {
-      id: "regular" as const,
-      title: registrationCardContent.title,
-      subtitle: registrationCardContent.subtitle,
-      description: "",
-      show: registrationOpen,
-    },
-    {
-      id: "closed" as const,
-      title: closedCardContent.title,
-      subtitle: closedCardContent.subtitle,
-      description: "",
-      show: true,
-    },
-  ].filter((phase) => phase.show);
-
-  const isCardActive = (phaseId: RegistrationPhase): boolean => {
-    if (phaseId === "early-bird") {
-      return earlyBirdActive;
-    }
-    if (phaseId === "regular") {
-      return registrationOpen && !earlyBirdActive;
-    }
-    if (phaseId === "closed") {
-      return !registrationOpen;
-    }
-    return false;
-  };
-
-  // Use saved gradient from settings (organizerGradient) or fall back to organizer's default
-  const gradientKey: BrandGradient =
-    organizerGradient ?? organizer?.gradient ?? "teal";
-  const gradient = brandGradients[gradientKey];
-  const firstGradientColor =
-    gradient.css.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#8E69D0";
-
-  const getPhaseStyles = (phaseId: RegistrationPhase) => {
-    const isCurrent = isCardActive(phaseId);
-
-    if (!isCurrent) {
-      return {
-        border: "border-border/30",
-        background: "bg-muted/10",
-        dot: "bg-muted-foreground/20",
-        usesGradient: false,
-      };
-    }
-
-    return {
-      border: "",
-      background: "",
-      dot: "",
-      gradientBg: gradient.css,
-      borderColor: firstGradientColor,
-      dotColor: firstGradientColor,
-      usesGradient: true,
-    };
-  };
 
   const formatAmount = (price?: number | null) => {
     if (price === null || price === undefined) {
@@ -329,24 +200,6 @@ export default function OrganizerEventViewPage() {
     },
   ];
 
-  const timelinePhases = allPhases.map((phase) => {
-    const phaseStyles = getPhaseStyles(phase.id);
-    const isCurrent = isCardActive(phase.id);
-    return {
-      id: phase.id,
-      title: phase.title,
-      subtitle: phase.subtitle,
-      border: phaseStyles.border,
-      background: phaseStyles.background,
-      dot: phaseStyles.dot,
-      usesGradient: phaseStyles.usesGradient,
-      gradientBg: phaseStyles.gradientBg,
-      borderColor: phaseStyles.borderColor,
-      dotColor: phaseStyles.dotColor,
-      isCurrent,
-    };
-  });
-
   const isDraft = event.status === "draft";
 
   return (
@@ -376,7 +229,6 @@ export default function OrganizerEventViewPage() {
       cityState={cityState}
       registrationDeadlineISO={registrationDeadlineISO}
       registrationClosed={registrationClosed}
-      timelinePhases={timelinePhases}
       pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
       pricingRows={pricingRowsArray}
       documents={documents}

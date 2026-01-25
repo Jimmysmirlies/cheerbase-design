@@ -111,7 +111,7 @@ export default function OrganizerRegistrationsPage() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto w-full max-w-7xl">
+      <section className="mx-auto w-full max-w-6xl">
         <PageTitle
           title="Registrations"
           gradient={organizerGradient || organizer?.gradient}
@@ -133,7 +133,7 @@ export default function OrganizerRegistrationsPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl">
+    <section className="mx-auto w-full max-w-6xl">
       {/* Header */}
       <PageTitle
         title="Registrations"

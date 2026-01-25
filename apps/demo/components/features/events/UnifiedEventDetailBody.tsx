@@ -19,12 +19,10 @@ import {
   OverviewSection,
   DateTimeSection,
   LocationSection,
-  TimelineSection,
   PricingSection,
   GallerySection,
   DocumentsSection,
   ResultsSection,
-  type TimelinePhase,
   type PricingRow,
   type ScheduleDayParts,
 } from "./sections";
@@ -75,7 +73,6 @@ export type UnifiedEventDetailBodyProps = {
     cityState?: string;
     registrationDeadlineISO?: string;
     registrationClosed?: boolean;
-    timelinePhases?: TimelinePhase[];
     pricingDeadlineLabel?: string;
     pricingRows?: PricingRow[];
     documents?: { name: string; description: string; href: string }[];
@@ -99,7 +96,8 @@ export function UnifiedEventDetailBody({
   // Edit mode state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
   const [localDraft, setLocalDraft] = useState<Partial<Event>>({});
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving] = useState(false);
+  const [docModalOpen, setDocModalOpen] = useState(false);
 
   // Check if user is an organizer (can't register for events)
   const { user, status } = useAuth();
@@ -114,7 +112,6 @@ export function UnifiedEventDetailBody({
     cityState = "",
     registrationDeadlineISO = "",
     registrationClosed = false,
-    timelinePhases = [],
     pricingDeadlineLabel = "",
     pricingRows = [],
     documents = [],
@@ -349,42 +346,6 @@ export function UnifiedEventDetailBody({
             }
           />
 
-          {/* Registration Timeline Section (Editor only) */}
-          {editable && (
-            <SectionWrapper
-              id="registration"
-              title="Registration Timeline"
-              showDivider
-              isEditing={editingSection === "registration"}
-              onStartEdit={() => handleStartEdit("registration")}
-              onSave={handleSaveSection}
-              onCancel={handleCancelEdit}
-              isSaving={isSaving}
-              hasData={TimelineSection.hasData(displayData)}
-              viewContent={
-                <TimelineSection
-                  mode="view"
-                  eventData={displayData}
-                  organizerGradient={organizerGradient}
-                  timelinePhases={timelinePhases}
-                />
-              }
-              editContent={
-                <TimelineSection
-                  mode="edit"
-                  eventData={localDraft}
-                  onUpdate={updateLocalDraft}
-                  organizerGradient={organizerGradient}
-                />
-              }
-              emptyState={
-                <EmptyStateButton
-                  title={TimelineSection.emptyTitle}
-                  description={TimelineSection.emptyDescription}
-                />
-              }
-            />
-          )}
 
           {/* Gallery Section */}
           <SectionWrapper
@@ -441,43 +402,37 @@ export function UnifiedEventDetailBody({
           )}
 
           {/* Documents Section */}
-          <SectionWrapper
-            id="documents"
-            title="Documents & Resources"
-            showDivider
-            isEditing={editingSection === "documents"}
-            onStartEdit={
-              editable ? () => handleStartEdit("documents") : undefined
-            }
-            onSave={handleSaveSection}
-            onCancel={handleCancelEdit}
-            isSaving={isSaving}
-            hasData={
-              DocumentsSection.hasData(displayData) || documents.length > 0
-            }
-            viewContent={
-              <DocumentsSection
-                mode="view"
-                eventData={displayData}
-                organizerGradient={organizerGradient}
-                documents={documents}
-              />
-            }
-            editContent={
-              <DocumentsSection
-                mode="edit"
-                eventData={localDraft}
-                onUpdate={updateLocalDraft}
-                organizerGradient={organizerGradient}
-              />
-            }
-            emptyState={
-              <EmptyStateButton
-                title={DocumentsSection.emptyTitle}
-                description={DocumentsSection.emptyDescription}
-              />
-            }
-          />
+          {(DocumentsSection.hasData(displayData) ||
+            documents.length > 0 ||
+            editable) && (
+            <motion.div variants={fadeInUp}>
+              <Section
+                id="documents"
+                title="Documents & Resources"
+                showDivider
+                titleRight={
+                  editable ? (
+                    <button
+                      type="button"
+                      onClick={() => setDocModalOpen(true)}
+                      className="text-sm text-foreground underline hover:no-underline"
+                    >
+                      Add Document
+                    </button>
+                  ) : undefined
+                }
+              >
+                <DocumentsSection
+                  eventData={editable ? localDraft : displayData}
+                  documents={editable ? undefined : documents}
+                  editable={editable}
+                  onUpdate={editable ? updateLocalDraft : undefined}
+                  modalOpen={docModalOpen}
+                  onModalOpenChange={setDocModalOpen}
+                />
+              </Section>
+            </motion.div>
+          )}
 
           {/* Results Section - Not editable */}
           <motion.div variants={fadeInUp}>
@@ -510,25 +465,36 @@ export function UnifiedEventDetailBody({
 
       {/* Mobile Sticky Footer CTA */}
       {!hideRegistration && (
-        <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
-          <div className="flex items-center justify-between gap-4 px-4 py-3">
-            <p className="text-sm text-foreground">
-              {registrationClosed
-                ? "Registration has closed"
-                : `Registration closes on ${new Date(registrationDeadlineISO).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
-            </p>
+        <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center justify-between gap-4 px-4 py-4">
+            <div className="min-w-0 flex-1">
+              <p className="body-small font-medium text-foreground truncate">
+                {registrationClosed
+                  ? "Registration Has Closed"
+                  : "Registration Open"}
+              </p>
+              {!registrationClosed && (
+                <p className="body-small text-muted-foreground truncate">
+                  Closes{" "}
+                  {new Date(registrationDeadlineISO).toLocaleDateString(
+                    "en-US",
+                    { month: "short", day: "numeric" },
+                  )}
+                </p>
+              )}
+            </div>
             {registrationClosed ? (
-              <Button size="sm" disabled>
+              <Button size="lg" disabled className="shrink-0">
                 Closed
               </Button>
             ) : isOrganizer ? (
-              <Button size="sm" disabled>
+              <Button size="lg" disabled className="shrink-0">
                 Register
               </Button>
             ) : (
-              <Button asChild size="sm">
+              <Button asChild size="lg" className="shrink-0">
                 <Link href={`/events/${encodeURIComponent(event.id)}/register`}>
-                  Register
+                  Register Now
                 </Link>
               </Button>
             )}
@@ -536,7 +502,9 @@ export function UnifiedEventDetailBody({
         </div>
       )}
       {/* Spacer to prevent content from being hidden behind sticky footer */}
-      {!hideRegistration && <div className="h-20 lg:hidden" />}
+      {!hideRegistration && (
+        <div className="h-24 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+      )}
     </>
   );
 }

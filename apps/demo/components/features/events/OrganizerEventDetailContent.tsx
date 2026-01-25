@@ -85,20 +85,6 @@ type OrganizerEventDetailContentProps = {
   registrationDeadlineISO?: string;
   /** Whether registration is closed */
   registrationClosed?: boolean;
-  /** Timeline phases for display */
-  timelinePhases?: {
-    id: string;
-    title: string;
-    subtitle: string | null;
-    border: string;
-    background: string;
-    dot: string;
-    usesGradient: boolean;
-    gradientBg?: string;
-    borderColor?: string;
-    dotColor?: string;
-    isCurrent: boolean;
-  }[];
   /** Pricing deadline label */
   pricingDeadlineLabel?: string;
   /** Pricing rows for display */
@@ -643,7 +629,6 @@ export function OrganizerEventDetailContent({
   cityState,
   registrationDeadlineISO,
   registrationClosed,
-  timelinePhases,
   pricingDeadlineLabel,
   pricingRows,
   documents,
@@ -687,7 +672,7 @@ export function OrganizerEventDetailContent({
   };
 
   return (
-    <section className="mx-auto w-full max-w-7xl">
+    <section className="mx-auto w-full max-w-6xl">
       {/* Header - no padding */}
       <PageTitle
         title={event.name}
@@ -695,9 +680,9 @@ export function OrganizerEventDetailContent({
         dateLabel={formatDateLabel(event.date)}
         locationLabel={event.location}
         actions={
-          <Button variant="default" onClick={handleEdit}>
-            <PencilIcon className="mr-2 size-4" />
-            Edit Event
+          <Button variant="default" size="icon" className="sm:w-auto sm:px-4" onClick={handleEdit}>
+            <PencilIcon className="size-4 sm:mr-2" />
+            <span className="hidden sm:inline">Edit Event</span>
           </Button>
         }
       />
@@ -740,7 +725,6 @@ export function OrganizerEventDetailContent({
               cityState,
               registrationDeadlineISO,
               registrationClosed,
-              timelinePhases,
               pricingDeadlineLabel,
               pricingRows,
               documents,

@@ -223,3 +223,60 @@ className =
 - Subtle, functional animations only
 - No decorative motion
 - Smooth scroll on marketing pages only
+
+## Mobile Sticky Footer
+
+Fixed-position CTA bars that persist at the bottom of mobile screens for primary actions (register, book, checkout).
+
+**Design Guidelines:**
+
+| Property | Value | Rationale |
+| -------- | ----- | --------- |
+| Height | 56–64px content area | Large enough to tap comfortably, not obtrusive |
+| Button size | `size="lg"` (min 44×44pt) | Apple HIG / Material Design touch target minimum |
+| Padding | `px-4 py-4` | Generous touch area, balanced with content |
+| Safe area | `pb-[env(safe-area-inset-bottom)]` | Accounts for iPhone home indicator, Android gesture bar |
+| Border | `border-t border-border/60` | Subtle separation, consistent with depth strategy |
+| Background | `bg-background/95 backdrop-blur-sm` | Glass effect for layering over content |
+| Z-index | `z-50` | Above page content, below modals |
+
+**Content Structure:**
+
+```tsx
+<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+  <div className="flex items-center justify-between gap-4 px-4 py-4">
+    {/* Left: Status text (two-line layout) */}
+    <div className="min-w-0 flex-1">
+      <p className="body-small font-medium text-foreground truncate">
+        Primary Status
+      </p>
+      <p className="body-small text-muted-foreground truncate">
+        Secondary info
+      </p>
+    </div>
+    {/* Right: CTA button */}
+    <Button size="lg" className="shrink-0">
+      Action
+    </Button>
+  </div>
+</div>
+
+{/* Spacer to prevent content overlap */}
+<div className="h-24 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+```
+
+**Best Practices:**
+
+- Use `lg:hidden` to hide on desktop (show sidebar/inline CTA instead)
+- Two-line text layout: bold status on top, muted detail below
+- `truncate` on text to handle long content gracefully
+- `shrink-0` on button to prevent compression
+- Always include matching spacer element to prevent content overlap
+- Use Title Case for status text, sentence case for details
+
+**Avoid:**
+
+- `size="sm"` buttons — too small for comfortable mobile tapping
+- Single-line layouts that cram too much text
+- Forgetting safe-area-inset — causes overlap with system UI
+- Height under 56px — feels cramped and hard to interact with

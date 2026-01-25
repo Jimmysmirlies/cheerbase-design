@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import {
   XIcon,
   Settings2Icon,
   EyeOffIcon,
   XCircleIcon,
   Trash2Icon,
-  SparklesIcon,
 } from "lucide-react";
 import { Label } from "@workspace/ui/shadcn/label";
 import { Input } from "@workspace/ui/shadcn/input";
@@ -92,6 +91,8 @@ export function EventSettingsSidebar({
   const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDisableEarlyBirdDialog, setShowDisableEarlyBirdDialog] =
+    useState(false);
 
   const handleRegistrationStartChange = useCallback(
     (date: Date | undefined) => {
@@ -135,21 +136,27 @@ export function EventSettingsSidebar({
         }
         updateEventData(updates);
       } else {
-        // When disabling, clear early bird prices from divisions
-        const updatedDivisions = eventData.availableDivisions?.map((div) => ({
-          ...div,
-          earlyBird: undefined,
-        }));
-        updateEventData({
-          earlyBirdEnabled: false,
-          earlyBirdStartDate: undefined,
-          earlyBirdDeadline: undefined,
-          availableDivisions: updatedDivisions,
-        });
+        // Show confirmation dialog before disabling
+        setShowDisableEarlyBirdDialog(true);
       }
     },
-    [eventData.availableDivisions, updateEventData, registrationStartDate],
+    [updateEventData, registrationStartDate],
   );
+
+  const confirmDisableEarlyBird = useCallback(() => {
+    // When disabling, clear early bird prices from divisions
+    const updatedDivisions = eventData.availableDivisions?.map((div) => ({
+      ...div,
+      earlyBird: undefined,
+    }));
+    updateEventData({
+      earlyBirdEnabled: false,
+      earlyBirdStartDate: undefined,
+      earlyBirdDeadline: undefined,
+      availableDivisions: updatedDivisions,
+    });
+    setShowDisableEarlyBirdDialog(false);
+  }, [eventData.availableDivisions, updateEventData]);
 
   const handleEarlyBirdEndChange = useCallback(
     (date: Date | undefined) => {
@@ -303,6 +310,29 @@ export function EventSettingsSidebar({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Disable Early Bird Confirmation Dialog */}
+      <AlertDialog
+        open={showDisableEarlyBirdDialog}
+        onOpenChange={setShowDisableEarlyBirdDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disable Early Bird Pricing?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove all early bird prices from your divisions. You
+              can re-enable early bird pricing later, but you&apos;ll need to
+              set the prices again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Enabled</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDisableEarlyBird}>
+              Yes, Disable
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 
@@ -402,10 +432,7 @@ export function EventSettingsSidebar({
 
             {/* Early Bird Pricing Section */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <SparklesIcon className="size-4 text-amber-500" />
-                <h3 className="heading-4">Early Bird Pricing</h3>
-              </div>
+              <h4 className="body-text font-semibold">Early Bird Pricing</h4>
               <p className="body-small text-muted-foreground">
                 Offer discounted prices to encourage early registration.
               </p>
@@ -517,10 +544,7 @@ export function EventSettingsSidebar({
 
         {/* Early Bird Pricing Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <SparklesIcon className="size-4 text-amber-500" />
-            <h3 className="heading-4">Early Bird Pricing</h3>
-          </div>
+          <h4 className="body-text font-semibold">Early Bird Pricing</h4>
           <p className="body-small text-muted-foreground">
             Offer discounted prices to encourage early registration.
           </p>

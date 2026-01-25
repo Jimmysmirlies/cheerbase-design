@@ -3,11 +3,6 @@
 import { useState } from "react";
 import { HeartIcon, Share2Icon, CheckIcon } from "lucide-react";
 import { Button } from "@workspace/ui/shadcn/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@workspace/ui/shadcn/tooltip";
 import { toast } from "@workspace/ui/shadcn/sonner";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { HeroGallery } from "@/components/ui";
@@ -15,18 +10,19 @@ import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import { EventStickyNav } from "./EventStickyNav";
 import { EventSectionProvider } from "./EventSectionContext";
 import type { BrandGradient } from "@/lib/gradients";
-import type { TimelinePhase, PricingRow } from "./sections";
+import type { PricingRow } from "./sections";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Event Action Buttons (Favorite & Share)
 // ─────────────────────────────────────────────────────────────────────────────
 
 type EventActionButtonsProps = {
-  eventId: string;
   eventName: string;
+  /** Render as icon-only glass buttons (for mobile overlay) */
+  variant?: "default" | "glass";
 };
 
-function EventActionButtons({ eventId, eventName }: EventActionButtonsProps) {
+function useEventActions(eventName: string) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
 
@@ -72,6 +68,51 @@ function EventActionButtons({ eventId, eventName }: EventActionButtonsProps) {
       toast.error("Failed to copy link");
     }
   };
+
+  return { isFavorited, justCopied, handleFavorite, handleShare };
+}
+
+function EventActionButtons({
+  eventName,
+  variant = "default",
+}: EventActionButtonsProps) {
+  const { isFavorited, justCopied, handleFavorite, handleShare } =
+    useEventActions(eventName);
+
+  if (variant === "glass") {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={handleShare}
+          aria-label="Share event"
+          className="flex size-10 items-center justify-center rounded-xl bg-white shadow-sm transition-colors hover:bg-white/95"
+        >
+          {justCopied ? (
+            <CheckIcon className="size-5 text-green-600" />
+          ) : (
+            <Share2Icon className="size-5 text-foreground" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={handleFavorite}
+          aria-label={
+            isFavorited ? "Remove from favorites" : "Add to favorites"
+          }
+          className="flex size-10 items-center justify-center rounded-xl bg-white shadow-sm transition-colors hover:bg-white/95"
+        >
+          <HeartIcon
+            className={
+              isFavorited
+                ? "size-5 fill-red-500 text-red-500"
+                : "size-5 text-foreground"
+            }
+          />
+        </button>
+      </>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -145,7 +186,6 @@ export type EventDetailContentProps = {
   cityState: string;
   registrationDeadlineISO: string;
   registrationClosed: boolean;
-  timelinePhases: TimelinePhase[];
   pricingDeadlineLabel: string;
   pricingRows: PricingRow[];
   documents: { name: string; description: string; href: string }[];
@@ -161,7 +201,16 @@ export function EventDetailContent(props: EventDetailContentProps) {
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
         {/* Hero Gallery */}
         {props.galleryImages.length > 0 && (
-          <HeroGallery images={props.galleryImages} alt={props.event.name} />
+          <HeroGallery
+            images={props.galleryImages}
+            alt={props.event.name}
+            overlayActions={
+              <EventActionButtons
+                eventName={props.event.name}
+                variant="glass"
+              />
+            }
+          />
         )}
 
         <div id="event-title">
@@ -171,10 +220,9 @@ export function EventDetailContent(props: EventDetailContentProps) {
             dateLabel={formatDateLabel(props.event.date)}
             locationLabel={props.event.location}
             actions={
-              <EventActionButtons
-                eventId={props.event.id}
-                eventName={props.event.name}
-              />
+              <div className="hidden md:flex">
+                <EventActionButtons eventName={props.event.name} />
+              </div>
             }
           />
         </div>
@@ -200,7 +248,6 @@ export function EventDetailContent(props: EventDetailContentProps) {
             cityState: props.cityState,
             registrationDeadlineISO: props.registrationDeadlineISO,
             registrationClosed: props.registrationClosed,
-            timelinePhases: props.timelinePhases,
             pricingDeadlineLabel: props.pricingDeadlineLabel,
             pricingRows: props.pricingRows,
             documents: props.documents,
@@ -213,4 +260,4 @@ export function EventDetailContent(props: EventDetailContentProps) {
 }
 
 // Re-export types for convenience
-export type { TimelinePhase, PricingRow } from "./sections";
+export type { PricingRow } from "./sections";

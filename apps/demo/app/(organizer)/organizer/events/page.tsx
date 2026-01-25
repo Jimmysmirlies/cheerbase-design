@@ -118,7 +118,7 @@ export default function OrganizerEventsPage() {
 
   if (isLoading || subscriptionLoading) {
     return (
-      <section className="mx-auto w-full max-w-7xl">
+      <section className="mx-auto w-full max-w-6xl">
         <PageTitle
           title="Events"
           gradient={organizerGradient}
@@ -149,7 +149,7 @@ export default function OrganizerEventsPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl">
+    <section className="mx-auto w-full max-w-6xl">
       {/* Header */}
       <PageTitle
         title="Events"

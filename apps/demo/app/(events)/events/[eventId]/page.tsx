@@ -21,7 +21,6 @@ import {
   formatHostingDuration,
 } from "@/data/events/organizers";
 import { buildEventGalleryImages } from "./image-gallery";
-import { brandGradients, type BrandGradient } from "@/lib/gradients";
 
 type EventPageParams = {
   eventId: string;
@@ -75,14 +74,6 @@ export default async function EventPage({ params }: EventPageProps) {
   // Look up organizer data for gradient and stats
   const organizer = findOrganizerByName(event.organizer);
 
-  // "Milestone Rail": timeline posts for critical event dates shown in the vertical rail.
-  const formatTimelineDate = (date: Date) =>
-    date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
-
   const competitionDate = new Date(event.date);
   const dayBefore = new Date(competitionDate);
   dayBefore.setDate(dayBefore.getDate() - 1);
@@ -113,138 +104,10 @@ export default async function EventPage({ params }: EventPageProps) {
   // Check if registration is closed
   const registrationClosed = isRegistrationClosed(event);
 
-  // Registration status - determine current phase
-  const now = new Date();
+  // Early bird deadline for pricing display
   const earlyBirdDeadline = event.earlyBirdDeadline
     ? new Date(event.earlyBirdDeadline)
     : null;
-  const registrationDeadline = event.registrationDeadline
-    ? new Date(event.registrationDeadline)
-    : dayBefore;
-
-  type RegistrationPhase = "early-bird" | "regular" | "closed";
-
-  // Build all timeline phases
-  type TimelinePhase = {
-    id: RegistrationPhase;
-    title: string;
-    subtitle: string | null;
-    description: string;
-    show: boolean;
-  };
-
-  const msUntilEarlyBird = earlyBirdDeadline
-    ? earlyBirdDeadline.getTime() - now.getTime()
-    : null;
-  const earlyBirdActive =
-    !!earlyBirdDeadline && !!msUntilEarlyBird && msUntilEarlyBird > 0;
-
-  const msUntilClose = registrationDeadline.getTime() - now.getTime();
-  const registrationOpen = msUntilClose > 0;
-
-  // Dynamic card content based on current state
-  const getEarlyBirdCard = () => {
-    return {
-      title: "Early Bird Pricing",
-      subtitle: `Ends ${formatTimelineDate(earlyBirdDeadline!)}`,
-    };
-  };
-
-  const getRegistrationCard = () => {
-    return {
-      title: "Registration Open",
-      subtitle: `Ends ${formatTimelineDate(registrationDeadline)}`,
-    };
-  };
-
-  const getClosedCard = () => {
-    return {
-      title: "Registration Closed",
-      subtitle: formatTimelineDate(registrationDeadline),
-    };
-  };
-
-  const earlyBirdCardContent = getEarlyBirdCard();
-  const registrationCardContent = getRegistrationCard();
-  const closedCardContent = getClosedCard();
-
-  const allPhases: TimelinePhase[] = [
-    // Card 1: Early Bird Pricing (only if event has early bird)
-    {
-      id: "early-bird" as const,
-      title: earlyBirdCardContent.title,
-      subtitle: earlyBirdCardContent.subtitle,
-      description: "",
-      show: !!earlyBirdDeadline,
-    },
-    // Card 2: Registration Open / Closes Soon (only while registration is open)
-    {
-      id: "regular" as const,
-      title: registrationCardContent.title,
-      subtitle: registrationCardContent.subtitle,
-      description: "",
-      show: registrationOpen,
-    },
-    // Card 3: Registration Closes / Closed
-    {
-      id: "closed" as const,
-      title: closedCardContent.title,
-      subtitle: closedCardContent.subtitle,
-      description: "",
-      show: true,
-    },
-  ].filter((phase) => phase.show);
-
-  // Determine which card is currently active
-  const isCardActive = (phaseId: RegistrationPhase): boolean => {
-    if (phaseId === "early-bird") {
-      // Early bird card is active if early bird is still open
-      return earlyBirdActive;
-    }
-    if (phaseId === "regular") {
-      // Registration card is active if registration is open AND early bird has ended (or doesn't exist)
-      return registrationOpen && !earlyBirdActive;
-    }
-    if (phaseId === "closed") {
-      // Closed card is active only when registration has closed
-      return !registrationOpen;
-    }
-    return false;
-  };
-
-  // Get organizer gradient styling for the current phase
-  const gradientKey: BrandGradient = organizer?.gradient ?? "teal";
-  const gradient = brandGradients[gradientKey];
-
-  // Extract the first color from the gradient for border
-  // gradient.css format: 'linear-gradient(160deg, #8E69D0 0%, #576AE6 50.22%, #3B9BDF 100%)'
-  const firstGradientColor =
-    gradient.css.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#8E69D0";
-
-  const getPhaseStyles = (phaseId: RegistrationPhase) => {
-    const isCurrent = isCardActive(phaseId);
-
-    if (!isCurrent) {
-      // Inactive phases - subtle styling
-      return {
-        border: "border-border/30",
-        background: "bg-muted/10",
-        dot: "bg-muted-foreground/20",
-        usesGradient: false,
-      };
-    }
-
-    // Current phase uses organizer gradient
-    return {
-      border: "", // Will use inline style
-      background: "", // Will use overlay
-      dot: "", // Will use inline style
-      gradientBg: gradient.css, // Pass the full gradient for inline styling
-      borderColor: firstGradientColor,
-      dotColor: firstGradientColor,
-      usesGradient: true,
-    };
-  };
 
   // "Pricing Grid": divisions and tiered fees rendered in the table body.
   const formatAmount = (price?: number | null) => {
@@ -299,25 +162,6 @@ export default async function EventPage({ params }: EventPageProps) {
     },
   ];
 
-  // Build timeline phases data for client component
-  const timelinePhases = allPhases.map((phase) => {
-    const phaseStyles = getPhaseStyles(phase.id);
-    const isCurrent = isCardActive(phase.id);
-    return {
-      id: phase.id,
-      title: phase.title,
-      subtitle: phase.subtitle,
-      border: phaseStyles.border,
-      background: phaseStyles.background,
-      dot: phaseStyles.dot,
-      usesGradient: phaseStyles.usesGradient,
-      gradientBg: phaseStyles.gradientBg,
-      borderColor: phaseStyles.borderColor,
-      dotColor: phaseStyles.dotColor,
-      isCurrent,
-    };
-  });
-
   return (
     <EventDetailContent
       event={{
@@ -342,7 +186,6 @@ export default async function EventPage({ params }: EventPageProps) {
       cityState={cityState}
       registrationDeadlineISO={registrationDeadlineISO}
       registrationClosed={registrationClosed}
-      timelinePhases={timelinePhases}
       pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
       pricingRows={pricingRowsArray}
       documents={documents}
