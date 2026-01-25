@@ -23,7 +23,7 @@ import {
 import { CheckIcon } from "lucide-react";
 
 import { useAuth } from "@/components/providers/AuthProvider";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
 import {
   brandGradients,
   getGradientOptions,
@@ -140,16 +140,9 @@ export default function ClubSettingsPage() {
 
   if (status === "loading") {
     return (
-      <section className="flex flex-1 flex-col">
-        <PageHeader
-          title="Club Settings"
-          gradient={form.gradient}
-          breadcrumbs={[
-            { label: "Clubs", href: "/clubs" },
-            { label: "Settings", href: "/clubs/settings" },
-          ]}
-        />
-        <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
+      <section className="mx-auto w-full max-w-6xl">
+        <PageTitle title="Club Settings" gradient={form.gradient} />
+        <div className="flex flex-col gap-8 pt-8">
           <div className="h-8 w-32 animate-pulse rounded bg-muted" />
           <div className="h-64 animate-pulse rounded-lg bg-muted" />
         </div>
@@ -162,17 +155,12 @@ export default function ClubSettingsPage() {
   const gradientOptions = getGradientOptions();
 
   return (
-    <section className="flex flex-1 flex-col">
-      <PageHeader
-        title="Club Settings"
-        gradient={form.gradient}
-        breadcrumbs={[
-          { label: "Clubs", href: "/clubs" },
-          { label: "Settings", href: "/clubs/settings" },
-        ]}
-      />
+    <section className="mx-auto w-full max-w-6xl">
+      {/* Header */}
+      <PageTitle title="Club Settings" gradient={form.gradient} />
 
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 lg:px-8">
+      {/* Content Area */}
+      <div className="flex flex-col gap-8 pt-8">
         {/* Club Profile Card */}
         <Card>
           <CardHeader>

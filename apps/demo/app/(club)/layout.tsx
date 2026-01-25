@@ -10,6 +10,8 @@ import {
   UsersIcon,
 } from "lucide-react";
 
+import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
+
 import { NavBar } from "@/components/layout/NavBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 
@@ -139,7 +141,12 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
           isCollapsed={isSidebarCollapsed}
           onCollapseChange={setIsSidebarCollapsed}
         />
-        <div className="flex-1">{children}</div>
+        <ScrollArea
+          className="flex-1"
+          style={{ height: `calc(100vh - ${navHeight}px)` }}
+        >
+          <main className="p-8">{children}</main>
+        </ScrollArea>
       </div>
     </div>
   );

@@ -160,11 +160,7 @@ export function NavBarAuthMenu({
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Open menu"
-                >
+                <Button variant="ghost" size="icon" aria-label="Open menu">
                   <MenuIcon className="size-5" />
                 </Button>
               </DropdownMenuTrigger>

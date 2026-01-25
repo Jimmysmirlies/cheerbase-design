@@ -196,8 +196,9 @@ className =
 
 ### Max Widths
 
-- Content pages: `max-w-7xl` (1280px)
-- Forms/dialogs: `max-w-md` to `max-w-2xl`
+- Content pages (dashboard, public events): `max-w-6xl` (1152px)
+- Form pages (edit, new event): `max-w-4xl` (896px)
+- Dialogs: `max-w-md` to `max-w-2xl`
 - Full bleed: No max-width constraint
 
 ## Interaction States

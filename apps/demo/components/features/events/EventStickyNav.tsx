@@ -8,7 +8,7 @@ import {
   useLayoutEffect,
 } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import { getGradientStartColor, type BrandGradient } from "@/lib/gradients";
+import { type BrandGradient } from "@/lib/gradients";
 import { useEventSection } from "./EventSectionContext";
 
 const SECTIONS = [
@@ -61,9 +61,6 @@ export function EventStickyNav({
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const navContainerRef = useRef<HTMLDivElement>(null);
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
-
-  // Extract the accent color from the gradient
-  const accentColor = getGradientStartColor(gradient);
 
   // Find the scroll container (ScrollArea viewport or window)
   const getScrollContainer = useCallback((): HTMLElement | Window => {
@@ -224,7 +221,7 @@ export function EventStickyNav({
       )}
       style={{ top: NAV_HEIGHT }}
     >
-      <div className="mx-auto flex h-[52px] max-w-7xl items-center justify-center px-4 lg:px-8">
+      <div className="mx-auto flex h-[52px] max-w-6xl items-center justify-center px-4 lg:px-8">
         <nav
           ref={navContainerRef}
           className="scrollbar-hide relative flex h-full items-center gap-6 overflow-x-auto"
@@ -242,9 +239,10 @@ export function EventStickyNav({
                 onClick={() => scrollToSection(section.id)}
                 className={cn(
                   "relative shrink-0 whitespace-nowrap px-1 body-small font-medium transition-colors",
-                  !isActive && "text-muted-foreground hover:text-foreground",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
-                style={isActive ? { color: accentColor } : undefined}
               >
                 {section.label}
               </button>
@@ -253,11 +251,10 @@ export function EventStickyNav({
           {/* Animated underline for active tab */}
           {underlineStyle.width > 0 && (
             <span
-              className="pointer-events-none absolute bottom-0 h-[3px] rounded-t-full transition-all duration-300 ease-out"
+              className="pointer-events-none absolute bottom-0 h-[3px] rounded-t-full bg-primary transition-all duration-300 ease-out"
               style={{
                 left: underlineStyle.left,
                 width: underlineStyle.width,
-                background: accentColor,
               }}
             />
           )}

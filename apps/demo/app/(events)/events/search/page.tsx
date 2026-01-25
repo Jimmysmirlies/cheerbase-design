@@ -111,7 +111,7 @@ function SearchEventsPageContent() {
 
   return (
     <main className="bg-background text-foreground">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:px-10">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 sm:px-10">
         {/* Layout A: Streamlined results view */}
         {layoutVariant === "A" ? (
           <>

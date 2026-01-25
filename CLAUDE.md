@@ -400,7 +400,9 @@ Teams use a row-based layout similar to registration flows:
 ### Navigation Consistency
 
 - Back buttons: Ghost icon button with `ArrowLeftIcon`, size `h-10 w-10`, `-ml-2`
-- Max width: `max-w-7xl` for all main content pages
+- Max width by context:
+  - Content pages (dashboard, public events): `max-w-6xl`
+  - Form pages (edit, new event): `max-w-4xl`
 - Use Next.js `Link` for navigation, `useRouter` for programmatic navigation
 
 ---

@@ -17,11 +17,11 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import TeamDetails from "@/components/features/clubs/TeamDetails";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { type BrandGradient } from "@/lib/gradients";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
-import { SearchIcon, UserPlusIcon } from "lucide-react";
+import { PlusIcon, SearchIcon, UserPlusIcon } from "lucide-react";
 import {
   CreateTeamModal,
   type CreateTeamData,
@@ -51,6 +51,7 @@ function ClubsPageInner() {
   const [clubGradient, setClubGradient] = useState<BrandGradient | undefined>(
     undefined,
   );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Load club gradient settings
   useEffect(() => {
@@ -121,17 +122,6 @@ function ClubsPageInner() {
       (selectedRoster.chaperones?.length ?? 0)
     );
   }, [selectedRoster]);
-  const breadcrumbItems = useMemo(
-    () =>
-      selectedTeam
-        ? [
-            { label: "Clubs", href: "/clubs" },
-            { label: "Teams", href: "/clubs" },
-            { label: selectedTeam.name },
-          ]
-        : [{ label: "Clubs", href: "/clubs" }, { label: "Teams" }],
-    [selectedTeam],
-  );
 
   useEffect(() => {
     if (status === "loading") return;
@@ -153,55 +143,64 @@ function ClubsPageInner() {
   }
 
   return (
-    <section className="flex flex-1 flex-col">
-      <PageHeader
+    <section className="mx-auto w-full max-w-6xl">
+      {/* Header */}
+      <PageTitle
         title={selectedTeam?.name ?? "Teams"}
-        breadcrumbs={breadcrumbItems}
         gradient={clubGradient}
-        metadata={
+        subtitle={
           selectedTeam
-            ? [
-                { label: "Division", value: divisionLabel },
-                { label: "Level", value: levelLabel },
-                { label: "Members", value: memberCount },
-              ]
+            ? `${divisionLabel} · ${levelLabel} · ${memberCount} members`
             : undefined
         }
+        actions={
+          !selectedTeamId ? (
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <PlusIcon className="size-4 mr-2" />
+              Create Team
+            </Button>
+          ) : undefined
+        }
       />
-      <div className="page-container page-section space-y-12 min-w-0">
-        <motion.div
-          className="w-full min-w-0"
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {selectedTeamId ? (
-            <TeamDetails
-              teamId={selectedTeamId}
-              onNavigateToTeams={() => {
-                const params = new URLSearchParams(
-                  Array.from(searchParams.entries()),
-                );
-                params.delete("teamId");
-                router.replace(`${pathname}?${params.toString()}`);
-              }}
-            />
-          ) : (
-            <TeamsContent userId={user.id} />
-          )}
-        </motion.div>
+
+      {/* Content Area */}
+      <div className="pt-8">
+        {selectedTeamId ? (
+          <TeamDetails
+            teamId={selectedTeamId}
+            onNavigateToTeams={() => {
+              const params = new URLSearchParams(
+                Array.from(searchParams.entries()),
+              );
+              params.delete("teamId");
+              router.replace(`${pathname}?${params.toString()}`);
+            }}
+          />
+        ) : (
+          <TeamsContent
+            userId={user.id}
+            isCreateModalOpen={isCreateModalOpen}
+            onCreateModalOpenChange={setIsCreateModalOpen}
+          />
+        )}
       </div>
     </section>
   );
 }
 
-function TeamsContent({ userId }: { userId?: string }) {
+function TeamsContent({
+  userId,
+  isCreateModalOpen,
+  onCreateModalOpenChange,
+}: {
+  userId?: string;
+  isCreateModalOpen: boolean;
+  onCreateModalOpenChange: (open: boolean) => void;
+}) {
   const { data, loading, error, refresh } = useClubData(userId);
   const { addTeam: addUserTeam } = useUserTeams(userId);
   const [teams, setTeams] = useState<TeamData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [rosterEditorOpen, setRosterEditorOpen] = useState(false);
   const [selectedTeamForEdit, setSelectedTeamForEdit] =
     useState<TeamData | null>(null);
@@ -344,7 +343,7 @@ function TeamsContent({ userId }: { userId?: string }) {
               size="sm"
               variant="default"
               type="button"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => onCreateModalOpenChange(true)}
               disabled={loading}
             >
               <UserPlusIcon className="mr-2 size-4" />
@@ -425,7 +424,7 @@ function TeamsContent({ userId }: { userId?: string }) {
 
       <CreateTeamModal
         open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
+        onOpenChange={onCreateModalOpenChange}
         onSubmit={handleCreateTeam}
       />
       <RosterEditorDialog

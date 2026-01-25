@@ -72,9 +72,7 @@ export function EditableEventTitleSection({
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           {/* Event name */}
-          <h1 className="heading-2">
-            {name || "Untitled Event"}
-          </h1>
+          <h1 className="heading-2">{name || "Untitled Event"}</h1>
 
           {/* Hosted by */}
           {organizer && (

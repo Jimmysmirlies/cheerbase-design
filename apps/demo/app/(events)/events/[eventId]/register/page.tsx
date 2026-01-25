@@ -55,7 +55,7 @@ export default async function RegisterEventPage({ params }: RegisterPageProps) {
   const rosters = clubData.rosters ?? [];
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
+    <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 lg:px-8">
       <PageTitle
         title={eventDetails.name}
         gradient={gradient}

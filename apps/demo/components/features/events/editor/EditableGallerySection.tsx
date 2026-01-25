@@ -64,7 +64,7 @@ export function EditableGallerySection({
       setIsDragging(false);
       handleFileSelect(e.dataTransfer.files);
     },
-    [handleFileSelect]
+    [handleFileSelect],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -93,12 +93,12 @@ export function EditableGallerySection({
   // Edit mode content
   if (isEditing) {
     return (
-      <Section
-        title="Gallery"
-        showDivider={false}
-        className="pb-8"
-      >
-        <InlineEditCard onSave={handleSave} onCancel={handleCancel} saveButtonText="Done">
+      <Section title="Gallery" showDivider={false} className="pb-8">
+        <InlineEditCard
+          onSave={handleSave}
+          onCancel={handleCancel}
+          saveButtonText="Done"
+        >
           <div className="flex flex-col gap-4">
             {/* Drop zone */}
             <div

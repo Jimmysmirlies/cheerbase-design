@@ -15,7 +15,7 @@ export default function RegistrationConfirmationPage() {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-6 py-10">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-6 py-10">
       <Card className="p-8 text-center">
         <div className="mb-6 flex justify-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">

@@ -49,5 +49,4 @@ OverviewSection.hasData = (eventData: Partial<Event>): boolean => {
 
 /** Empty state configuration */
 OverviewSection.emptyTitle = "Add event description";
-OverviewSection.emptyDescription =
-  "Describe what makes your event special";
+OverviewSection.emptyDescription = "Describe what makes your event special";

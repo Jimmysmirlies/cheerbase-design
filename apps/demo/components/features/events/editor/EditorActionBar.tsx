@@ -24,15 +24,21 @@ function formatTimestamp(date: Date | string | null | undefined): string {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(dateObj.getTime())) return "";
 
-  return dateObj.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }) + " at " + dateObj.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).toLowerCase();
+  return (
+    dateObj.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }) +
+    " at " +
+    dateObj
+      .toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .toLowerCase()
+  );
 }
 
 export function EditorActionBar({
@@ -53,7 +59,7 @@ export function EditorActionBar({
         <span
           className={cn(
             "body-small font-medium",
-            isPublished ? "text-green-600" : "text-muted-foreground"
+            isPublished ? "text-green-600" : "text-muted-foreground",
           )}
         >
           {statusLabel}
@@ -78,9 +84,7 @@ export function EditorActionBar({
           {isSavingDraft ? "Saving..." : "Save Draft"}
         </Button>
         <Button onClick={onPublish} disabled={isPublishing}>
-          {isPublishing && (
-            <Loader2Icon className="mr-2 size-4 animate-spin" />
-          )}
+          {isPublishing && <Loader2Icon className="mr-2 size-4 animate-spin" />}
           {isPublished ? "Update Event" : "Publish Event"}
         </Button>
       </div>

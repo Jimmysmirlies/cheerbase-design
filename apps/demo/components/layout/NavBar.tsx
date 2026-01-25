@@ -191,7 +191,7 @@ export function NavBar({
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-sidebar-border bg-sidebar/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 w-full border-b border-border bg-background/95 backdrop-blur-sm">
       {/* Main row - always 68px */}
       <div className="relative mx-auto flex h-[68px] w-full items-center justify-between gap-3 pr-6">
         {/* Left section with logo */}

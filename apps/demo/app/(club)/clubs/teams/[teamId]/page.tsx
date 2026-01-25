@@ -12,13 +12,11 @@
  */
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { Button } from "@workspace/ui/shadcn/button";
 import { formatFriendlyDate, formatPhoneNumber } from "@/utils/format";
 import { useClubData } from "@/hooks/useClubData";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { fadeInUp } from "@/lib/animations";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTitle } from "@/components/layout/PageTitle";
 import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
 import {
@@ -194,108 +192,74 @@ function TeamDetails({
   };
 
   const pageTitle = team?.name ?? "Unknown Team";
-  const breadcrumbItems = [
-    { label: "Clubs", href: "/clubs" },
-    { label: "Teams", href: "/clubs" },
-    { label: pageTitle },
-  ];
-  const metadataItems = [
-    { label: "Division", value: divisionLabel },
-    { label: "Level", value: levelLabel },
-    { label: "Members", value: memberCount },
-  ];
 
   if (loading) {
     return (
-      <motion.div
-        className="w-full"
-        variants={fadeInUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-          Loading team...
+      <section className="mx-auto w-full max-w-6xl">
+        <PageTitle title={pageTitle} />
+        <div className="pt-8">
+          <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
+            Loading team...
+          </div>
         </div>
-      </motion.div>
+      </section>
     );
   }
 
   if (error) {
     return (
-      <motion.div
-        className="w-full"
-        variants={fadeInUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">
-          Failed to load team.
+      <section className="mx-auto w-full max-w-6xl">
+        <PageTitle title={pageTitle} />
+        <div className="pt-8">
+          <div className="rounded-2xl border border-dashed p-6 text-sm text-destructive">
+            Failed to load team.
+          </div>
         </div>
-      </motion.div>
+      </section>
     );
   }
 
   return (
-    <section className="flex flex-1 flex-col">
-      <PageHeader
+    <section className="mx-auto w-full max-w-6xl">
+      {/* Header */}
+      <PageTitle
         title={pageTitle}
-        breadcrumbs={breadcrumbItems}
-        metadata={metadataItems}
+        subtitle={`${divisionLabel} · ${levelLabel} · ${memberCount} members`}
+        actions={
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setBulkOpen(true)}
+            >
+              Bulk Upload
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              onClick={() => setEditorOpen(true)}
+            >
+              Edit Team
+            </Button>
+          </div>
+        }
       />
 
-      <div className="mx-auto w-full max-w-6xl space-y-12 px-4 lg:px-8 py-8">
-        <div className="space-y-6">
-          <motion.div
-            className="w-full"
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              {onNavigateToTeams ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  type="button"
-                  onClick={onNavigateToTeams}
-                >
-                  ← Back to Teams
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setBulkOpen(true)}
-              >
-                Bulk Upload
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={() => setEditorOpen(true)}
-              >
-                Edit Team
-              </Button>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="w-full"
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <div className="flex flex-col gap-4">
-              <RosterTable people={combinedMembers} />
-            </div>
-          </motion.div>
-        </div>
+      {/* Content Area */}
+      <div className="pt-8">
+        {onNavigateToTeams && (
+          <div className="pb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={onNavigateToTeams}
+            >
+              ← Back to Teams
+            </Button>
+          </div>
+        )}
+        <RosterTable people={combinedMembers} />
       </div>
 
       <BulkUploadDialog
