@@ -6,6 +6,15 @@ import type {
 
 export type LayoutVariant = "A" | "B" | "C";
 
+export type RegistrationTabId = "event-page" | "registered-teams";
+
+export type PricingRow = {
+  divisionName: string;
+  pricePerAthlete: number;
+  athleteCount: number;
+  total: number;
+};
+
 // Registration-specific team data (TeamData with required detailId)
 export type RegisteredTeamData = TeamData & { detailId: string };
 
@@ -102,6 +111,17 @@ export type RegistrationDetailContentProps = {
   teamRosters?: TeamRosterData[];
   // Event resources
   documents?: DocumentResource[];
+  // Event page tab props
+  eventDescription?: string;
+  galleryImages?: string[];
+  pricingRows?: PricingRow[];
+  // Event date/time props
+  eventDate?: string;
+  eventStartTime?: string;
+  eventEndTime?: string;
+  eventTimezone?: string;
+  // Organizer display props
+  organizerRegion?: string;
 };
 
 export const LAYOUT_TUTORIAL_STORAGE_KEY = "layout-toggle-tutorial-seen";

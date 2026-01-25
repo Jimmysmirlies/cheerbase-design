@@ -22,6 +22,7 @@ import {
   getLocalStorageRegistration,
 } from "@/hooks/useUnifiedClubData";
 import { findEventById, listEvents, organizers } from "@/data/events";
+import { buildEventGalleryImages } from "@/app/(events)/events/[eventId]/image-gallery";
 import { demoRosters } from "@/data/clubs/members";
 import { formatCurrency, formatFriendlyDate } from "@/utils/format";
 import { isRegistrationLocked } from "@/utils/registrations";
@@ -414,6 +415,19 @@ export function UnifiedRegistrationPage({
     },
   ];
 
+  // Event page tab data
+  const eventDescription = event?.description ?? undefined;
+  const galleryImages = event ? buildEventGalleryImages(event) : [];
+
+  // Event date/time props
+  const eventDateProp = registration.eventDate ?? event?.date ?? undefined;
+  const eventStartTime = event?.startTime ?? undefined;
+  const eventEndTime = event?.endTime ?? undefined;
+  const eventTimezone = event?.timezone ?? undefined;
+
+  // Organizer region
+  const organizerRegion = organizerData?.region ?? undefined;
+
   return (
     <RegistrationDetailContent
       registration={{
@@ -454,6 +468,13 @@ export function UnifiedRegistrationPage({
       dueDateMonth={dueDateMonth}
       dueDateDay={dueDateDay}
       documents={documents}
+      eventDescription={eventDescription}
+      galleryImages={galleryImages}
+      eventDate={eventDateProp}
+      eventStartTime={eventStartTime}
+      eventEndTime={eventEndTime}
+      eventTimezone={eventTimezone}
+      organizerRegion={organizerRegion}
     />
   );
 }

@@ -675,7 +675,7 @@ export function NewRegistrationContent({
   // Mobile sticky footer
   const MobileStickyFooter = (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
         <div className="flex items-center justify-between gap-4 px-4 py-3">
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-foreground">

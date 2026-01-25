@@ -15,6 +15,9 @@ type MobileStickyBarProps = {
   dueDateMonth: string | null;
   dueDateDay: number | null;
   invoiceHref: string;
+  // Optional edit button for Registered Teams tab
+  showEditButton?: boolean;
+  onEditRegistration?: () => void;
 };
 
 export function MobileStickyBar({
@@ -25,10 +28,12 @@ export function MobileStickyBar({
   dueDateMonth,
   dueDateDay,
   invoiceHref,
+  showEditButton = false,
+  onEditRegistration,
 }: MobileStickyBarProps) {
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
         <div className="flex items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-3">
             {paymentStatus === "Paid" ? (
@@ -61,11 +66,18 @@ export function MobileStickyBar({
             </div>
           </div>
 
-          <Button asChild size="sm">
-            <Link href={invoiceHref}>
-              {paymentStatus === "Paid" ? "View Invoice" : "Pay Invoice"}
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {showEditButton && onEditRegistration && (
+              <Button variant="outline" size="sm" onClick={onEditRegistration}>
+                Edit
+              </Button>
+            )}
+            <Button asChild size="sm">
+              <Link href={invoiceHref}>
+                {paymentStatus === "Paid" ? "View Invoice" : "Pay Invoice"}
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
       <div className="h-20 lg:hidden" />
@@ -92,7 +104,7 @@ export function EditModeMobileStickyBar({
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
         <div className="flex items-center justify-between gap-4 px-4 py-3">
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-foreground">

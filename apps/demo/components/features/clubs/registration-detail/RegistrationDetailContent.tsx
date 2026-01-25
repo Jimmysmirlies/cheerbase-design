@@ -1,45 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { MapPinIcon } from "lucide-react";
 
 import { Button } from "@workspace/ui/shadcn/button";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { LayoutToggle } from "@/components/ui/LayoutToggle";
-import { staggerSections, fadeInUp } from "@/lib/animations";
-import { RegistrationPaymentCTA } from "@/components/features/clubs/RegistrationPaymentCTA";
+import { ActionBar, type ActionBarTab } from "@/components/layout/ActionBar";
+import { staggerSections } from "@/lib/animations";
 import { EditRegistrationDialog } from "@/components/features/clubs/EditRegistrationDialog";
 import { BulkUploadDialog } from "@/components/features/registration/bulk/BulkUploadDialog";
 import { RegisterTeamModal } from "@/components/features/registration/flow/RegisterTeamModal";
 import { RosterEditorDialog } from "@/components/features/registration/flow/RosterEditorDialog";
 import type { TeamData } from "@/components/features/clubs/TeamCard";
 
-import { EventDetailsSection } from "./EventDetailsSection";
-import { DocumentsSection } from "./DocumentsSection";
+import { EventPageTabContent } from "./EventPageTabContent";
 import { RegisteredTeamsSection } from "./RegisteredTeamsSection";
-import { InvoiceSidebar, EditModeInvoiceSidebar } from "./InvoiceSidebar";
+import { EditModeInvoiceSidebar } from "./InvoiceSidebar";
 import { MobileStickyBar, EditModeMobileStickyBar } from "./MobileStickyBar";
 import { useRegistrationEdit } from "./useRegistrationEdit";
 import type {
   RegistrationDetailContentProps,
-  LayoutVariant,
+  RegistrationTabId,
   RegisteredTeamData,
 } from "./types";
-import { LAYOUT_TUTORIAL_STORAGE_KEY, LAYOUT_TUTORIAL_ITEMS } from "./types";
 
 export function RegistrationDetailContent({
   registration,
   organizerName,
   organizerGradientVariant,
-  organizerFollowersLabel,
+  organizerFollowersLabel: _organizerFollowersLabel,
   organizerEventsCount,
   organizerHostingLabel,
   locationLabel,
-  googleMapsHref,
-  eventDateLabel,
-  eventDateWeekday,
+  googleMapsHref: _googleMapsHref,
+  eventDateLabel: _eventDateLabel,
+  eventDateWeekday: _eventDateWeekday,
   registrationDeadlineLabel,
   isLocked,
   allDivisions,
@@ -48,7 +47,7 @@ export function RegistrationDetailContent({
   subtotal,
   totalTax,
   invoiceTotal,
-  invoiceTotalLabel,
+  invoiceTotalLabel: _invoiceTotalLabel,
   invoiceNumber,
   invoiceDate,
   invoiceHref,
@@ -64,8 +63,29 @@ export function RegistrationDetailContent({
   teamOptions = [],
   teamRosters = [],
   documents = [],
+  eventDescription,
+  galleryImages = [],
+  pricingRows: _pricingRows = [],
+  eventDate,
+  eventStartTime,
+  eventEndTime,
+  eventTimezone,
+  organizerRegion,
 }: RegistrationDetailContentProps) {
-  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>("A");
+  const searchParams = useSearchParams();
+
+  // Tab state from URL
+  const tabFromUrl = searchParams.get("tab");
+  const validTab: RegistrationTabId =
+    tabFromUrl === "registered-teams" ? tabFromUrl : "event-page";
+  const [activeTab, setActiveTab] = useState<RegistrationTabId>(validTab);
+
+  // Sync tab state with URL changes
+  useEffect(() => {
+    setActiveTab(validTab);
+  }, [validTab]);
+
+  // Dialog states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [registerTeamOpen, setRegisterTeamOpen] = useState(false);
@@ -108,31 +128,21 @@ export function RegistrationDetailContent({
 
   const selectedTeamMembers = getTeamMembersForEditor(selectedTeamForEdit);
 
-  // Check if we have stored changes that should be shown as an updated invoice
-  const showUpdatedInvoice =
-    !isEditMode && !!savedChanges && editModeInvoice.hasChanges;
+  // Count teams for tab badge
+  const totalTeams = useMemo(() => {
+    return teamsByDivisionArray.reduce((sum, [, teams]) => sum + teams.length, 0);
+  }, [teamsByDivisionArray]);
 
-  // Calculate refund amount if new total is less than original
-  const refundAmount =
-    showUpdatedInvoice && savedChanges?.originalInvoice
-      ? savedChanges.originalInvoice.total - editModeInvoice.total
-      : 0;
+  // Tabs with count badge
+  const tabsWithCount: ActionBarTab[] = useMemo(
+    () => [
+      { id: "event-page", label: "Event Page" },
+      { id: "registered-teams", label: "Registered Teams", count: totalTeams },
+    ],
+    [totalTeams],
+  );
 
-  // Common event details props
-  const eventDetailsProps = {
-    organizerName,
-    organizerGradientVariant,
-    organizerFollowersLabel,
-    organizerEventsCount,
-    organizerHostingLabel,
-    locationLabel,
-    googleMapsHref,
-    eventDateLabel,
-    eventDateWeekday,
-    eventPageHref,
-  };
-
-  // Edit mode layout
+  // Edit mode layout (unchanged)
   if (isEditMode) {
     return (
       <section className="flex flex-1 flex-col">
@@ -150,7 +160,7 @@ export function RegistrationDetailContent({
           ]}
         />
 
-        <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
+        <div className="mx-auto w-full max-w-6xl px-4 lg:px-8 py-8 min-w-0">
           <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
             <motion.div
               className="space-y-8 min-w-0"
@@ -231,208 +241,155 @@ export function RegistrationDetailContent({
     );
   }
 
-  // View mode layouts
+  // View mode with tabs
   return (
     <section className="flex flex-1 flex-col">
-      <PageHeader
-        title={registration.eventName}
-        gradient={organizerGradientVariant}
-        dateLabel={eventDateLabel}
-        topRightAction={
-          <LayoutToggle
-            variants={["A", "B", "C"] as const}
-            value={layoutVariant}
-            onChange={setLayoutVariant}
-            storageKey={LAYOUT_TUTORIAL_STORAGE_KEY}
-            tutorialItems={LAYOUT_TUTORIAL_ITEMS}
-          />
-        }
-      />
+      {/* Tab navigation */}
+      <div className="mx-auto w-full max-w-6xl">
+        <ActionBar
+          tabs={tabsWithCount}
+          activeTab={activeTab}
+          onTabChange={(tab) => setActiveTab(tab as RegistrationTabId)}
+          variant="unstyled"
+        />
+      </div>
 
-      {layoutVariant === "A" ? (
-        // LAYOUT A: Two-column with CTA sidebar
-        <>
-          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
-            <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
-              <motion.div
-                className="space-y-12 min-w-0"
-                variants={staggerSections}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-              >
-                <EventDetailsSection {...eventDetailsProps} />
-                <DocumentsSection documents={documents} />
-                <RegisteredTeamsSection
-                  allDivisions={allDivisions}
-                  teamsByDivision={teamsByDivision}
-                  isEditMode={false}
-                  isLocked={isLocked}
-                  registrationDeadlineLabel={registrationDeadlineLabel}
-                  onEditRegistration={() => setEditDialogOpen(true)}
-                  hasStoredChanges={!!savedChanges}
-                  editModeInvoice={editModeInvoice}
-                  onDiscardChanges={handleDiscardChanges}
-                />
-              </motion.div>
-              <InvoiceSidebar
-                invoiceLineItems={invoiceLineItems}
-                subtotal={subtotal}
-                totalTax={totalTax}
-                invoiceTotal={invoiceTotal}
-                invoiceHref={invoiceHref}
-                paymentStatus={paymentStatus}
-                paymentDeadlineLabel={paymentDeadlineLabel}
-                paidAtLabel={paidAtLabel}
-                showUpdatedInvoice={showUpdatedInvoice}
-                editModeInvoice={editModeInvoice}
-                refundAmount={refundAmount}
-              />
-            </div>
-          </div>
-          <MobileStickyBar
+      {/* Tab content */}
+      <div className="mx-auto w-full max-w-6xl pb-8">
+        {activeTab === "event-page" ? (
+          <EventPageTabContent
+            eventName={registration.eventName}
+            eventDescription={eventDescription}
+            organizerName={organizerName}
+            locationLabel={locationLabel}
+            eventPageHref={eventPageHref}
+            galleryImages={galleryImages}
+            divisionPricing={divisionPricing}
+            documents={documents}
+            invoiceLineItems={invoiceLineItems}
+            subtotal={subtotal}
+            totalTax={totalTax}
+            invoiceTotal={invoiceTotal}
+            invoiceHref={invoiceHref}
             paymentStatus={paymentStatus}
-            paymentTitle={paymentTitle}
             paymentDeadlineLabel={paymentDeadlineLabel}
             paidAtLabel={paidAtLabel}
-            dueDateMonth={dueDateMonth}
-            dueDateDay={dueDateDay}
-            invoiceHref={invoiceHref}
+            organizerGradient={organizerGradientVariant}
+            eventDate={eventDate}
+            eventStartTime={eventStartTime}
+            eventEndTime={eventEndTime}
+            eventTimezone={eventTimezone}
+            organizerRegion={organizerRegion}
+            organizerEventsCount={organizerEventsCount}
+            organizerHostingLabel={organizerHostingLabel}
+            onEditRegistration={() => setEditDialogOpen(true)}
+            isLocked={isLocked}
           />
-        </>
-      ) : layoutVariant === "B" ? (
-        // LAYOUT B: Single column with top payment notice + buttons
-        <>
-          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
+        ) : (
+          <div className="pt-8">
             <motion.div
-              className="mb-8"
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <RegistrationPaymentCTA
-                status={
-                  paymentStatus.toLowerCase() as "paid" | "unpaid" | "overdue"
-                }
-                amountLabel={invoiceTotalLabel}
-                dueLabel={paymentDeadlineLabel}
-                paidAtLabel={paidAtLabel ?? undefined}
-                invoiceHref={invoiceHref}
-              />
-            </motion.div>
-
-            <motion.div
-              className="space-y-12 min-w-0"
+              className="space-y-6 min-w-0"
               variants={staggerSections}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
             >
-              <EventDetailsSection {...eventDetailsProps} showDivider />
-              <DocumentsSection documents={documents} />
-              <RegisteredTeamsSection
-                allDivisions={allDivisions}
-                teamsByDivision={teamsByDivision}
-                isEditMode={false}
-                isLocked={isLocked}
-                registrationDeadlineLabel={registrationDeadlineLabel}
-                onEditRegistration={() => setEditDialogOpen(true)}
-                hasStoredChanges={!!savedChanges}
-                editModeInvoice={editModeInvoice}
-                onDiscardChanges={handleDiscardChanges}
-              />
-            </motion.div>
-          </div>
-          <MobileStickyBar
-            paymentStatus={paymentStatus}
-            paymentTitle={paymentTitle}
-            paymentDeadlineLabel={paymentDeadlineLabel}
-            paidAtLabel={paidAtLabel}
-            dueDateMonth={dueDateMonth}
-            dueDateDay={dueDateDay}
-            invoiceHref={invoiceHref}
-          />
-        </>
-      ) : (
-        // LAYOUT C: Single column with quick action row + simple notice
-        <>
-          <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8 min-w-0">
-            <motion.div
-              className="mb-4 flex flex-wrap items-center gap-2"
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <Button asChild variant="outline" size="sm">
-                <Link href={invoiceHref}>View Invoice</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href={eventPageHref}>View Event Listing</Link>
-              </Button>
+              {/* Event header with Edit Registration button */}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="heading-2 mb-2">{registration.eventName}</h1>
+                  <p className="body-text mb-3">
+                    Hosted by{" "}
+                    <Link
+                      href={eventPageHref}
+                      className="text-primary hover:underline"
+                    >
+                      {organizerName}
+                    </Link>
+                  </p>
+                  {locationLabel && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="body-small flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <MapPinIcon className="size-4 shrink-0" />
+                      <span className="underline">{locationLabel}</span>
+                    </a>
+                  )}
+                </div>
+                {isLocked ? (
+                  <Button variant="outline" disabled className="opacity-50 shrink-0">
+                    Edit Registration
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => setEditDialogOpen(true)}
+                  >
+                    Edit Registration
+                  </Button>
+                )}
+              </div>
+
+              {/* Registration deadline notice */}
               {isLocked ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled
-                  className="cursor-not-allowed opacity-50"
-                >
-                  Edit Registration
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  Edit Registration
-                </Button>
-              )}
-            </motion.div>
+                <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                  The registration deadline has passed. Changes can no longer be
+                  made to teams.
+                </div>
+              ) : registrationDeadlineLabel ? (
+                <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                  Changes to your registration must be made before{" "}
+                  <span className="font-medium text-foreground">
+                    {registrationDeadlineLabel}
+                  </span>
+                  . Any updates will be reflected in a new invoice.
+                </div>
+              ) : null}
 
-            <motion.div
-              className="mb-8"
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <RegistrationPaymentCTA
-                status={
-                  paymentStatus.toLowerCase() as "paid" | "unpaid" | "overdue"
-                }
-                amountLabel={invoiceTotalLabel}
-                dueLabel={paymentDeadlineLabel}
-                paidAtLabel={paidAtLabel ?? undefined}
-                invoiceHref={invoiceHref}
-                hideButtons
-              />
-            </motion.div>
-
-            <motion.div
-              className="space-y-12 min-w-0"
-              variants={staggerSections}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <EventDetailsSection {...eventDetailsProps} showDivider />
-              <DocumentsSection documents={documents} />
               <RegisteredTeamsSection
                 allDivisions={allDivisions}
                 teamsByDivision={teamsByDivision}
                 isEditMode={false}
                 isLocked={isLocked}
                 registrationDeadlineLabel={registrationDeadlineLabel}
-                onEditRegistration={() => setEditDialogOpen(true)}
                 hasStoredChanges={!!savedChanges}
                 editModeInvoice={editModeInvoice}
                 onDiscardChanges={handleDiscardChanges}
+                hideHeader
+                hideNotices
               />
             </motion.div>
           </div>
-        </>
+        )}
+      </div>
+
+      {/* Mobile sticky bar - different for each tab */}
+      {activeTab === "event-page" ? (
+        <MobileStickyBar
+          paymentStatus={paymentStatus}
+          paymentTitle={paymentTitle}
+          paymentDeadlineLabel={paymentDeadlineLabel}
+          paidAtLabel={paidAtLabel}
+          dueDateMonth={dueDateMonth}
+          dueDateDay={dueDateDay}
+          invoiceHref={invoiceHref}
+        />
+      ) : (
+        <MobileStickyBar
+          paymentStatus={paymentStatus}
+          paymentTitle={paymentTitle}
+          paymentDeadlineLabel={paymentDeadlineLabel}
+          paidAtLabel={paidAtLabel}
+          dueDateMonth={dueDateMonth}
+          dueDateDay={dueDateDay}
+          invoiceHref={invoiceHref}
+          showEditButton={!isLocked}
+          onEditRegistration={() => setEditDialogOpen(true)}
+        />
       )}
 
       <EditRegistrationDialog

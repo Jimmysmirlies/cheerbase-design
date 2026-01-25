@@ -306,7 +306,7 @@ export function EventDetailContent(props: EventDetailContentProps) {
       </section>
 
       {/* Mobile Sticky Footer CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 shadow-md backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-between gap-4 px-4 py-4">
           <div className="min-w-0 flex-1">
             <p className="body-small font-medium text-foreground truncate">

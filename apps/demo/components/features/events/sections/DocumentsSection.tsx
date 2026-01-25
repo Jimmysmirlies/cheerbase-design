@@ -100,23 +100,23 @@ export function DocumentsSection({
           {documents.map((doc, index) => (
             <div
               key={`${doc.name}-${index}`}
-              className="rounded-md border border-border/70 bg-card/60 p-6 transition-all hover:border-primary/20"
+              className="rounded-md border border-border/70 bg-card/60 p-4 sm:p-6 transition-all hover:border-primary/20"
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <DownloadIcon className="text-primary/70 size-5 shrink-0 mt-0.5" />
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <p className="body-text font-semibold text-foreground truncate">
+                    <p className="body-text font-semibold text-foreground">
                       {doc.name}
                     </p>
                     {doc.description && (
-                      <p className="body-small text-muted-foreground line-clamp-2">
+                      <p className="body-small text-muted-foreground">
                         {doc.description}
                       </p>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                   {editable ? (
                     <Button
                       variant="ghost"
