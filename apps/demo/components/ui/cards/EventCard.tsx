@@ -143,7 +143,7 @@ export function EventCard({
           <h3
             className={cn(
               "text-foreground",
-              isCompact ? "text-base font-semibold leading-tight" : "heading-4",
+              isCompact ? "body-text font-semibold leading-tight" : "heading-4",
             )}
           >
             {title}

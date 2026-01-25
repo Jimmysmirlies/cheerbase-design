@@ -61,7 +61,7 @@ export function EventRegisteredCard({
       aria-label={linkLabel}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : undefined}
-      className={`group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+      className={`group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
         disabled ? "pointer-events-none" : ""
       }`}
     >

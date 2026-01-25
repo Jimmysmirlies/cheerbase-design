@@ -47,20 +47,23 @@ export function AddDocumentModal({
     [onOpenChange, resetForm],
   );
 
-  const handleFileSelect = useCallback((files: FileList | null) => {
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
-      if (selectedFile) {
-        setFile(selectedFile);
-        // Auto-fill title from filename if empty
-        if (!title) {
-          // Remove extension for cleaner default title
-          const nameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
-          setTitle(nameWithoutExt);
+  const handleFileSelect = useCallback(
+    (files: FileList | null) => {
+      if (files && files.length > 0) {
+        const selectedFile = files[0];
+        if (selectedFile) {
+          setFile(selectedFile);
+          // Auto-fill title from filename if empty
+          if (!title) {
+            // Remove extension for cleaner default title
+            const nameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
+            setTitle(nameWithoutExt);
+          }
         }
       }
-    }
-  }, [title]);
+    },
+    [title],
+  );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -135,7 +138,9 @@ export function AddDocumentModal({
             {file ? (
               <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3 min-w-0">
                 <FileIcon className="size-5 text-muted-foreground shrink-0" />
-                <span className="flex-1 min-w-0 truncate body-small">{file.name}</span>
+                <span className="flex-1 min-w-0 truncate body-small">
+                  {file.name}
+                </span>
                 <Button
                   type="button"
                   variant="ghost"

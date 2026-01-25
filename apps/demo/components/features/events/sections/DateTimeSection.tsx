@@ -183,7 +183,12 @@ export function DateTimeSection({
 
     // Fallback to empty day
     return [{ date: "", label: "", startTime: "08:00", endTime: "18:00" }];
-  }, [eventData.schedule, eventData.date, eventData.startTime, eventData.endTime]);
+  }, [
+    eventData.schedule,
+    eventData.date,
+    eventData.startTime,
+    eventData.endTime,
+  ]);
 
   // VIEW MODE
   if (mode === "view") {
@@ -385,9 +390,9 @@ export function DateTimeSection({
       <Button
         variant="ghost"
         onClick={handleAddDay}
-        className="w-fit text-primary hover:text-primary/80 p-0 h-auto"
+        className="self-start text-primary hover:text-primary/80"
       >
-        <PlusIcon className="size-4 mr-1" />
+        <PlusIcon className="size-4" />
         Add Day
       </Button>
     </div>

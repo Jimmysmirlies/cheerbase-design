@@ -22,19 +22,19 @@ export function InlineEditCard({
       {/* Form content */}
       <div>{children}</div>
 
-      {/* Footer with Save/Cancel */}
-      <div className="mt-6 flex items-center gap-4">
+      {/* Footer with Cancel/Save */}
+      <div className="mt-6 flex items-center justify-end gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSaving}
+        >
+          Cancel
+        </Button>
         <Button type="button" onClick={onSave} disabled={isSaving}>
           {isSaving ? "Saving..." : saveButtonText}
         </Button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSaving}
-          className="text-sm text-foreground underline hover:no-underline disabled:opacity-50"
-        >
-          Cancel
-        </button>
       </div>
     </div>
   );

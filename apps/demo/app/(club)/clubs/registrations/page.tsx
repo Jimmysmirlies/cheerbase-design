@@ -23,7 +23,7 @@ import {
   EventRegisteredCard,
   type EventRegisteredCardProps,
 } from "@/components/ui/cards/EventRegisteredCard";
-import { CardSkeleton } from "@/components/ui";
+import { CardSkeleton, EmptyState } from "@/components/ui";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
@@ -505,9 +505,7 @@ function RegistrationsContent({
                         ))}
                       </motion.div>
                     ) : (
-                      <div className="text-muted-foreground rounded-2xl border border-dashed p-6 text-center text-sm">
-                        No events this month.
-                      </div>
+                      <EmptyState>No events this month.</EmptyState>
                     )
                   ) : null}
                 </div>

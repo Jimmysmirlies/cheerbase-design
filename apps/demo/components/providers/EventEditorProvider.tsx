@@ -62,8 +62,10 @@ function compareDivisionsAndAddChanges(
     if (oldRegular !== newRegular) {
       const fieldKey = `division_${name}_regular`;
       const existingIndex = log.findIndex((c) => c.field === fieldKey);
-      const formattedOld = oldRegular !== undefined ? `$${oldRegular}` : "not set";
-      const formattedNew = newRegular !== undefined ? `$${newRegular}` : "not set";
+      const formattedOld =
+        oldRegular !== undefined ? `$${oldRegular}` : "not set";
+      const formattedNew =
+        newRegular !== undefined ? `$${newRegular}` : "not set";
 
       if (existingIndex >= 0) {
         const existing = log[existingIndex];
@@ -92,8 +94,10 @@ function compareDivisionsAndAddChanges(
     if (oldEarlyBird !== newEarlyBird) {
       const fieldKey = `division_${name}_earlyBird`;
       const existingIndex = log.findIndex((c) => c.field === fieldKey);
-      const formattedOld = oldEarlyBird !== undefined ? `$${oldEarlyBird}` : "not set";
-      const formattedNew = newEarlyBird !== undefined ? `$${newEarlyBird}` : "not set";
+      const formattedOld =
+        oldEarlyBird !== undefined ? `$${oldEarlyBird}` : "not set";
+      const formattedNew =
+        newEarlyBird !== undefined ? `$${newEarlyBird}` : "not set";
 
       if (existingIndex >= 0) {
         const existing = log[existingIndex];
@@ -371,7 +375,9 @@ export function EventEditorProvider({
           if (divisions.length === 1) {
             const div = divisions[0];
             const price = div?.regular?.price;
-            return price !== undefined ? `${div?.name} @ $${price}` : div?.name || "1 division";
+            return price !== undefined
+              ? `${div?.name} @ $${price}`
+              : div?.name || "1 division";
           }
           // For multiple divisions, show count and price range
           const prices = divisions
@@ -565,9 +571,7 @@ export function EventEditorProvider({
           }
 
           // Filter out changes where raw values are the same (reverted changes)
-          return updatedLog.filter(
-            (change) => change.rawOld !== change.rawNew,
-          );
+          return updatedLog.filter((change) => change.rawOld !== change.rawNew);
         });
 
         return { ...prev, ...updates };

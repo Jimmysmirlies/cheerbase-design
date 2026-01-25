@@ -24,7 +24,6 @@ type OrganizerEventActionBarProps = {
 const TABS: ActionBarTab[] = [
   { id: "event-page", label: "Event Page" },
   { id: "registrations", label: "Registrations" },
-  { id: "settings", label: "Settings" },
 ];
 
 export function OrganizerEventActionBar({

@@ -28,6 +28,18 @@ function getRegistrationStartDate(
   return date.toISOString().split("T")[0] as string;
 }
 
+/**
+ * Helper to generate an updatedAt timestamp.
+ * Returns an ISO string for a reasonable "last updated" time.
+ * For demo purposes, uses January 25, 2026 at 8:00pm EST as the base.
+ */
+function getUpdatedAt(hoursAgo = 0): string {
+  // Base date: January 25, 2026 at 8:00pm EST (UTC-5)
+  const date = new Date("2026-01-25T20:00:00-05:00");
+  date.setHours(date.getHours() - hoursAgo);
+  return date.toISOString();
+}
+
 export const eventCategories: EventCategory[] = [
   {
     title: "Junior Level 3 & 4",
@@ -57,6 +69,7 @@ export const eventCategories: EventCategory[] = [
           "Three-day championship featuring certified judges, optional skills clinics, and on-site video review lounges for coaches.",
         tags: ["Nationals Qualifier", "Just Added"],
         gallery: getLocalGalleryImages("national-championship"),
+        updatedAt: getUpdatedAt(0),
         availableDivisions: [
           {
             name: eventDivisionNames.worlds,
@@ -1179,6 +1192,7 @@ export const eventCategories: EventCategory[] = [
           "Season opener with bilingual emcees, live-streamed judges panels, and a coaches-only strategy lounge.",
         tags: ["Quebec Circuit"],
         gallery: getLocalGalleryImages("adrenaline-quebec"),
+        updatedAt: getUpdatedAt(0),
         availableDivisions: [
           {
             name: eventDivisionNames.worlds,
@@ -1250,6 +1264,7 @@ export const eventCategories: EventCategory[] = [
           "Two-day winter festival event featuring ice-sculpture village, hot chocolate lounge, and judges feedback pods.",
         tags: ["Winter Series", "Multi-Day"],
         gallery: getLocalGalleryImages("frostfest-montreal"),
+        updatedAt: getUpdatedAt(2),
         availableDivisions: [
           {
             name: eventDivisionNames.worlds,
@@ -1307,6 +1322,7 @@ export const eventCategories: EventCategory[] = [
           "High-energy stage with synchronized lighting cues, bilingual announcers, and premium hospitality for club directors.",
         tags: ["Signature Event"],
         gallery: getLocalGalleryImages("cheerfest-quebec"),
+        updatedAt: getUpdatedAt(12),
         availableDivisions: [
           {
             name: eventDivisionNames.worlds,
@@ -1343,6 +1359,7 @@ export const eventCategories: EventCategory[] = [
           "Community-focused invitational with on-site clinics, emerging team spotlights, and local vendor market.",
         tags: ["Community"],
         gallery: getLocalGalleryImages("cheerup-quebec"),
+        updatedAt: getUpdatedAt(48),
         availableDivisions: [
           {
             name: eventDivisionNames.chaperone,
@@ -1379,6 +1396,7 @@ export const eventCategories: EventCategory[] = [
           "Hybrid dance and cheer showdown with custom stage backdrops, live DJ sets, and panel chats for coaches.",
         tags: ["Dance & Cheer"],
         gallery: getLocalGalleryImages("groovefest-quebec"),
+        updatedAt: getUpdatedAt(72),
         availableDivisions: [
           {
             name: eventDivisionNames.worlds,

@@ -145,7 +145,6 @@ export function DocumentsSection({
         )
       )}
 
-
       {/* Add Document Modal */}
       <AddDocumentModal
         open={modalOpen}

@@ -2,12 +2,12 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@workspace/ui/lib/utils";
-import { brandGradients, type BrandGradient } from "@/lib/gradients";
+import type { BrandGradient } from "@/lib/gradients";
 
 type PageTitleProps = {
   /** The title text */
   title: string;
-  /** Gradient variant for the text */
+  /** @deprecated No longer used - title uses default text color */
   gradient?: BrandGradient;
   /** Optional badge next to title (e.g., "Beta") */
   badge?: ReactNode;
@@ -29,7 +29,7 @@ type PageTitleProps = {
 
 export function PageTitle({
   title,
-  gradient = "primary",
+  gradient: _gradient,
   badge,
   subtitle,
   className,
@@ -39,8 +39,6 @@ export function PageTitle({
   actions,
   layoutToggle,
 }: PageTitleProps) {
-  const gradientConfig = brandGradients[gradient] ?? brandGradients.primary;
-
   // Build meta line items (date and location below title)
   const metaLineItems: string[] = [];
   if (dateLabel) {
@@ -62,12 +60,7 @@ export function PageTitle({
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-center gap-3">
-            <h1
-              className="heading-2 bg-clip-text text-transparent"
-              style={{ backgroundImage: gradientConfig.css }}
-            >
-              {title}
-            </h1>
+            <h1 className="heading-2">{title}</h1>
             {badge}
           </div>
           {metaLineItems.length > 0 && (

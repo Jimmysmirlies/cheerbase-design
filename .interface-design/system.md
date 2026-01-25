@@ -53,12 +53,12 @@ Minimal, black-on-white surfaces with thin borders. Typography-driven hierarchy.
 
 **Strategy: Borders-first** (114 border instances vs 35 shadow instances)
 
-| Level    | Treatment                                      |
-| -------- | ---------------------------------------------- |
-| Default  | `border border-border/60` - thin, light border |
-| Hover    | `shadow-lg` - subtle lift effect               |
-| Elevated | `backdrop-filter: blur(24px)` - glass effect   |
-| Focus    | `ring-[3px] ring-ring/50` - focus rings        |
+| Level    | Treatment                                    |
+| -------- | -------------------------------------------- |
+| Default  | `border border-border` - standard border     |
+| Hover    | `shadow-lg` - subtle lift effect             |
+| Elevated | `backdrop-filter: blur(24px)` - glass effect |
+| Focus    | `ring-[3px] ring-ring/50` - focus rings      |
 
 **Avoid:**
 
@@ -144,7 +144,7 @@ variant = "gradient"; // gradient background with noise
 
 ```tsx
 // Base card
-<Card className="border border-border/60 p-0">
+<Card className="border border-border p-0">
   <CardContent className="px-6 py-6">...</CardContent>
 </Card>;
 
@@ -230,20 +230,20 @@ Fixed-position CTA bars that persist at the bottom of mobile screens for primary
 
 **Design Guidelines:**
 
-| Property | Value | Rationale |
-| -------- | ----- | --------- |
-| Height | 56–64px content area | Large enough to tap comfortably, not obtrusive |
-| Button size | `size="lg"` (min 44×44pt) | Apple HIG / Material Design touch target minimum |
-| Padding | `px-4 py-4` | Generous touch area, balanced with content |
-| Safe area | `pb-[env(safe-area-inset-bottom)]` | Accounts for iPhone home indicator, Android gesture bar |
-| Border | `border-t border-border/60` | Subtle separation, consistent with depth strategy |
-| Background | `bg-background/95 backdrop-blur-sm` | Glass effect for layering over content |
-| Z-index | `z-50` | Above page content, below modals |
+| Property    | Value                               | Rationale                                               |
+| ----------- | ----------------------------------- | ------------------------------------------------------- |
+| Height      | 56–64px content area                | Large enough to tap comfortably, not obtrusive          |
+| Button size | `size="lg"` (min 44×44pt)           | Apple HIG / Material Design touch target minimum        |
+| Padding     | `px-4 py-4`                         | Generous touch area, balanced with content              |
+| Safe area   | `pb-[env(safe-area-inset-bottom)]`  | Accounts for iPhone home indicator, Android gesture bar |
+| Border      | `border-t border-border`            | Subtle separation, consistent with depth strategy       |
+| Background  | `bg-background/95 backdrop-blur-sm` | Glass effect for layering over content                  |
+| Z-index     | `z-50`                              | Above page content, below modals                        |
 
 **Content Structure:**
 
 ```tsx
-<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
   <div className="flex items-center justify-between gap-4 px-4 py-4">
     {/* Left: Status text (two-line layout) */}
     <div className="min-w-0 flex-1">
@@ -259,10 +259,15 @@ Fixed-position CTA bars that persist at the bottom of mobile screens for primary
       Action
     </Button>
   </div>
-</div>
+</div>;
 
-{/* Spacer to prevent content overlap */}
-<div className="h-24 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+{
+  /* Spacer to prevent content overlap */
+}
+<div
+  className="h-24 lg:hidden"
+  style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+/>;
 ```
 
 **Best Practices:**

@@ -41,7 +41,7 @@ export default function ContactPage() {
               <Label htmlFor="message">Message</Label>
               <Textarea id="message" placeholder="How can we help?" rows={4} />
             </div>
-            <Button className="rounded-full">Submit</Button>
+            <Button>Submit</Button>
           </CardContent>
         </Card>
       </div>

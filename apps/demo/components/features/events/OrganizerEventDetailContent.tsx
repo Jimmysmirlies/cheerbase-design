@@ -23,12 +23,13 @@ import {
   SlidersHorizontalIcon,
   ExternalLinkIcon,
   X,
-  PencilIcon,
+  MapPinIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { OrganizerEventActionBar } from "@/components/features/events/OrganizerEventActionBar";
-import { PageTitle } from "@/components/layout/PageTitle";
+import { OrganizerEventCTACard } from "@/components/features/events/OrganizerEventCTACard";
+import { HeroGallery } from "@/components/ui";
 import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import {
@@ -606,24 +607,13 @@ function EventRegistrationsTab({
   );
 }
 
-function EventSettingsTab({ eventId }: { eventId: string }) {
-  void eventId;
-  return (
-    <Section title="Settings" showDivider={false}>
-      <p className="body-text text-muted-foreground">
-        Event settings content will be displayed here.
-      </p>
-    </Section>
-  );
-}
-
 export function OrganizerEventDetailContent({
   event,
   organizerGradient,
   organizerFollowers,
   organizerEventsCount,
   organizerHostingDuration,
-  galleryImages,
+  galleryImages = [],
   eventDateParts,
   venueName,
   cityState,
@@ -641,10 +631,7 @@ export function OrganizerEventDetailContent({
 
   // Initialize tab from URL query param or default to 'event-page'
   const tabFromUrl = searchParams.get("tab");
-  const validTab =
-    tabFromUrl === "registrations" || tabFromUrl === "settings"
-      ? tabFromUrl
-      : "event-page";
+  const validTab = tabFromUrl === "registrations" ? tabFromUrl : "event-page";
   const [activeTab, setActiveTab] = useState(validTab);
 
   // Sync tab state with URL changes (e.g., when navigating back from invoice)
@@ -656,88 +643,107 @@ export function OrganizerEventDetailContent({
     router.push(`/organizer/events/${event.id}/edit`);
   };
 
-  // Get the gradient for the title
+  // Get the gradient for the accent color
   const gradientKey = organizerPageGradient ?? organizerGradient ?? "primary";
 
-  // Format the date for display
-  const formatDateLabel = (date: string | Date): string => {
-    const dateObj = new Date(date);
-    if (Number.isNaN(dateObj.getTime())) return "";
-    return dateObj.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
   return (
-    <section className="mx-auto w-full max-w-6xl">
-      {/* Header - no padding */}
-      <PageTitle
-        title={event.name}
-        gradient={gradientKey}
-        dateLabel={formatDateLabel(event.date)}
-        locationLabel={event.location}
-        actions={
-          <Button variant="default" size="icon" className="sm:w-auto sm:px-4" onClick={handleEdit}>
-            <PencilIcon className="size-4 sm:mr-2" />
-            <span className="hidden sm:inline">Edit Event</span>
-          </Button>
-        }
+    <section className="mx-auto w-full max-w-7xl px-4 lg:px-8">
+      {/* Tabs at top */}
+      <OrganizerEventActionBar
+        eventId={event.id}
+        eventOrganizerName={event.organizer}
+        isDraft={isDraft}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        variant="unstyled"
+        accentColor={getGradientStartColor(gradientKey)}
       />
 
-      {/* Action Bar - pt-6 (24px) */}
-      <div className="pt-6">
-        <OrganizerEventActionBar
-          eventId={event.id}
-          eventOrganizerName={event.organizer}
-          isDraft={isDraft}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          variant="unstyled"
-          accentColor={getGradientStartColor(gradientKey)}
-        />
-      </div>
+      {/* Event Page Tab: Gallery + Two-column layout with sticky CTA */}
+      {activeTab === "event-page" && (
+        <>
+          {/* Gallery - no overlay actions for organizer view */}
+          {galleryImages.length > 0 && (
+            <div className="pt-6">
+              <HeroGallery images={galleryImages} alt={event.name} />
+            </div>
+          )}
 
-      {/* Tab Content */}
-      <div>
-        {activeTab === "event-page" && (
-          <UnifiedEventDetailBody
-            eventData={{
-              id: event.id,
-              name: event.name,
-              date: event.date,
-              description: event.description,
-              organizer: event.organizer,
-              location: event.location,
-            }}
-            organizerGradient={organizerGradient}
-            organizerFollowers={organizerFollowers}
-            organizerEventsCount={organizerEventsCount}
-            organizerHostingDuration={organizerHostingDuration}
-            hideRegistration
-            hideOverviewDivider
-            displayProps={{
-              galleryImages,
-              eventDateParts,
-              venueName,
-              cityState,
-              registrationDeadlineISO,
-              registrationClosed,
-              pricingDeadlineLabel,
-              pricingRows,
-              documents,
-            }}
-          />
-        )}
+          <div className="grid gap-10 pt-8 lg:grid-cols-[1fr_320px]">
+            {/* Left Column: Header + Content */}
+            <div className="min-w-0">
+              {/* Event Header */}
+              <div id="event-title" className="mb-8">
+                <h1 className="heading-2 mb-2">{event.name}</h1>
+                <p className="body-text mb-3">
+                  Hosted by{" "}
+                  <Link href="#" className="text-primary hover:underline">
+                    {event.organizer}
+                  </Link>
+                </p>
+                <div className="body-small text-muted-foreground">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 hover:text-foreground"
+                  >
+                    <MapPinIcon className="size-4 shrink-0" />
+                    <span className="underline">{event.location}</span>
+                  </a>
+                </div>
+              </div>
 
-        {activeTab === "registrations" && (
+              {/* Content Sections */}
+              <UnifiedEventDetailBody
+                eventData={{
+                  id: event.id,
+                  name: event.name,
+                  date: event.date,
+                  description: event.description,
+                  organizer: event.organizer,
+                  location: event.location,
+                }}
+                organizerGradient={organizerGradient}
+                organizerFollowers={organizerFollowers}
+                organizerEventsCount={organizerEventsCount}
+                organizerHostingDuration={organizerHostingDuration}
+                hideRegistration
+                displayProps={{
+                  galleryImages,
+                  eventDateParts,
+                  venueName,
+                  cityState,
+                  registrationDeadlineISO,
+                  registrationClosed,
+                  pricingDeadlineLabel,
+                  pricingRows,
+                  documents,
+                }}
+              />
+            </div>
+
+            {/* Right Column: Sticky CTA Card only */}
+            <div className="hidden lg:block">
+              <div className="sticky top-8">
+                <OrganizerEventCTACard
+                  eventDate={event.date}
+                  eventStartTime="9:00 AM"
+                  registrationDeadline={registrationDeadlineISO ?? ""}
+                  onEdit={handleEdit}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Registrations Tab: Full-width (no CTA card) */}
+      {activeTab === "registrations" && (
+        <div className="pt-8">
           <EventRegistrationsTab eventId={event.id} organizerId={organizerId} />
-        )}
-
-        {activeTab === "settings" && <EventSettingsTab eventId={event.id} />}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

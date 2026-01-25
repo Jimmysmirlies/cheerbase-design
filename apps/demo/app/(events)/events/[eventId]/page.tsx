@@ -189,6 +189,7 @@ export default async function EventPage({ params }: EventPageProps) {
       pricingDeadlineLabel={PRICING_DEADLINE_LABEL}
       pricingRows={pricingRowsArray}
       documents={documents}
+      hideDateLine
     />
   );
 }

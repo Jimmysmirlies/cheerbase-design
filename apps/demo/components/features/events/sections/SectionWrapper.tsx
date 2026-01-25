@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/layout/Section";
 import { InlineEditCard } from "@/components/features/events/editor/InlineEditCard";
-import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { inlineExpandCollapse, fadeInUp } from "@/lib/animations";
 import { useEventSection } from "@/components/features/events/EventSectionContext";
 import { getGradientStartColor } from "@/lib/gradients";
@@ -114,10 +114,9 @@ export function SectionWrapper({
               {hasData
                 ? viewContent
                 : emptyState || (
-                    <EmptyStateButton
-                      title={`Add ${title.toLowerCase()}`}
-                      description={`Configure ${title.toLowerCase()} for your event`}
-                    />
+                    <EmptyState>
+                      Add {title.toLowerCase()} for your event.
+                    </EmptyState>
                   )}
             </>
           )}

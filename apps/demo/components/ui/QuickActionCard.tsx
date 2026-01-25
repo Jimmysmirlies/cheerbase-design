@@ -36,8 +36,8 @@ export function QuickActionCard({
       <div className="flex items-center gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/50">
         <IconBox icon={icon} gradient={gradient} />
         <div className="min-w-0 flex-1">
-          <p className="font-medium">{title}</p>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="body-text font-medium">{title}</p>
+          <p className="body-small text-muted-foreground">{description}</p>
         </div>
         <ArrowRightIcon className="size-5 text-muted-foreground" />
       </div>

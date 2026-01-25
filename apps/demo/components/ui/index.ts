@@ -54,8 +54,8 @@ export { HeroGallery } from "./HeroGallery";
 // Calendar
 export { CalendarBadge } from "./CalendarBadge";
 
-// Buttons
-export { EmptyStateButton } from "./EmptyStateButton";
+// Empty States
+export { EmptyState } from "./EmptyState";
 
 // Tables
 export {

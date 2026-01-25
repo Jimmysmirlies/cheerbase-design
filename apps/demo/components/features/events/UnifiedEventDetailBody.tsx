@@ -10,7 +10,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { Section } from "@/components/layout/Section";
 import { OrganizerCard } from "@/components/features/clubs/OrganizerCard";
 import { RegistrationSummaryCard } from "@/components/features/events/RegistrationSummaryCard";
-import { EmptyStateButton } from "@/components/ui/EmptyStateButton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { Event } from "@/types/events";
 import type { BrandGradient } from "@/lib/gradients";
 
@@ -59,6 +59,8 @@ export type UnifiedEventDetailBodyProps = {
   showOrganizerCardAtTop?: boolean;
   /** Hide the top divider on the Overview section (e.g., for organizer pages where tabs provide separation) */
   hideOverviewDivider?: boolean;
+  /** Hide the Gallery section (when gallery is handled externally, e.g., in EventEditor) */
+  hideGallerySection?: boolean;
   /** Pre-computed display values */
   displayProps?: {
     galleryImages?: string[];
@@ -91,6 +93,7 @@ export function UnifiedEventDetailBody({
   hideRegistration = false,
   showOrganizerCardAtTop = false,
   hideOverviewDivider = false,
+  hideGallerySection = false,
   displayProps = {},
 }: UnifiedEventDetailBodyProps) {
   // Edit mode state
@@ -196,12 +199,7 @@ export function UnifiedEventDetailBody({
                 organizerGradient={organizerGradient}
               />
             }
-            emptyState={
-              <EmptyStateButton
-                title={OverviewSection.emptyTitle}
-                description={OverviewSection.emptyDescription}
-              />
-            }
+            emptyState={<EmptyState>{OverviewSection.emptyTitle}</EmptyState>}
           />
 
           {/* Registration & Pricing Section (Combined for view mode) */}
@@ -259,12 +257,7 @@ export function UnifiedEventDetailBody({
                   organizerGradient={organizerGradient}
                 />
               }
-              emptyState={
-                <EmptyStateButton
-                  title={PricingSection.emptyTitle}
-                  description={PricingSection.emptyDescription}
-                />
-              }
+              emptyState={<EmptyState>{PricingSection.emptyTitle}</EmptyState>}
             />
           )}
 
@@ -300,12 +293,7 @@ export function UnifiedEventDetailBody({
                 organizerGradient={organizerGradient}
               />
             }
-            emptyState={
-              <EmptyStateButton
-                title={DateTimeSection.emptyTitle}
-                description={DateTimeSection.emptyDescription}
-              />
-            }
+            emptyState={<EmptyState>{DateTimeSection.emptyTitle}</EmptyState>}
           />
 
           {/* Location Section */}
@@ -338,53 +326,44 @@ export function UnifiedEventDetailBody({
                 organizerGradient={organizerGradient}
               />
             }
-            emptyState={
-              <EmptyStateButton
-                title={LocationSection.emptyTitle}
-                description={LocationSection.emptyDescription}
-              />
-            }
+            emptyState={<EmptyState>{LocationSection.emptyTitle}</EmptyState>}
           />
 
-
-          {/* Gallery Section */}
-          <SectionWrapper
-            id="gallery"
-            title="Gallery"
-            showDivider
-            isEditing={editingSection === "gallery"}
-            onStartEdit={
-              editable ? () => handleStartEdit("gallery") : undefined
-            }
-            onSave={handleSaveSection}
-            onCancel={handleCancelEdit}
-            isSaving={isSaving}
-            hasData={
-              GallerySection.hasData(displayData) || galleryImages.length > 0
-            }
-            viewContent={
-              <GallerySection
-                mode="view"
-                eventData={displayData}
-                organizerGradient={organizerGradient}
-                galleryImages={galleryImages}
-              />
-            }
-            editContent={
-              <GallerySection
-                mode="edit"
-                eventData={localDraft}
-                onUpdate={updateLocalDraft}
-                organizerGradient={organizerGradient}
-              />
-            }
-            emptyState={
-              <EmptyStateButton
-                title={GallerySection.emptyTitle}
-                description={GallerySection.emptyDescription}
-              />
-            }
-          />
+          {/* Gallery Section - hidden when handled externally (e.g., EventEditor) */}
+          {!hideGallerySection && (
+            <SectionWrapper
+              id="gallery"
+              title="Gallery"
+              showDivider
+              isEditing={editingSection === "gallery"}
+              onStartEdit={
+                editable ? () => handleStartEdit("gallery") : undefined
+              }
+              onSave={handleSaveSection}
+              onCancel={handleCancelEdit}
+              isSaving={isSaving}
+              hasData={
+                GallerySection.hasData(displayData) || galleryImages.length > 0
+              }
+              viewContent={
+                <GallerySection
+                  mode="view"
+                  eventData={displayData}
+                  organizerGradient={organizerGradient}
+                  galleryImages={galleryImages}
+                />
+              }
+              editContent={
+                <GallerySection
+                  mode="edit"
+                  eventData={localDraft}
+                  onUpdate={updateLocalDraft}
+                  organizerGradient={organizerGradient}
+                />
+              }
+              emptyState={<EmptyState>{GallerySection.emptyTitle}</EmptyState>}
+            />
+          )}
 
           {/* Organizer Section - hidden when shown at top */}
           {!showOrganizerCardAtTop && (
@@ -503,7 +482,10 @@ export function UnifiedEventDetailBody({
       )}
       {/* Spacer to prevent content from being hidden behind sticky footer */}
       {!hideRegistration && (
-        <div className="h-24 lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} />
+        <div
+          className="h-24 lg:hidden"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        />
       )}
     </>
   );

@@ -95,7 +95,7 @@ export function PageTabs({
         <button
           type="button"
           onClick={() => scrollContainer("left")}
-          className="absolute left-0 z-10 flex size-7 items-center justify-center rounded-full border bg-background shadow-sm transition-colors hover:bg-muted"
+          className="absolute left-0 z-10 flex size-7 items-center justify-center rounded-md border border-border bg-background transition-colors hover:bg-muted"
           aria-label="Scroll left"
         >
           <ChevronLeftIcon className="size-4 text-muted-foreground" />
@@ -172,7 +172,7 @@ export function PageTabs({
         <button
           type="button"
           onClick={() => scrollContainer("right")}
-          className="absolute right-0 z-10 flex size-7 items-center justify-center rounded-full border bg-background shadow-sm transition-colors hover:bg-muted"
+          className="absolute right-0 z-10 flex size-7 items-center justify-center rounded-md border border-border bg-background transition-colors hover:bg-muted"
           aria-label="Scroll right"
         >
           <ChevronRightIcon className="size-4 text-muted-foreground" />

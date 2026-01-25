@@ -21,7 +21,10 @@ import {
   LogOutIcon,
   LayoutDashboardIcon,
   CalendarIcon,
-  PaletteIcon,
+  MenuIcon,
+  LogInIcon,
+  MegaphoneIcon,
+  RocketIcon,
 } from "lucide-react";
 
 import { AuthSignUp } from "@/components/features/auth/AuthSignUp";
@@ -78,11 +81,6 @@ export function NavBarAuthMenu({
                   onClick: () => router.push("/organizer/events"),
                 },
               ]),
-          {
-            label: "Style Guide",
-            icon: PaletteIcon,
-            onClick: () => router.push("/style-guide"),
-          },
           {
             label: "Sign out",
             icon: LogOutIcon,
@@ -160,32 +158,47 @@ export function NavBarAuthMenu({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push("/style-guide")}
-                aria-label="Style Guide"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open menu"
+                >
+                  <MenuIcon className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="min-w-[240px] md:min-w-56 border border-border/70 bg-card/90 backdrop-blur-md p-2 data-[state=open]:animate-in data-[state=open]:fade-in-0"
               >
-                <PaletteIcon className="size-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="px-4"
-                onClick={() => openStart("choose")}
-              >
-                Get Started
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="px-4"
-                onClick={() => setLoginOpen(true)}
-              >
-                Log in
-              </Button>
-            </div>
+                <DropdownMenuItem
+                  onClick={() => setLoginOpen(true)}
+                  className="dropdown-fade-in flex items-center gap-3 px-3 py-2.5 body-text md:body-small cursor-pointer"
+                  style={{ animationDelay: "0ms" }}
+                >
+                  <LogInIcon className="size-5 md:size-4 text-muted-foreground" />
+                  Log In
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuItem
+                  onClick={() => openStart("organizer")}
+                  className="dropdown-fade-in flex items-center gap-3 px-3 py-2.5 body-text md:body-small cursor-pointer"
+                  style={{ animationDelay: "40ms" }}
+                >
+                  <MegaphoneIcon className="size-5 md:size-4 text-muted-foreground" />
+                  Host Events
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => openStart("choose")}
+                  className="dropdown-fade-in flex items-center gap-3 px-3 py-2.5 body-text md:body-small cursor-pointer"
+                  style={{ animationDelay: "80ms" }}
+                >
+                  <RocketIcon className="size-5 md:size-4 text-muted-foreground" />
+                  Get Started
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           <AuthDialog

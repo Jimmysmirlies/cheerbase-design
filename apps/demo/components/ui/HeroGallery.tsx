@@ -15,7 +15,7 @@ type HeroGalleryProps = {
   alt?: string;
   /** Optional className for container */
   className?: string;
-  /** Optional overlay actions (shown on mobile in top-right corner) */
+  /** Optional overlay actions (shown in top-right corner of gallery) */
   overlayActions?: React.ReactNode;
 };
 
@@ -66,10 +66,7 @@ export function HeroGallery({
           <button
             type="button"
             onClick={() => openLightbox(0)}
-            className={cn(
-              buttonStyles,
-              "aspect-[4/3] w-full md:aspect-[2/1]",
-            )}
+            className={cn(buttonStyles, "aspect-[4/3] w-full md:aspect-[2/1]")}
           >
             <Image
               src={images[0]!}
@@ -79,9 +76,9 @@ export function HeroGallery({
               sizes="(max-width: 768px) 100vw, 1280px"
             />
           </button>
-          {/* Overlay actions (mobile only) */}
+          {/* Overlay actions */}
           {overlayActions && (
-            <div className="absolute right-3 top-3 flex items-center gap-2 md:hidden">
+            <div className="absolute right-3 top-3 flex items-center gap-2">
               {overlayActions}
             </div>
           )}
@@ -129,7 +126,7 @@ export function HeroGallery({
         </div>
 
         {/* Desktop: grid layout */}
-        <div className="hidden aspect-[2/1] grid-cols-3 grid-rows-2 gap-2 md:grid">
+        <div className="relative hidden aspect-[2/1] grid-cols-3 grid-rows-2 gap-2 md:grid">
           {/* Large image - 2 cols, 2 rows */}
           <button
             type="button"
@@ -159,6 +156,12 @@ export function HeroGallery({
             />
           </button>
           {/* Blank space - bottom right (implicit, no element) */}
+          {/* Overlay actions */}
+          {overlayActions && (
+            <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+              {overlayActions}
+            </div>
+          )}
         </div>
 
         <GalleryLightbox
@@ -203,7 +206,7 @@ export function HeroGallery({
       </div>
 
       {/* Desktop: grid layout */}
-      <div className="hidden aspect-[2/1] grid-cols-3 grid-rows-2 gap-2 md:grid">
+      <div className="relative hidden aspect-[2/1] grid-cols-3 grid-rows-2 gap-2 md:grid">
         {/* Large image - 2 cols, 2 rows */}
         <button
           type="button"
@@ -265,6 +268,13 @@ export function HeroGallery({
             </div>
           )}
         </button>
+
+        {/* Overlay actions */}
+        {overlayActions && (
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+            {overlayActions}
+          </div>
+        )}
       </div>
 
       <GalleryLightbox

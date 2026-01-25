@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { HeartIcon, Share2Icon, CheckIcon } from "lucide-react";
+import Link from "next/link";
+import {
+  HeartIcon,
+  Share2Icon,
+  CheckIcon,
+  MapPinIcon,
+  CalendarIcon,
+} from "lucide-react";
 import { Button } from "@workspace/ui/shadcn/button";
 import { toast } from "@workspace/ui/shadcn/sonner";
-import { PageTitle } from "@/components/layout/PageTitle";
 import { HeroGallery } from "@/components/ui";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
+import { RegistrationSummaryCard } from "./RegistrationSummaryCard";
 import { EventStickyNav } from "./EventStickyNav";
 import { EventSectionProvider } from "./EventSectionContext";
 import type { BrandGradient } from "@/lib/gradients";
@@ -162,6 +169,10 @@ function formatDateLabel(date: string): string {
   });
 }
 
+function buildGoogleMapsUrl(location: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+}
+
 export type EventDetailContentProps = {
   event: {
     id: string;
@@ -190,6 +201,8 @@ export type EventDetailContentProps = {
   pricingRows: PricingRow[];
   documents: { name: string; description: string; href: string }[];
   earlyBirdEnabled?: boolean;
+  /** Hide the date line in the event header */
+  hideDateLine?: boolean;
 };
 
 export function EventDetailContent(props: EventDetailContentProps) {
@@ -198,7 +211,7 @@ export function EventDetailContent(props: EventDetailContentProps) {
       {/* Airbnb-style sticky section navigation */}
       <EventStickyNav gradient={props.organizerGradient} />
 
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
+      <section className="mx-auto flex w-full max-w-7xl flex-col px-4 py-8 lg:px-8">
         {/* Hero Gallery */}
         {props.galleryImages.length > 0 && (
           <HeroGallery
@@ -213,48 +226,124 @@ export function EventDetailContent(props: EventDetailContentProps) {
           />
         )}
 
-        <div id="event-title">
-          <PageTitle
-            title={props.event.name}
-            gradient={props.organizerGradient}
-            dateLabel={formatDateLabel(props.event.date)}
-            locationLabel={props.event.location}
-            actions={
-              <div className="hidden md:flex">
-                <EventActionButtons eventName={props.event.name} />
+        {/* Two-column layout: Left (title + content) | Right (sticky CTA) */}
+        <div className="grid gap-10 pt-8 lg:grid-cols-[1fr_320px]">
+          {/* Left Column: Title, Meta, and Content */}
+          <div className="min-w-0">
+            {/* Event Header */}
+            <div id="event-title" className="mb-8">
+              <h1 className="heading-2 mb-2">{props.event.name}</h1>
+              <p className="body-text mb-3">
+                Hosted by{" "}
+                <Link href="#" className="text-primary hover:underline">
+                  {props.event.organizer}
+                </Link>
+              </p>
+              <div className="space-y-2 body-small text-muted-foreground">
+                <a
+                  href={buildGoogleMapsUrl(props.event.location)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-foreground"
+                >
+                  <MapPinIcon className="size-4 shrink-0" />
+                  <span className="underline">{props.event.location}</span>
+                </a>
+                {!props.hideDateLine && (
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="size-4 shrink-0" />
+                    <span>{formatDateLabel(props.event.date)}</span>
+                  </div>
+                )}
               </div>
-            }
-          />
-        </div>
+            </div>
 
-        <UnifiedEventDetailBody
-          eventData={{
-            id: props.event.id,
-            name: props.event.name,
-            date: props.event.date,
-            description: props.event.description,
-            organizer: props.event.organizer,
-            location: props.event.location,
-            earlyBirdEnabled: props.earlyBirdEnabled,
-          }}
-          organizerGradient={props.organizerGradient}
-          organizerFollowers={props.organizerFollowers}
-          organizerEventsCount={props.organizerEventsCount}
-          organizerHostingDuration={props.organizerHostingDuration}
-          displayProps={{
-            galleryImages: props.galleryImages,
-            eventDateParts: props.eventDateParts,
-            venueName: props.venueName,
-            cityState: props.cityState,
-            registrationDeadlineISO: props.registrationDeadlineISO,
-            registrationClosed: props.registrationClosed,
-            pricingDeadlineLabel: props.pricingDeadlineLabel,
-            pricingRows: props.pricingRows,
-            documents: props.documents,
-            earlyBirdEnabled: props.earlyBirdEnabled,
-          }}
-        />
+            {/* Content Sections */}
+            <UnifiedEventDetailBody
+              eventData={{
+                id: props.event.id,
+                name: props.event.name,
+                date: props.event.date,
+                description: props.event.description,
+                organizer: props.event.organizer,
+                location: props.event.location,
+                earlyBirdEnabled: props.earlyBirdEnabled,
+              }}
+              organizerGradient={props.organizerGradient}
+              organizerFollowers={props.organizerFollowers}
+              organizerEventsCount={props.organizerEventsCount}
+              organizerHostingDuration={props.organizerHostingDuration}
+              hideRegistration
+              displayProps={{
+                galleryImages: props.galleryImages,
+                eventDateParts: props.eventDateParts,
+                venueName: props.venueName,
+                cityState: props.cityState,
+                registrationDeadlineISO: props.registrationDeadlineISO,
+                registrationClosed: props.registrationClosed,
+                pricingDeadlineLabel: props.pricingDeadlineLabel,
+                pricingRows: props.pricingRows,
+                documents: props.documents,
+                earlyBirdEnabled: props.earlyBirdEnabled,
+              }}
+            />
+          </div>
+
+          {/* Right Column: Sticky Registration CTA */}
+          <div className="hidden lg:block">
+            <div className="sticky top-[152px]">
+              <RegistrationSummaryCard
+                eventId={props.event.id}
+                eventDate={props.event.date}
+                eventStartTime="9:00 AM"
+                registrationDeadline={props.registrationDeadlineISO}
+                isRegistrationClosed={props.registrationClosed}
+                hidePricingButton
+              />
+            </div>
+          </div>
+        </div>
       </section>
+
+      {/* Mobile Sticky Footer CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-between gap-4 px-4 py-4">
+          <div className="min-w-0 flex-1">
+            <p className="body-small font-medium text-foreground truncate">
+              {props.registrationClosed
+                ? "Registration Has Closed"
+                : "Registration Open"}
+            </p>
+            {!props.registrationClosed && (
+              <p className="body-small text-muted-foreground truncate">
+                Closes{" "}
+                {new Date(props.registrationDeadlineISO).toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric" },
+                )}
+              </p>
+            )}
+          </div>
+          {props.registrationClosed ? (
+            <Button size="lg" disabled className="shrink-0">
+              Closed
+            </Button>
+          ) : (
+            <Button asChild size="lg" className="shrink-0">
+              <Link
+                href={`/events/${encodeURIComponent(props.event.id)}/register`}
+              >
+                Register Now
+              </Link>
+            </Button>
+          )}
+        </div>
+      </div>
+      {/* Spacer to prevent content from being hidden behind sticky footer */}
+      <div
+        className="h-24 lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      />
     </EventSectionProvider>
   );
 }

@@ -8,15 +8,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/shadcn/sheet";
-import { Button } from "@workspace/ui/shadcn/button";
-import { Badge } from "@workspace/ui/shadcn/badge";
 import { toast } from "@workspace/ui/shadcn/sonner";
-import { FocusModeHeader } from "@/components/layout/FocusModeHeader";
 import { useEventEditor } from "@/components/providers/EventEditorProvider";
 import { useFocusModeSettings } from "@/hooks/useFocusModeSettings";
 import { useEventDisplayProps } from "@/hooks/useEventDisplayProps";
 import { UnifiedEventDetailBody } from "@/components/features/events/UnifiedEventDetailBody";
-import { EventTitleHeader } from "@/components/features/events/EventTitleHeader";
+import { FocusModeHeader } from "@/components/layout/FocusModeHeader";
+import { EditorActionBar } from "./EditorActionBar";
+import { EditableGallerySection } from "./EditableGallerySection";
+import { EditableEventTitleSection } from "./EditableEventTitleSection";
 import { EventSettingsSidebar } from "./EventSettingsSidebar";
 import { UnsavedChangesModal } from "./UnsavedChangesModal";
 import { ChangeHistoryBar } from "./ChangeHistoryBar";
@@ -34,7 +34,6 @@ export function EventEditor() {
     isPublishing,
     isDirty,
     changeLog,
-    hasUnpublishedChanges,
   } = useEventEditor();
 
   const { sidebarOpen, toggleSidebar, isHydrated, MOBILE_SHEET_EVENT } =
@@ -96,8 +95,22 @@ export function EventEditor() {
     }
   }, [isDirty, router]);
 
-  // Save draft and navigate back
-  const handleSaveDraft = useCallback(async () => {
+  // Save draft (stays on page)
+  const handleSaveDraftInline = useCallback(async () => {
+    setIsSavingDraft(true);
+    try {
+      await saveSection(eventData);
+      toast.success("Draft saved");
+    } catch (error) {
+      toast.error("Failed to save draft");
+      console.error(error);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [eventData, saveSection]);
+
+  // Save draft and navigate back (from modal)
+  const handleSaveDraftAndBack = useCallback(async () => {
     setIsSavingDraft(true);
     try {
       await saveSection(eventData);
@@ -118,84 +131,72 @@ export function EventEditor() {
     router.push("/organizer/events");
   }, [router]);
 
-  // Header content shared between loading and loaded states
-  const headerContent = eventData.name ? (
-    <div className="pb-8">
-      <EventTitleHeader
-        name={eventData.name}
-        date={eventData.date}
-        location={eventData.location}
-        gradient={organizerGradient}
-        badge={
-          isPublished ? (
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className="border-green-500 text-green-600"
-              >
-                Published
-              </Badge>
-              {hasUnpublishedChanges && (
-                <Badge
-                  variant="outline"
-                  className="border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-300"
-                >
-                  Unpublished Changes
-                </Badge>
-              )}
-            </div>
-          ) : (
-            <Badge variant="outline" className="text-muted-foreground">
-              Draft
-            </Badge>
-          )
-        }
-        actions={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSaveDraft}
-              disabled={isSavingDraft}
-            >
-              {isSavingDraft ? "Saving..." : "Save Draft"}
-            </Button>
-            <Button onClick={handlePublish} disabled={isPublishing}>
-              {isPublishing
-                ? "Saving..."
-                : isPublished
-                  ? "Update Event"
-                  : "Publish Event"}
-            </Button>
-          </div>
-        }
+  // Open mobile settings sheet
+  const handleOpenMobileSettings = useCallback(() => {
+    setMobileSheetOpen(true);
+  }, []);
+
+  // Gallery images from event data
+  const galleryImages = eventData.gallery || [];
+
+  // Main content shared between loading and hydrated states
+  const mainContent = (
+    <section className="mx-auto w-full max-w-6xl">
+      {/* Action bar with status and buttons */}
+      <EditorActionBar
+        isPublished={isPublished}
+        lastSaved={eventData.updatedAt}
+        isSavingDraft={isSavingDraft}
+        isPublishing={isPublishing}
+        onSaveDraft={handleSaveDraftInline}
+        onPublish={handlePublish}
       />
-    </div>
-  ) : null;
+
+      {/* Gallery at top */}
+      <EditableGallerySection
+        images={galleryImages}
+        eventName={eventData.name}
+        onUpdate={(images) => updateEventData({ gallery: images })}
+      />
+
+      {/* Event Title Section */}
+      <EditableEventTitleSection
+        name={eventData.name}
+        organizer={eventData.organizer}
+        location={eventData.location}
+        onUpdate={updateEventData}
+      />
+
+      {/* Change History (if any unpublished changes) */}
+      <ChangeHistoryBar
+        changes={changeLog}
+        onDiscard={discardChanges}
+        gradient={organizerGradient}
+      />
+
+      {/* Content sections via UnifiedEventDetailBody */}
+      <UnifiedEventDetailBody
+        eventData={eventData}
+        onUpdate={updateEventData}
+        organizerGradient={organizerGradient}
+        editable
+        hideRegistration
+        hideGallerySection
+        displayProps={displayProps}
+      />
+    </section>
+  );
 
   // Wait for hydration to avoid flash
   if (!isHydrated) {
     return (
       <>
-        <FocusModeHeader onBack={handleBack} />
+        <FocusModeHeader
+          onBack={handleBack}
+          onOpenMobileSettings={handleOpenMobileSettings}
+        />
         <div className="h-[calc(100vh-68px)] overflow-y-auto scrollbar-hide">
-          <main className="p-8">
-            <section className="mx-auto w-full max-w-6xl">
-              {headerContent}
-              <ChangeHistoryBar
-                changes={changeLog}
-                onDiscard={discardChanges}
-                gradient={organizerGradient}
-              />
-              <UnifiedEventDetailBody
-                eventData={eventData}
-                onUpdate={updateEventData}
-                organizerGradient={organizerGradient}
-                editable
-                hideRegistration
-                displayProps={displayProps}
-              />
-            </section>
-          </main>
+          <main className="p-8">{mainContent}</main>
         </div>
       </>
     );
@@ -205,32 +206,13 @@ export function EventEditor() {
     <>
       <FocusModeHeader
         onBack={handleBack}
-        onOpenMobileSettings={
-          isMobile ? () => setMobileSheetOpen(true) : undefined
-        }
+        onOpenMobileSettings={handleOpenMobileSettings}
       />
 
       <div className="flex h-[calc(100vh-68px)]">
         {/* Main content area */}
         <div className="flex-1 overflow-y-auto scrollbar-hide">
-          <main className="p-8">
-            <section className="mx-auto w-full max-w-6xl">
-              {headerContent}
-              <ChangeHistoryBar
-                changes={changeLog}
-                onDiscard={discardChanges}
-                gradient={organizerGradient}
-              />
-              <UnifiedEventDetailBody
-                eventData={eventData}
-                onUpdate={updateEventData}
-                organizerGradient={organizerGradient}
-                editable
-                hideRegistration
-                displayProps={displayProps}
-              />
-            </section>
-          </main>
+          <main className="p-8">{mainContent}</main>
         </div>
 
         {/* Desktop: Right sidebar - pushes content */}
@@ -261,7 +243,7 @@ export function EventEditor() {
         open={showUnsavedModal}
         onOpenChange={setShowUnsavedModal}
         onDiscard={handleDiscard}
-        onSaveDraft={handleSaveDraft}
+        onSaveDraft={handleSaveDraftAndBack}
       />
     </>
   );

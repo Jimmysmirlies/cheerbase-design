@@ -39,7 +39,7 @@ export function OrganizerGlassCard({
     <GlassCard className="min-w-[220px] snap-start p-6 text-center">
       {/* Gradient avatar with initials */}
       <div
-        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${accentGradient} text-base font-semibold text-white shadow`}
+        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${accentGradient} body-text font-semibold text-white`}
       >
         {initials}
       </div>

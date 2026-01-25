@@ -1,6 +1,5 @@
 "use client";
 
-import { Input } from "@workspace/ui/shadcn/input";
 import { Textarea } from "@workspace/ui/shadcn/textarea";
 import { Label } from "@workspace/ui/shadcn/label";
 import type { Event } from "@/types/events";
@@ -9,8 +8,9 @@ import type { BaseSectionProps } from "./types";
 export type OverviewSectionProps = BaseSectionProps;
 
 /**
- * OverviewSection displays the event title and description.
+ * OverviewSection displays the event description.
  * Supports both view and edit modes.
+ * Note: Event title is now handled separately by EditableEventTitleSection.
  */
 export function OverviewSection({
   mode,
@@ -28,16 +28,6 @@ export function OverviewSection({
   return (
     <div className="flex flex-col gap-6 pt-2">
       <div className="space-y-2">
-        <Label htmlFor="event-title">Event Title</Label>
-        <Input
-          id="event-title"
-          value={eventData.name || ""}
-          onChange={(e) => onUpdate?.({ name: e.target.value })}
-          placeholder="Enter event name..."
-          className="w-full"
-        />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="event-description">Description</Label>
         <Textarea
           id="event-description"
@@ -54,10 +44,10 @@ export function OverviewSection({
 
 /** Check if section has data to display */
 OverviewSection.hasData = (eventData: Partial<Event>): boolean => {
-  return !!(eventData.name || eventData.description);
+  return !!eventData.description;
 };
 
 /** Empty state configuration */
-OverviewSection.emptyTitle = "Add event title and description";
+OverviewSection.emptyTitle = "Add event description";
 OverviewSection.emptyDescription =
-  "Give your event a name and describe what makes it special";
+  "Describe what makes your event special";

@@ -19,6 +19,7 @@ import {
   getRegistrationStatus,
 } from "@/components/ui/cards/EventCardV2";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { EventsContentProps, EventRow } from "./types";
 import { buildMonthSections, buildMonthSectionsFromRows } from "./utils";
 
@@ -243,9 +244,7 @@ export function EventsContent({
                         ))}
                       </motion.div>
                     ) : (
-                      <div className="rounded-md border border-dashed bg-muted/40 p-6 text-center text-sm text-muted-foreground">
-                        No events this month.
-                      </div>
+                      <EmptyState>No events this month.</EmptyState>
                     )
                   ) : null}
                 </div>
@@ -281,13 +280,13 @@ export function EventsContent({
                 ))}
               </motion.div>
             ) : (
-              <div className="rounded-md border border-dashed bg-muted/40 p-6 text-center text-sm text-muted-foreground">
+              <EmptyState>
                 {allEventsBucket === "past"
                   ? "No past events in this season."
                   : allEventsBucket === "drafts"
                     ? "No draft events. Click 'New Event' to start creating one."
                     : "No upcoming events in this season."}
-              </div>
+              </EmptyState>
             )}
           </div>
         </motion.div>

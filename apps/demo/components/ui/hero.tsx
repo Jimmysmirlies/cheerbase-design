@@ -102,11 +102,11 @@ function HeroSingle(props: SingleHeroProps) {
             </span>
           ) : null}
           <div className="space-y-4">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-medium tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               {headline}
             </h1>
             {description ? (
-              <p className="text-base text-muted-foreground sm:text-lg">
+              <p className="body-text text-muted-foreground sm:body-large">
                 {description}
               </p>
             ) : null}
@@ -166,7 +166,7 @@ function HeroCarouselFullBleed({ slides }: { slides: HeroSlide[] }) {
   return (
     /* Hero Carousel Variant: "Full-Bleed Storyboard" */
     <section className="bg-background px-6 py-12">
-      <div className="mx-auto max-w-7xl shadow-lg overflow-hidden rounded-[1.5rem]">
+      <div className="mx-auto max-w-7xl border border-border/60 overflow-hidden rounded-[1.5rem]">
         <div className="relative min-h-[520px]">
           {slides.map((slide, index) => (
             <div
@@ -337,11 +337,11 @@ function HeroSlidePanel({ slide }: { slide: HeroSlide }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-4 p-8 text-white sm:p-12">
           <div className="space-y-2">
-            <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            <h2 className="text-4xl font-medium tracking-tight sm:text-5xl lg:text-6xl">
               {slide.headline}
             </h2>
             {slide.organizer ? (
-              <p className="text-lg font-medium text-white/80">
+              <p className="body-large font-medium text-white/80">
                 {slide.organizer}
               </p>
             ) : null}
@@ -363,11 +363,11 @@ function HeroSlidePanel({ slide }: { slide: HeroSlide }) {
           </span>
         ) : null}
         <div className="space-y-4">
-          <h2 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
+          <h2 className="text-4xl font-medium tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
             {slide.headline}
           </h2>
           {slide.description ? (
-            <p className="text-base text-muted-foreground sm:text-lg">
+            <p className="body-text text-muted-foreground">
               {slide.description}
             </p>
           ) : null}
@@ -420,10 +420,10 @@ function HeroEventSlide({ slide }: { slide: HeroSlide }) {
           </span>
         ) : null}
         <div className="space-y-4">
-          <h2 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
+          <h2 className="text-4xl font-medium tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
             {slide.headline ?? event.title}
           </h2>
-          <p className="text-base text-muted-foreground sm:text-lg">
+          <p className="body-text text-muted-foreground">
             {slide.description ?? `${event.location} · ${event.date}`}
           </p>
         </div>
@@ -459,7 +459,7 @@ function HeroEventSlide({ slide }: { slide: HeroSlide }) {
         </div>
       ) : (
         <div className="relative flex h-[420px] items-center justify-center rounded-[2.5rem] border border-border/60 bg-muted/30">
-          <span className="text-muted-foreground text-sm font-medium">
+          <span className="body-small font-medium text-muted-foreground">
             Media coming soon
           </span>
         </div>
@@ -514,7 +514,7 @@ function CarouselButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className="text-muted-foreground/80 hover:text-foreground flex size-11 items-center justify-center rounded-full border border-border/60 bg-background/80 shadow-lg transition disabled:opacity-40"
+      className="text-muted-foreground/80 hover:text-foreground flex size-11 items-center justify-center rounded-md border border-border bg-background transition hover:bg-muted disabled:opacity-40"
     >
       {children}
     </button>

@@ -32,7 +32,9 @@ export function OrganizerProfileCard({
     >
       <GradientAvatar name={name} gradient={gradient} size={avatarSize} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+        <p className="truncate body-small font-semibold text-foreground">
+          {name}
+        </p>
         {subtitle ? (
           <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
         ) : null}

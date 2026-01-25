@@ -100,7 +100,7 @@ export function HorizontalScrollSection({
             type="button"
             variant="outline"
             size="icon"
-            className="absolute left-2 top-1/2 z-10 -translate-y-1/2 size-10 rounded-full bg-background shadow-md border-border/60 hidden sm:flex"
+            className="absolute left-2 top-1/2 z-10 -translate-y-1/2 size-10 rounded-md bg-background border border-border hidden sm:flex"
             onClick={() => scroll("left")}
             aria-label="Scroll left"
           >
@@ -126,7 +126,7 @@ export function HorizontalScrollSection({
             type="button"
             variant="outline"
             size="icon"
-            className="absolute right-2 top-1/2 z-10 -translate-y-1/2 size-10 rounded-full bg-background shadow-md border-border/60 hidden sm:flex"
+            className="absolute right-2 top-1/2 z-10 -translate-y-1/2 size-10 rounded-md bg-background border border-border hidden sm:flex"
             onClick={() => scroll("right")}
             aria-label="Scroll right"
           >
