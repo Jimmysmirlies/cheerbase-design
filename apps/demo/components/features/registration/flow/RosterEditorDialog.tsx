@@ -13,7 +13,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
@@ -483,11 +482,11 @@ export function RosterEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[90vw] sm:max-w-[90vw] lg:max-w-[72rem] xl:max-w-[80rem] rounded-2xl gap-0 p-0 overflow-hidden">
+      <DialogContent className="w-full max-w-[90vw] sm:max-w-[90vw] lg:max-w-[72rem] xl:max-w-[80rem] rounded-xl border-border/40 gap-0 p-0 overflow-hidden">
         <div className="flex h-[82vh] flex-col overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle>Edit roster</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="heading-3">Edit Roster</DialogTitle>
+            <DialogDescription className="body-small text-muted-foreground/80">
               Update lineup details for{" "}
               <span className="font-medium text-foreground">{teamName}</span>.
               Make inline edits, add rows, or adjust roles as needed.
@@ -619,7 +618,7 @@ export function RosterEditorDialog({
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col gap-3 border-t border-border/60 bg-background !p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
+          <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-1 items-center sm:justify-start">
               {onDeleteTeam ? (
                 <Button
@@ -628,19 +627,19 @@ export function RosterEditorDialog({
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={() => setDeleteConfirmOpen(true)}
                 >
-                  Remove team
+                  Remove Team
                 </Button>
               ) : null}
             </div>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" onClick={handleCancel}>
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="ghost" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button type="button" onClick={handleSave} disabled={!hasChanges}>
-                Save changes
+                Save Changes
               </Button>
             </div>
-          </DialogFooter>
+          </div>
         </div>
       </DialogContent>
 

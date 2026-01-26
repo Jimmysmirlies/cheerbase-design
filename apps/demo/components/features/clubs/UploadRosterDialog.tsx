@@ -170,15 +170,15 @@ export default function UploadRosterDialog() {
           Upload CSV / Excel
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-3xl p-6">
-        <DialogHeader>
-          <DialogTitle>Upload roster</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl rounded-xl border-border/40 p-0 gap-0 overflow-hidden max-h-[85vh]">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">Upload Roster</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
             Preview and confirm before creating a team.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="px-6 pb-6 space-y-4 overflow-y-auto">
           <div className="flex flex-wrap items-center gap-3">
             <input
               type="file"
@@ -358,23 +358,14 @@ export default function UploadRosterDialog() {
               Role, Email, and Phone.
             </p>
           )}
-
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleConfirm}
-              disabled={!canConfirm}
-            >
-              Confirm
-            </Button>
-          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end gap-3">
+          <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleConfirm} disabled={!canConfirm}>
+            Confirm
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

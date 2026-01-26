@@ -65,7 +65,6 @@ function SearchEventsPageContent() {
   const [selectedProvince, setSelectedProvince] = useState<string>("all");
   const [selectedOrganizer, setSelectedOrganizer] = useState<string>("all");
 
-  // Keep query in sync with URL param changes
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
@@ -112,7 +111,6 @@ function SearchEventsPageContent() {
   return (
     <main className="bg-background text-foreground">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 sm:px-10">
-        {/* Layout A: Streamlined results view */}
         {layoutVariant === "A" ? (
           <>
             <motion.header
@@ -156,7 +154,6 @@ function SearchEventsPageContent() {
             </motion.div>
           </>
         ) : (
-          /* Layout B: Full search interface */
           <>
             <motion.header
               className="flex items-start justify-between gap-4"

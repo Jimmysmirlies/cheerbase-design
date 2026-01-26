@@ -474,6 +474,33 @@ export function NewRegistrationContent({
     router.push(`/events/${encodeURIComponent(eventId)}`);
   }, [eventId, router]);
 
+  // Action bar above grid
+  const ActionBar = (
+    <div className="flex w-full items-center justify-between gap-4 border-b border-border/60 pb-4">
+      {/* Left side: Section title */}
+      <h2 className="heading-4">Register Teams</h2>
+
+      {/* Right side: Action buttons */}
+      <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+          <UploadIcon className="size-4" />
+          Bulk Upload
+        </Button>
+        <WalkthroughSpotlight
+          step="register-team"
+          side="bottom"
+          align="end"
+          advanceOnClick
+        >
+          <Button onClick={() => setRegisterTeamOpen(true)}>
+            <PlusIcon className="size-4" />
+            Add Team
+          </Button>
+        </WalkthroughSpotlight>
+      </div>
+    </div>
+  );
+
   // Teams section
   const TeamsSection = (
     <motion.div
@@ -483,51 +510,7 @@ export function NewRegistrationContent({
       whileInView="visible"
       viewport={{ once: true }}
     >
-      {/* Top border divider */}
-      <div className="h-px w-full bg-border" />
-
-      <div className="flex flex-col gap-6 py-8">
-        {/* Section header with title and actions */}
-        <div className="flex items-center justify-between">
-          <p className="heading-4">Register Teams</p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setBulkUploadOpen(true)}
-            >
-              <UploadIcon className="size-4" />
-              Bulk Upload
-            </Button>
-            <WalkthroughSpotlight
-              step="register-team"
-              side="bottom"
-              align="end"
-              advanceOnClick
-            >
-              <Button size="sm" onClick={() => setRegisterTeamOpen(true)}>
-                <PlusIcon className="size-4" />
-                Register Team
-              </Button>
-            </WalkthroughSpotlight>
-          </div>
-        </div>
-
-        {/* Informational notice */}
-        <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-          Add teams to register for this event.
-          {registrationDeadline ? (
-            <>
-              {" "}
-              Registration must be completed before{" "}
-              <span className="font-medium text-foreground">
-                {registrationDeadline}
-              </span>
-              .
-            </>
-          ) : null}
-        </div>
-
+      <div className="flex flex-col gap-6">
         {/* Division groups */}
         <div className="flex flex-col gap-6 min-w-0">
           {allDivisions.length > 0 ? (
@@ -675,8 +658,8 @@ export function NewRegistrationContent({
   // Mobile sticky footer
   const MobileStickyFooter = (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-foreground">
               {registeredTeams.length} team
@@ -690,7 +673,7 @@ export function NewRegistrationContent({
             </p>
           </div>
           <Button
-            size="sm"
+            size="lg"
             disabled={registeredTeams.length === 0}
             onClick={handleSubmitRegistration}
           >
@@ -698,13 +681,17 @@ export function NewRegistrationContent({
           </Button>
         </div>
       </div>
-      <div className="h-20 lg:hidden" />
+      <div
+        className="h-24 lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      />
     </>
   );
 
   return (
     <>
-      <div className="min-w-0">
+      <div className="min-w-0 space-y-6">
+        {ActionBar}
         <div className="grid gap-8 lg:grid-cols-[1fr_320px] min-w-0">
           <div className="space-y-8 min-w-0">{TeamsSection}</div>
           {InvoiceSidebar}

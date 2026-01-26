@@ -97,11 +97,9 @@ export default function OrganizerSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Initialize form with organizer data or saved settings
   useEffect(() => {
     if (!organizerId || !organizer) return;
 
-    // Check for saved settings first
     const saved = loadSavedSettings(organizerId);
     if (saved) {
       setForm({
@@ -132,7 +130,6 @@ export default function OrganizerSettingsPage() {
     const newGradient = value as BrandGradient;
     setForm((prev) => ({ ...prev, gradient: newGradient }));
 
-    // Save immediately when gradient changes
     if (organizerId) {
       const updatedSettings = { ...form, gradient: newGradient };
       saveSettings(organizerId, updatedSettings);
@@ -154,14 +151,12 @@ export default function OrganizerSettingsPage() {
     if (!organizerId) return;
     setSaving(true);
 
-    // Simulate save delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const updatedSettings = { ...editForm, gradient: form.gradient };
     setForm(updatedSettings);
     saveSettings(organizerId, updatedSettings);
 
-    // Dispatch custom event to notify other components (e.g., NavBar) of settings change
     window.dispatchEvent(
       new CustomEvent("organizer-settings-changed", {
         detail: { gradient: updatedSettings.gradient },
@@ -192,7 +187,6 @@ export default function OrganizerSettingsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <h1
         className="heading-2 bg-clip-text text-transparent"
         style={{ backgroundImage: gradient.css }}
@@ -200,14 +194,12 @@ export default function OrganizerSettingsPage() {
         Settings
       </h1>
 
-      {/* Content Area */}
       <motion.div
         className="pt-8"
         variants={staggerSections}
         initial="hidden"
         animate="visible"
       >
-        {/* Organization Profile Section */}
         <motion.div variants={fadeInUp}>
           <Section
             title="Organization Profile"
@@ -254,7 +246,6 @@ export default function OrganizerSettingsPage() {
             </div>
           </Section>
 
-          {/* Edit Profile Dialog */}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
@@ -329,7 +320,6 @@ export default function OrganizerSettingsPage() {
           </Dialog>
         </motion.div>
 
-        {/* Brand Gradient Section */}
         <motion.div variants={fadeInUp}>
           <Section
             title="Brand Gradient"
@@ -356,7 +346,6 @@ export default function OrganizerSettingsPage() {
           </Section>
         </motion.div>
 
-        {/* Billing & Subscription Section */}
         <motion.div variants={fadeInUp}>
           <Section
             title="Billing & Subscription"

@@ -6,7 +6,6 @@ import { Label } from "@workspace/ui/shadcn/label";
 import { Input } from "@workspace/ui/shadcn/input";
 import { Button } from "@workspace/ui/shadcn/button";
 import { DatePicker } from "@workspace/ui/shadcn/date-picker";
-import { brandGradients } from "@/lib/gradients";
 import type { Event, EventScheduleDay } from "@/types/events";
 import type { BaseSectionProps } from "./types";
 
@@ -110,10 +109,13 @@ export function DateTimeSection({
   mode,
   eventData,
   onUpdate,
-  organizerGradient = "primary",
+  organizerGradient: _organizerGradient = "primary",
   eventDateParts: propDateParts,
   scheduleDays: propScheduleDays,
 }: DateTimeSectionProps) {
+  // Unused but kept for API compatibility
+  void _organizerGradient;
+
   // Compute date parts if not provided
   const eventDateParts = propDateParts || computeDateParts(eventData.date);
 
@@ -144,11 +146,6 @@ export function DateTimeSection({
       };
     });
   }, [propScheduleDays, eventData.schedule]);
-
-  const gradient = brandGradients[organizerGradient];
-  const gradientCss = gradient.css;
-  const firstGradientColor =
-    gradientCss.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
 
   // Initialize schedule data for edit mode (must be before any early returns)
   const scheduleData = useMemo(() => {
@@ -198,33 +195,28 @@ export function DateTimeSection({
         <div className="flex flex-col gap-4">
           {scheduleDays.map((scheduleDay, index) => (
             <div key={index} className="flex items-center gap-4">
-              <div
-                className="relative flex size-16 flex-col items-center justify-center rounded-lg overflow-hidden border"
-                style={{ borderColor: `${firstGradientColor}50` }}
-              >
-                {/* Gradient background overlay */}
-                <div
-                  className="absolute inset-0 opacity-[0.06]"
-                  style={{
-                    backgroundImage: gradientCss,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-                <span className="relative z-10 label leading-none pt-1 text-foreground">
-                  {scheduleDay.month}
-                </span>
-                <span className="relative z-10 heading-3 leading-none pb-0.5 text-foreground">
-                  {scheduleDay.day}
-                </span>
+              {/* Calendar badge */}
+              <div className="flex min-w-[72px] flex-col items-center overflow-hidden rounded-lg border bg-muted/30">
+                <div className="w-full bg-muted px-4 py-1 text-center">
+                  <span className="label text-muted-foreground">
+                    {scheduleDay.month}
+                  </span>
+                </div>
+                <div className="px-4 py-2">
+                  <span className="heading-2 font-bold text-foreground">
+                    {scheduleDay.day}
+                  </span>
+                </div>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="body-text font-semibold text-foreground">
+                <span className="heading-4 text-foreground">
                   {scheduleDay.weekday}, {scheduleDay.fullDate}
                 </span>
-                <span className="body-small text-muted-foreground">
-                  {scheduleDay.original.label}
-                </span>
+                {scheduleDay.original.label && (
+                  <span className="body-small text-muted-foreground">
+                    {scheduleDay.original.label}
+                  </span>
+                )}
                 <span className="body-small text-muted-foreground flex items-center gap-1.5">
                   <ClockIcon className="size-4" />
                   {scheduleDay.original.startTime} -{" "}
@@ -248,28 +240,21 @@ export function DateTimeSection({
 
     return (
       <div className="flex items-center gap-4">
-        <div
-          className="relative flex size-16 flex-col items-center justify-center rounded-lg overflow-hidden border"
-          style={{ borderColor: `${firstGradientColor}50` }}
-        >
-          {/* Gradient background overlay */}
-          <div
-            className="absolute inset-0 opacity-[0.06]"
-            style={{
-              backgroundImage: gradientCss,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-          <span className="relative z-10 label leading-none pt-1 text-foreground">
-            {eventDateParts.month}
-          </span>
-          <span className="relative z-10 heading-3 leading-none pb-0.5 text-foreground">
-            {eventDateParts.day}
-          </span>
+        {/* Calendar badge */}
+        <div className="flex min-w-[72px] flex-col items-center overflow-hidden rounded-lg border bg-muted/30">
+          <div className="w-full bg-muted px-4 py-1 text-center">
+            <span className="label text-muted-foreground">
+              {eventDateParts.month}
+            </span>
+          </div>
+          <div className="px-4 py-2">
+            <span className="heading-2 font-bold text-foreground">
+              {eventDateParts.day}
+            </span>
+          </div>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="body-small font-semibold text-foreground">
+          <span className="heading-4 text-foreground">
             {eventDateParts.weekday}, {eventDateParts.fullDate}
           </span>
           <span className="body-small text-muted-foreground flex items-center gap-1.5">

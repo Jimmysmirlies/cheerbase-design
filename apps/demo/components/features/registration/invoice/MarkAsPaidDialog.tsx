@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
@@ -75,15 +74,15 @@ export function MarkAsPaidDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-lg">
-        <DialogHeader className="gap-3">
-          <div className="flex items-center gap-3">
+      <DialogContent className="max-w-md rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <div className="flex items-center gap-3 mb-2">
             <div className="flex size-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 shrink-0">
               <CheckCircle2Icon className="size-4 text-green-600 dark:text-green-400" />
             </div>
-            <DialogTitle className="text-left">Mark as Paid</DialogTitle>
+            <DialogTitle className="heading-3">Mark as Paid</DialogTitle>
           </div>
-          <DialogDescription className="text-left">
+          <DialogDescription className="body-small text-muted-foreground/80">
             Record a payment of{" "}
             <span className="font-medium text-foreground">
               {formatCurrency(invoiceTotal)}
@@ -93,7 +92,7 @@ export function MarkAsPaidDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-4">
+        <div className="px-6 pb-6 flex flex-col gap-4">
           {/* Payment Date */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="payment-date">Payment Date</Label>
@@ -139,12 +138,12 @@ export function MarkAsPaidDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={handleCancel}>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end gap-3">
+          <Button variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleConfirm}>Confirm Payment</Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

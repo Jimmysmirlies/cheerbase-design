@@ -23,14 +23,13 @@ import {
   SlidersHorizontalIcon,
   ExternalLinkIcon,
   X,
-  MapPinIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { OrganizerEventActionBar } from "@/components/features/events/OrganizerEventActionBar";
 import { OrganizerEventCTACard } from "@/components/features/events/OrganizerEventCTACard";
 import { HeroGallery } from "@/components/ui";
-import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
+import { type BrandGradient } from "@/lib/gradients";
 import { UnifiedEventDetailBody } from "./UnifiedEventDetailBody";
 import {
   DataTable,
@@ -623,7 +622,7 @@ export function OrganizerEventDetailContent({
   pricingRows,
   documents,
   isDraft = false,
-  organizerPageGradient,
+  organizerPageGradient: _organizerPageGradient,
   organizerId,
 }: OrganizerEventDetailContentProps) {
   const router = useRouter();
@@ -643,107 +642,128 @@ export function OrganizerEventDetailContent({
     router.push(`/organizer/events/${event.id}/edit`);
   };
 
-  // Get the gradient for the accent color
-  const gradientKey = organizerPageGradient ?? organizerGradient ?? "primary";
-
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 lg:px-8">
-      {/* Tabs at top */}
-      <OrganizerEventActionBar
-        eventId={event.id}
-        eventOrganizerName={event.organizer}
-        isDraft={isDraft}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        variant="unstyled"
-        accentColor={getGradientStartColor(gradientKey)}
-      />
+    <section className="flex flex-1 flex-col">
+      {/* Title + Action Buttons */}
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <h1 className="heading-2">{event.name}</h1>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="icon" className="lg:hidden" asChild>
+              <Link href={`/events/${event.id}`} target="_blank">
+                <ExternalLinkIcon className="size-4" />
+                <span className="sr-only">View Listing</span>
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden lg:inline-flex"
+              asChild
+            >
+              <Link href={`/events/${event.id}`} target="_blank">
+                <ExternalLinkIcon className="mr-2 size-4" />
+                View Listing
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
 
-      {/* Event Page Tab: Gallery + Two-column layout with sticky CTA */}
-      {activeTab === "event-page" && (
-        <>
-          {/* Gallery - no overlay actions for organizer view */}
-          {galleryImages.length > 0 && (
-            <div className="pt-6">
-              <HeroGallery images={galleryImages} alt={event.name} />
-            </div>
-          )}
+      {/* Tab navigation */}
+      <div className="mx-auto w-full max-w-6xl pt-6">
+        <OrganizerEventActionBar
+          eventId={event.id}
+          eventOrganizerName={event.organizer}
+          isDraft={isDraft}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          variant="unstyled"
+        />
+      </div>
 
-          <div className="grid gap-10 pt-8 lg:grid-cols-[1fr_320px]">
-            {/* Left Column: Header + Content */}
-            <div className="min-w-0">
-              {/* Event Header */}
-              <div id="event-title" className="mb-8">
-                <h1 className="heading-2 mb-2">{event.name}</h1>
-                <p className="body-text mb-3">
-                  Hosted by{" "}
-                  <Link href="#" className="text-primary hover:underline">
-                    {event.organizer}
-                  </Link>
-                </p>
-                <div className="body-small text-muted-foreground">
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 hover:text-foreground"
-                  >
-                    <MapPinIcon className="size-4 shrink-0" />
-                    <span className="underline">{event.location}</span>
-                  </a>
-                </div>
+      {/* Tab content */}
+      <div className="mx-auto w-full max-w-6xl pb-8">
+        {/* Event Page Tab: Gallery + Two-column layout with sticky CTA */}
+        {activeTab === "event-page" && (
+          <>
+            {/* Gallery */}
+            {galleryImages.length > 0 && (
+              <div className="pt-6">
+                <HeroGallery images={galleryImages} alt={event.name} />
               </div>
+            )}
 
-              {/* Content Sections */}
-              <UnifiedEventDetailBody
-                eventData={{
-                  id: event.id,
-                  name: event.name,
-                  date: event.date,
-                  description: event.description,
-                  organizer: event.organizer,
-                  location: event.location,
-                }}
-                organizerGradient={organizerGradient}
-                organizerFollowers={organizerFollowers}
-                organizerEventsCount={organizerEventsCount}
-                organizerHostingDuration={organizerHostingDuration}
-                hideRegistration
-                displayProps={{
-                  galleryImages,
-                  eventDateParts,
-                  venueName,
-                  cityState,
-                  registrationDeadlineISO,
-                  registrationClosed,
-                  pricingDeadlineLabel,
-                  pricingRows,
-                  documents,
-                }}
-              />
-            </div>
+            <div className="grid gap-10 pt-8 lg:grid-cols-[1fr_320px]">
+              {/* Left Column: Content */}
+              <div className="min-w-0">
+                {/* Organizer info inline */}
+                <div className="flex items-center justify-between gap-4 pb-6">
+                  <p className="body-text">
+                    Event hosted by{" "}
+                    <Link href="#" className="font-semibold hover:underline">
+                      {event.organizer}
+                    </Link>
+                  </p>
+                  <Button variant="outline" size="sm">
+                    Contact
+                  </Button>
+                </div>
 
-            {/* Right Column: Sticky CTA Card only */}
-            <div className="hidden lg:block">
-              <div className="sticky top-8">
-                <OrganizerEventCTACard
-                  eventDate={event.date}
-                  eventStartTime="9:00 AM"
-                  registrationDeadline={registrationDeadlineISO ?? ""}
-                  onEdit={handleEdit}
+                {/* Content Sections */}
+                <UnifiedEventDetailBody
+                  eventData={{
+                    id: event.id,
+                    name: event.name,
+                    date: event.date,
+                    description: event.description,
+                    organizer: event.organizer,
+                    location: event.location,
+                  }}
+                  organizerGradient={organizerGradient}
+                  organizerFollowers={organizerFollowers}
+                  organizerEventsCount={organizerEventsCount}
+                  organizerHostingDuration={organizerHostingDuration}
+                  hideRegistration
+                  displayProps={{
+                    galleryImages,
+                    eventDateParts,
+                    venueName,
+                    cityState,
+                    registrationDeadlineISO,
+                    registrationClosed,
+                    pricingDeadlineLabel,
+                    pricingRows,
+                    documents,
+                  }}
                 />
               </div>
-            </div>
-          </div>
-        </>
-      )}
 
-      {/* Registrations Tab: Full-width (no CTA card) */}
-      {activeTab === "registrations" && (
-        <div className="pt-8">
-          <EventRegistrationsTab eventId={event.id} organizerId={organizerId} />
-        </div>
-      )}
+              {/* Right Column: Sticky CTA Card only */}
+              <div className="hidden lg:block">
+                <div className="sticky top-8">
+                  <OrganizerEventCTACard
+                    eventDate={event.date}
+                    eventStartTime="9:00 AM"
+                    registrationDeadline={registrationDeadlineISO ?? ""}
+                    onEdit={handleEdit}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Registrations Tab: Full-width (no CTA card) */}
+        {activeTab === "registrations" && (
+          <div className="pt-8">
+            <EventRegistrationsTab
+              eventId={event.id}
+              organizerId={organizerId}
+            />
+          </div>
+        )}
+      </div>
     </section>
   );
 }

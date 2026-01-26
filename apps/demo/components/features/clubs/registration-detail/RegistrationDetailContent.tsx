@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MapPinIcon } from "lucide-react";
+import { MapPinIcon, ExternalLinkIcon, PencilIcon } from "lucide-react";
 
 import { Button } from "@workspace/ui/shadcn/button";
 
@@ -33,8 +33,8 @@ export function RegistrationDetailContent({
   organizerName,
   organizerGradientVariant,
   organizerFollowersLabel: _organizerFollowersLabel,
-  organizerEventsCount,
-  organizerHostingLabel,
+  organizerEventsCount: _organizerEventsCount,
+  organizerHostingLabel: _organizerHostingLabel,
   locationLabel,
   googleMapsHref: _googleMapsHref,
   eventDateLabel: _eventDateLabel,
@@ -70,7 +70,7 @@ export function RegistrationDetailContent({
   eventStartTime,
   eventEndTime,
   eventTimezone,
-  organizerRegion,
+  organizerRegion: _organizerRegion,
 }: RegistrationDetailContentProps) {
   const searchParams = useSearchParams();
 
@@ -130,7 +130,10 @@ export function RegistrationDetailContent({
 
   // Count teams for tab badge
   const totalTeams = useMemo(() => {
-    return teamsByDivisionArray.reduce((sum, [, teams]) => sum + teams.length, 0);
+    return teamsByDivisionArray.reduce(
+      (sum, [, teams]) => sum + teams.length,
+      0,
+    );
   }, [teamsByDivisionArray]);
 
   // Tabs with count badge
@@ -244,8 +247,75 @@ export function RegistrationDetailContent({
   // View mode with tabs
   return (
     <section className="flex flex-1 flex-col">
-      {/* Tab navigation */}
+      {/* Title + Action Buttons */}
       <div className="mx-auto w-full max-w-6xl">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <h1 className="heading-2">{registration.eventName}</h1>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="icon" className="lg:hidden" asChild>
+              <Link href={eventPageHref} target="_blank">
+                <ExternalLinkIcon className="size-4" />
+                <span className="sr-only">View Listing</span>
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden lg:inline-flex"
+              asChild
+            >
+              <Link href={eventPageHref} target="_blank">
+                <ExternalLinkIcon className="mr-2 size-4" />
+                View Listing
+              </Link>
+            </Button>
+            {isLocked ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled
+                  className="lg:hidden"
+                >
+                  <PencilIcon className="size-4" />
+                  <span className="sr-only">Edit Registration</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className="hidden lg:inline-flex"
+                >
+                  Edit Registration
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="lg:hidden"
+                  onClick={() => setEditDialogOpen(true)}
+                >
+                  <PencilIcon className="size-4" />
+                  <span className="sr-only">Edit Registration</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden lg:inline-flex"
+                  onClick={() => setEditDialogOpen(true)}
+                >
+                  Edit Registration
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Tab navigation */}
+      <div className="mx-auto w-full max-w-6xl pt-6">
         <ActionBar
           tabs={tabsWithCount}
           activeTab={activeTab}
@@ -279,11 +349,6 @@ export function RegistrationDetailContent({
             eventStartTime={eventStartTime}
             eventEndTime={eventEndTime}
             eventTimezone={eventTimezone}
-            organizerRegion={organizerRegion}
-            organizerEventsCount={organizerEventsCount}
-            organizerHostingLabel={organizerHostingLabel}
-            onEditRegistration={() => setEditDialogOpen(true)}
-            isLocked={isLocked}
           />
         ) : (
           <div className="pt-8">
@@ -294,46 +359,6 @@ export function RegistrationDetailContent({
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {/* Event header with Edit Registration button */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h1 className="heading-2 mb-2">{registration.eventName}</h1>
-                  <p className="body-text mb-3">
-                    Hosted by{" "}
-                    <Link
-                      href={eventPageHref}
-                      className="text-primary hover:underline"
-                    >
-                      {organizerName}
-                    </Link>
-                  </p>
-                  {locationLabel && (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="body-small flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                    >
-                      <MapPinIcon className="size-4 shrink-0" />
-                      <span className="underline">{locationLabel}</span>
-                    </a>
-                  )}
-                </div>
-                {isLocked ? (
-                  <Button variant="outline" disabled className="opacity-50 shrink-0">
-                    Edit Registration
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="shrink-0"
-                    onClick={() => setEditDialogOpen(true)}
-                  >
-                    Edit Registration
-                  </Button>
-                )}
-              </div>
-
               {/* Registration deadline notice */}
               {isLocked ? (
                 <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">

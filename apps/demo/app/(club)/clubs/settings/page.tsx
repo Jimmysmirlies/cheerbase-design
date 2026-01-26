@@ -93,7 +93,6 @@ export default function ClubSettingsPage() {
     }
   }, [user, status, router]);
 
-  // Initialize form with user data or saved settings
   useEffect(() => {
     if (!user) return;
 
@@ -125,7 +124,6 @@ export default function ClubSettingsPage() {
     const newGradient = value as BrandGradient;
     setForm((prev) => ({ ...prev, gradient: newGradient }));
 
-    // Save immediately when gradient changes
     if (user) {
       const updatedSettings = { ...form, gradient: newGradient };
       saveSettings(user.id, updatedSettings);
@@ -147,14 +145,12 @@ export default function ClubSettingsPage() {
     if (!user) return;
     setSaving(true);
 
-    // Simulate save delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const updatedSettings = { ...editForm, gradient: form.gradient };
     setForm(updatedSettings);
     saveSettings(user.id, updatedSettings);
 
-    // Dispatch custom event to notify other components of settings change
     window.dispatchEvent(
       new CustomEvent("club-settings-changed", {
         detail: { gradient: updatedSettings.gradient },
@@ -187,7 +183,6 @@ export default function ClubSettingsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <h1
         className="heading-2 bg-clip-text text-transparent"
         style={{ backgroundImage: gradient.css }}
@@ -195,14 +190,12 @@ export default function ClubSettingsPage() {
         Settings
       </h1>
 
-      {/* Content Area */}
       <motion.div
         className="pt-8"
         variants={staggerSections}
         initial="hidden"
         animate="visible"
       >
-        {/* Club Profile Section */}
         <motion.div variants={fadeInUp}>
           <Section
             title="Club Profile"
@@ -241,7 +234,6 @@ export default function ClubSettingsPage() {
             </div>
           </Section>
 
-          {/* Edit Profile Dialog */}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
@@ -306,7 +298,6 @@ export default function ClubSettingsPage() {
           </Dialog>
         </motion.div>
 
-        {/* Brand Gradient Section */}
         <motion.div variants={fadeInUp}>
           <Section
             title="Brand Gradient"

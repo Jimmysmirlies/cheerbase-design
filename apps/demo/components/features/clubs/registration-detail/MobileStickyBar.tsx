@@ -33,8 +33,8 @@ export function MobileStickyBar({
 }: MobileStickyBarProps) {
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
             {paymentStatus === "Paid" ? (
               <div className="flex size-12 items-center justify-center rounded-md border border-green-200 bg-green-100 dark:border-green-800 dark:bg-green-900/20">
@@ -68,11 +68,11 @@ export function MobileStickyBar({
 
           <div className="flex items-center gap-2">
             {showEditButton && onEditRegistration && (
-              <Button variant="outline" size="sm" onClick={onEditRegistration}>
+              <Button variant="outline" size="lg" onClick={onEditRegistration}>
                 Edit
               </Button>
             )}
-            <Button asChild size="sm">
+            <Button asChild size="lg">
               <Link href={invoiceHref}>
                 {paymentStatus === "Paid" ? "View Invoice" : "Pay Invoice"}
               </Link>
@@ -80,7 +80,10 @@ export function MobileStickyBar({
           </div>
         </div>
       </div>
-      <div className="h-20 lg:hidden" />
+      <div
+        className="h-24 lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      />
     </>
   );
 }
@@ -104,8 +107,8 @@ export function EditModeMobileStickyBar({
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-foreground">
               {editModeInvoice.hasChanges ? "New Total: " : "Total: "}
@@ -116,7 +119,7 @@ export function EditModeMobileStickyBar({
             </p>
           </div>
           <Button
-            size="sm"
+            size="lg"
             disabled={!editModeInvoice.hasChanges}
             onClick={onSubmit}
           >
@@ -124,7 +127,10 @@ export function EditModeMobileStickyBar({
           </Button>
         </div>
       </div>
-      <div className="h-20 lg:hidden" />
+      <div
+        className="h-24 lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      />
     </>
   );
 }

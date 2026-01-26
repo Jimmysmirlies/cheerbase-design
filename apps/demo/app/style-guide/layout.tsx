@@ -28,7 +28,6 @@ import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { NavBar } from "@/components/layout/NavBar";
 
-// Style guide navigation map with nicknames for quick referencing in code.
 const guideNavSections = [
   {
     label: "Style Guide",
@@ -181,7 +180,6 @@ export default function StyleGuideLayout({
     if (pathname.includes("/spacing")) return "spacing";
     if (pathname.includes("/buttons")) return "buttons";
     if (pathname.includes("/api-contracts")) return "api-contracts";
-    // Component sub-pages
     if (pathname === "/style-guide/components/hero") return "hero";
     if (pathname === "/style-guide/components/icon-box") return "icon-box";
     if (pathname === "/style-guide/components/event-card") return "event-card";
@@ -266,8 +264,6 @@ export default function StyleGuideLayout({
           isOpen={isSidebarOpen}
           isMobile={isMobile}
           onClose={() => setIsSidebarOpen(false)}
-          supportTitle="Design System"
-          supportText="Working on the guide? Ping the design systems team or email support@cheerbase.test."
         />
         <ScrollArea
           className="flex-1"

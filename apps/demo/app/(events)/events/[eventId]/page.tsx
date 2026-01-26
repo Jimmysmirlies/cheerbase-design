@@ -1,15 +1,3 @@
-/**
- * Event Registration Page
- *
- * Purpose
- * - Dedicated route presenting full event details before a club registers.
- * - Mirrors the registration detail page layout with PageHeader.
- *
- * Structure
- * - PageHeader with gradient banner
- * - Main content: overview, gallery, organizer, details
- * - Aside card: pricing, availability, primary CTA
- */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -70,15 +58,12 @@ export default async function EventPage({ params }: EventPageProps) {
   }
 
   const galleryImages = buildEventGalleryImages(event);
-
-  // Look up organizer data for gradient and stats
   const organizer = findOrganizerByName(event.organizer);
 
   const competitionDate = new Date(event.date);
   const dayBefore = new Date(competitionDate);
   dayBefore.setDate(dayBefore.getDate() - 1);
 
-  // Format date parts for the key info row
   const eventDateParts = {
     month: competitionDate
       .toLocaleDateString("en-US", { month: "short" })
@@ -91,26 +76,21 @@ export default async function EventPage({ params }: EventPageProps) {
     }),
   };
 
-  // Extract city/state from location for display
   const locationParts = event.location.split(", ");
   const venueName = locationParts[0] ?? event.location;
   const cityState = locationParts.slice(1).join(", ");
 
-  // Use event's registration deadline if available, otherwise day before event
   const registrationDeadlineISO = event.registrationDeadline
     ? new Date(event.registrationDeadline).toISOString()
     : dayBefore.toISOString();
 
-  // Check if registration is closed
   const registrationClosed = isRegistrationClosed(event);
 
-  // Early bird deadline for pricing display
   const earlyBirdDeadline = event.earlyBirdDeadline
     ? new Date(event.earlyBirdDeadline)
     : null;
 
-  // "Pricing Grid": divisions and tiered fees rendered in the table body.
-  const formatAmount = (price?: number | null) => {
+  function formatAmount(price?: number | null): string {
     if (price === null || price === undefined) {
       return "—";
     }
@@ -118,32 +98,28 @@ export default async function EventPage({ params }: EventPageProps) {
       return "Free";
     }
     return `$${price}`;
-  };
+  }
 
-  // Format early bird deadline for pricing table header
   const PRICING_DEADLINE_LABEL = earlyBirdDeadline
     ? earlyBirdDeadline.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       })
     : "Early Bird";
-  // Build pricing rows using the actual division names from the event
+
   const divisionsForPricing = event.availableDivisions ?? [];
   const pricingRowsArray = divisionsForPricing.map((division) => {
-    // Use actual division name as the label
     const label = division.name;
-    // Use event-specific pricing
     const before = division.earlyBird?.price ?? division.regular?.price ?? null;
     const after = division.regular?.price ?? null;
     return {
       label,
-      subtitle: "", // Division names are self-descriptive
+      subtitle: "",
       before: formatAmount(before),
       after: formatAmount(after),
     };
   });
 
-  // "Prep Pack": downloadable resources for coaches and admins.
   const documents = [
     {
       name: "Event information packet",

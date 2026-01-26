@@ -17,13 +17,9 @@ import { fadeInUp } from "@/lib/animations";
 import { heroSlides, listEvents } from "@/data/events";
 import { getProvinceFromLocation } from "@/data/events/locations";
 
-// Featured organizer (Sapphire Productions)
 const FEATURED_ORGANIZER = "Sapphire Productions";
+const DEFAULT_REGION = "QC";
 
-// Default region to show in "Find Events in Your Area"
-const DEFAULT_REGION = "QC"; // Quebec
-
-// Order organizers: featured first, then by event count
 const ORGANIZER_ORDER = [
   "Sapphire Productions",
   "West Coast Cheer",
@@ -38,7 +34,6 @@ const ORGANIZER_ORDER = [
 export default function HomePage() {
   const events = useMemo(() => listEvents(), []);
 
-  // Filter events by region (Quebec)
   const regionalEvents = useMemo(() => {
     return events.filter((event) => {
       const province = getProvinceFromLocation(event.location);
@@ -46,7 +41,6 @@ export default function HomePage() {
     });
   }, [events]);
 
-  // Group events by organizer
   const eventsByOrganizer = useMemo(() => {
     return events.reduce<Record<string, typeof events>>((acc, event) => {
       const current = acc[event.organizer] ?? [];
@@ -55,12 +49,10 @@ export default function HomePage() {
     }, {});
   }, [events]);
 
-  // Get organizers with events, in preferred order
   const organizersWithEvents = useMemo(() => {
     const withEvents = ORGANIZER_ORDER.filter(
       (name) => (eventsByOrganizer[name]?.length ?? 0) > 0,
     );
-    // Add any organizers not in the order list
     Object.keys(eventsByOrganizer).forEach((name) => {
       if (!withEvents.includes(name)) {
         withEvents.push(name);
@@ -71,10 +63,8 @@ export default function HomePage() {
 
   return (
     <main className="bg-background text-foreground">
-      {/* Hero: Featured experiences carousel with CTA */}
       <Hero slides={heroSlides} />
 
-      {/* Regional events row */}
       {regionalEvents.length > 0 && (
         <motion.section
           className="mx-auto w-full max-w-7xl px-6 py-6"
@@ -106,7 +96,6 @@ export default function HomePage() {
         </motion.section>
       )}
 
-      {/* Organizer rows */}
       {organizersWithEvents.map((organizerName) => {
         const organizerEvents = eventsByOrganizer[organizerName] ?? [];
         const isFeatured = organizerName === FEATURED_ORGANIZER;
@@ -144,7 +133,6 @@ export default function HomePage() {
         );
       })}
 
-      {/* Footer: Global links and product tagline */}
       <footer className="border-t border-sidebar-border bg-sidebar">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
           <div>

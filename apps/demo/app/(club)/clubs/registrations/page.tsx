@@ -45,7 +45,6 @@ export default function ClubRegistrationsPage() {
   );
   const [viewMode, setViewMode] = useState<ViewMode>("all");
 
-  // Load club gradient settings
   useEffect(() => {
     const loadGradient = () => {
       if (user?.id) {
@@ -87,7 +86,6 @@ export default function ClubRegistrationsPage() {
     };
   }, [user?.id]);
 
-  // ACCESS CONTROL — "Gatekeeper": keep non-club-owners out of the registrations experience
   useEffect(() => {
     if (status === "loading") return;
     if (!user) {
@@ -110,7 +108,6 @@ export default function ClubRegistrationsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <PageTitle
         title="Registrations"
         gradient={clubGradient}
@@ -160,7 +157,6 @@ export default function ClubRegistrationsPage() {
         }
       />
 
-      {/* Season Filter */}
       <div className="pt-6">
         <GlassSelect
           value={selectedSeasonId}
@@ -170,7 +166,6 @@ export default function ClubRegistrationsPage() {
         />
       </div>
 
-      {/* Content Area */}
       <RegistrationsContent
         userId={user.id}
         season={selectedSeason}
@@ -265,7 +260,6 @@ function RegistrationsContent({
   clubGradient?: BrandGradient;
   viewMode: ViewMode;
 }) {
-  // DATA PIPELINE — "Command Center": pull club data, then memoize categorized + sectioned outputs
   const { data, loading, error } = useClubData(userId);
   const categorized = useMemo(
     () => categorizeRegistrations(data ?? undefined),
@@ -318,7 +312,6 @@ function RegistrationsContent({
     [allEventsBucket, bucketedSeasonRows],
   );
 
-  // COLLAPSE MEMORY — "Accordion Brain": initialize per-month expansion state
   useEffect(() => {
     const nextState: Record<string, boolean> = {};
     sections.forEach((section) => {
@@ -355,7 +348,6 @@ function RegistrationsContent({
 
   return (
     <div className="flex flex-col gap-4 pt-8">
-      {/* PageTabs for "all" view mode */}
       {viewMode === "all" && (
         <PageTabs
           tabs={[
@@ -372,7 +364,6 @@ function RegistrationsContent({
         />
       )}
 
-      {/* Read-only notice for historical seasons */}
       {readOnly && season && (
         <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           You are viewing historical registrations for {season.label}. Records
@@ -380,7 +371,6 @@ function RegistrationsContent({
         </div>
       )}
 
-      {/* Month view - only available when a specific season is selected */}
       {viewMode === "month" && !isAllSeasons && season ? (
         <motion.div
           key={`month-view-${season.id}`}
@@ -449,7 +439,6 @@ function RegistrationsContent({
           ))}
         </motion.div>
       ) : (
-        /* List view */
         <div>
           {listRows.length ? (
             <motion.div
@@ -490,7 +479,6 @@ function categorizeRegistrations(data?: ClubData) {
   const rosterByTeam = new Map(rosters.map((r) => [r.teamId, r]));
   const now = new Date();
 
-  // Group registrations by eventId to avoid duplicate cards
   const eventMap = new Map<
     string,
     {
@@ -545,12 +533,10 @@ function categorizeRegistrations(data?: ClubData) {
 
   eventMap.forEach(({ reg, participants, isPaid, paymentDeadline }) => {
     const event = findEventById(reg.eventId);
-    // Map payment status to RegistrationStatus for visual consistency
     let statusLabel: RegistrationStatus = "OPEN";
-    if (isPaid) statusLabel = "OPEN"; // Green - paid is good
-    else if (paymentDeadline && paymentDeadline < now)
-      statusLabel = "CLOSED"; // Red-ish - overdue
-    else statusLabel = "CLOSING SOON"; // Amber - needs attention
+    if (isPaid) statusLabel = "OPEN";
+    else if (paymentDeadline && paymentDeadline < now) statusLabel = "CLOSED";
+    else statusLabel = "CLOSING SOON";
     const eventDate = new Date(reg.eventDate);
     const bucket: "upcoming" | "past" = Number.isNaN(eventDate.getTime())
       ? "upcoming"
@@ -568,7 +554,7 @@ function categorizeRegistrations(data?: ClubData) {
       location: event?.location ?? reg.location,
       participants,
       teamsFilled: participants,
-      teamsCapacity: participants, // Show as "X / X" since these are registered
+      teamsCapacity: participants,
       statusLabel,
       href: `/clubs/registrations/${reg.id}`,
     };
@@ -587,7 +573,6 @@ function buildMonthSections(
   rows: (RegistrationRow & { eventDate: Date })[],
   season: SeasonOption,
 ) {
-  // TIME WINDOW — "Season Envelope": limit calendar to the active cheer season months
   const start = new Date(
     season.start.getFullYear(),
     season.start.getMonth(),

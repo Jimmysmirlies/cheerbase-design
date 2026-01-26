@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
@@ -125,16 +124,16 @@ export function CreateTeamModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl rounded-md gap-6">
-        <DialogHeader>
-          <DialogTitle className="heading-4">Create Team</DialogTitle>
-          <DialogDescription className="body-small">
+      <DialogContent className="max-w-2xl rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">Create Team</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
             Add a new team to your club. You&apos;ll be able to add members
             after creation.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="px-6 pb-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="team-name">Team Name</Label>
             <Input
@@ -214,14 +213,14 @@ export function CreateTeamModal({
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-between">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
             Create Team
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

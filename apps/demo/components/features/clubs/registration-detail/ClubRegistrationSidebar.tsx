@@ -20,8 +20,6 @@ type ClubRegistrationSidebarProps = {
   paymentStatus: "Paid" | "Unpaid" | "Overdue";
   paymentDeadlineLabel?: string;
   paidAtLabel: string | null;
-  onEditRegistration?: () => void;
-  isLocked?: boolean;
 };
 
 export function ClubRegistrationSidebar({
@@ -33,8 +31,6 @@ export function ClubRegistrationSidebar({
   paymentStatus,
   paymentDeadlineLabel,
   paidAtLabel,
-  onEditRegistration,
-  isLocked = false,
 }: ClubRegistrationSidebarProps) {
   const isPaid = paymentStatus === "Paid";
 
@@ -89,22 +85,10 @@ export function ClubRegistrationSidebar({
 
             <div className="h-px w-full bg-border/60" />
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-2">
-              <Button asChild className="w-full">
-                <Link href={invoiceHref}>View Invoice</Link>
-              </Button>
-              {onEditRegistration && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={onEditRegistration}
-                  disabled={isLocked}
-                >
-                  Edit Registration
-                </Button>
-              )}
-            </div>
+            {/* Action Button */}
+            <Button asChild className="w-full">
+              <Link href={invoiceHref}>View Invoice</Link>
+            </Button>
 
             {/* Payment Status */}
             {isPaid && paidAtLabel ? (

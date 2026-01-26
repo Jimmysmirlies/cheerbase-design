@@ -4,9 +4,9 @@ import { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@workspace/ui/shadcn/dialog";
 import { Button } from "@workspace/ui/shadcn/button";
 import { Input } from "@workspace/ui/shadcn/input";
@@ -103,12 +103,15 @@ export function AddDocumentModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Add Document</DialogTitle>
+      <DialogContent className="max-w-md rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">Add Document</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
+            Upload a document to attach to this event
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-4 overflow-hidden">
+        <div className="px-6 pb-6 flex flex-col gap-4">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="doc-title">Title</Label>
@@ -179,14 +182,14 @@ export function AddDocumentModal({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end gap-3">
+          <Button variant="ghost" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
             Add Document
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

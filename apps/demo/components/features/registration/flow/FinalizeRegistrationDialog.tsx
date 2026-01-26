@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
@@ -35,32 +34,34 @@ export function FinalizeRegistrationDialog({
 }: FinalizeRegistrationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl gap-0 rounded-xl p-0">
-        <DialogHeader className="px-6 pb-4 pt-8">
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent className="max-w-2xl gap-0 rounded-xl border-border/40 p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">{title}</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
+            {description}
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-6 px-6 pb-6 pt-2">
-          <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
+        <div className="px-6 pb-6">
+          <section className="rounded-xl border border-border/60 bg-muted/20 p-4 mb-4">
             {pricingPanel}
           </section>
-          <p className="text-xs text-muted-foreground">
+          <p className="body-small text-muted-foreground">
             Submission will reserve your spots and notify the event organizer.
             You can still edit rosters before the payment deadline.
           </p>
         </div>
-        <DialogFooter className="flex flex-col gap-2 border-t border-border/60 px-6 py-6 sm:flex-row sm:justify-between">
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-between">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
           >
-            Go back
+            Go Back
           </Button>
           <Button type="button" onClick={onConfirm} disabled={confirmDisabled}>
             {confirmLabel}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

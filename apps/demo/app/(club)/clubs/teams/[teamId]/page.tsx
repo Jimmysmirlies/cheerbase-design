@@ -1,15 +1,5 @@
 "use client";
-/**
- * Team Details Page
- *
- * Purpose
- * - Deep-dive into a single team: roster by roles, quick settings access.
- *
- * Structure
- * - NavBar (clubs mode)
- * - Team header: name, division, counts, Team Settings dialog
- * - Tabs: Coaches | Athletes | Reservists | Chaperones
- */
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -221,7 +211,6 @@ function TeamDetails({
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <PageTitle
         title={pageTitle}
         subtitle={`${divisionLabel} · ${levelLabel} · ${memberCount} members`}
@@ -245,7 +234,6 @@ function TeamDetails({
         }
       />
 
-      {/* Content Area */}
       <div className="pt-8">
         {onNavigateToTeams && (
           <div className="pb-6">

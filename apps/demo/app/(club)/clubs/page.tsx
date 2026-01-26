@@ -1,17 +1,5 @@
 "use client";
-/**
- * My Club Page
- *
- * Purpose
- * - Club Owner workspace to manage Teams, Registrations, and Club Settings.
- * - Layout inspired by Airbnb profile: left-side vertical nav, content on the right.
- *
- * Structure
- * - NavBar (clubs mode: no search, "Explore Events" link)
- * - Two-column layout:
- *   - Aside: vertical nav (Teams, Registrations, Club Settings)
- *   - Main: section content
- */
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -53,7 +41,6 @@ function ClubsPageInner() {
   );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Load club gradient settings
   useEffect(() => {
     const loadGradient = () => {
       if (user?.id) {
@@ -144,7 +131,6 @@ function ClubsPageInner() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <PageTitle
         title={selectedTeam?.name ?? "Teams"}
         gradient={clubGradient}
@@ -163,7 +149,6 @@ function ClubsPageInner() {
         }
       />
 
-      {/* Content Area */}
       <div className="pt-8">
         {selectedTeamId ? (
           <TeamDetails
@@ -205,7 +190,6 @@ function TeamsContent({
   const [selectedTeamForEdit, setSelectedTeamForEdit] =
     useState<TeamData | null>(null);
 
-  // Hydrate teams from data whenever data changes
   useEffect(() => {
     if (!data) return;
     const rosterMap = new Map<string, TeamRoster>(
@@ -221,7 +205,6 @@ function TeamsContent({
   }, [data]);
 
   const handleCreateTeam = (teamData: CreateTeamData) => {
-    // Persist to localStorage for non-demo users
     const savedTeam = addUserTeam({
       name: teamData.name,
       division: teamData.division,
@@ -230,11 +213,9 @@ function TeamsContent({
     });
 
     if (savedTeam) {
-      // Refresh to get updated data from localStorage
       refresh();
       toast.success(`${teamData.name} created successfully`);
     } else {
-      // Fallback for demo users - just update local state
       const newTeam: TeamData = {
         ...teamData,
         members: [],
@@ -257,7 +238,6 @@ function TeamsContent({
     [sanitizedSearch, teams],
   );
 
-  // Group teams by division
   const { teamsByDivision, allDivisions } = useMemo(() => {
     const grouped = new Map<string, TeamData[]>();
     for (const team of filteredTeams) {
@@ -280,7 +260,6 @@ function TeamsContent({
   const handleSaveRoster = (members: RegistrationMember[]) => {
     if (!selectedTeamForEdit) return;
 
-    // Convert RegistrationMember[] back to TeamMember[] for storage
     const teamMembers: TeamMember[] = members.map((m) => ({
       name: m.name,
       role: m.type,
@@ -289,7 +268,6 @@ function TeamsContent({
       phone: m.phone,
     }));
 
-    // Update local state with new members
     setTeams((prev) =>
       prev.map((t) =>
         t.id === selectedTeamForEdit.id ? { ...t, members: teamMembers } : t,
@@ -301,7 +279,6 @@ function TeamsContent({
     toast.success(`Roster updated for ${selectedTeamForEdit.name}`);
   };
 
-  // Convert TeamMember[] to RegistrationMember[] for the editor dialog
   const selectedTeamMembers: RegistrationMember[] = useMemo(() => {
     if (!selectedTeamForEdit?.members) return [];
     return selectedTeamForEdit.members.map((m) => ({

@@ -1,0 +1,75 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2Icon, CreditCardIcon } from "lucide-react";
+import { Button } from "@workspace/ui/shadcn/button";
+import { Card } from "@workspace/ui/shadcn/card";
+import { PaymentMethodsDialog } from "@/components/features/registration/PaymentMethods";
+import { WalkthroughSpotlight } from "@/components/ui/RegistrationWalkthrough";
+import { RegistrationFocusHeader } from "@/components/layout/RegistrationFocusHeader";
+
+export default function RegistrationConfirmationPage() {
+  const searchParams = useSearchParams();
+  const registrationId = searchParams.get("registrationId") ?? "reg_001";
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+
+  return (
+    <>
+      <RegistrationFocusHeader
+        title="Registration Complete"
+        backHref="/clubs/registrations"
+      />
+
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-6 py-10">
+        <Card className="p-8 text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2Icon className="h-10 w-10 text-emerald-600" />
+            </div>
+          </div>
+
+          <h1 className="heading-1 mb-4">Registration Complete!</h1>
+
+          <p className="body-large text-muted-foreground mb-8">
+            You have officially registered for this event. An invoice has been
+            generated and sent to your email.
+          </p>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <WalkthroughSpotlight
+              step="view-registration"
+              side="bottom"
+              align="center"
+              advanceOnClick
+            >
+              <Button asChild>
+                <Link href={`/clubs/registrations/${registrationId}`}>
+                  View Registration
+                </Link>
+              </Button>
+            </WalkthroughSpotlight>
+            <Button variant="outline" asChild>
+              <Link href={`/clubs/registrations/${registrationId}/invoice`}>
+                View Invoice
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setPaymentDialogOpen(true)}
+            >
+              <CreditCardIcon className="mr-2 h-4 w-4" />
+              Payment Methods
+            </Button>
+          </div>
+        </Card>
+
+        <PaymentMethodsDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+        />
+      </div>
+    </>
+  );
+}

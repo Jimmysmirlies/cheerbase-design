@@ -3,11 +3,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  HelpCircleIcon,
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -40,8 +36,6 @@ type SidebarProps = {
   isOpen?: boolean;
   isMobile?: boolean;
   onClose?: () => void;
-  supportTitle?: string;
-  supportText?: string;
   positionMode?: "sticky" | "static";
   /** Content to render below the first section's header (e.g., global season dropdown) */
   headerSlot?: ReactNode;
@@ -59,8 +53,6 @@ export function Sidebar({
   isOpen = true,
   isMobile = false,
   onClose,
-  supportTitle = "Need help?",
-  supportText = "support@cheerbase.com",
   positionMode = "sticky",
   headerSlot,
   isCollapsed = false,
@@ -78,19 +70,23 @@ export function Sidebar({
 
   // Mobile overlay and drawer
   if (isMobile) {
-    if (!isOpen) return null;
-
     return (
       <>
         {/* Overlay */}
         <div
           onClick={onClose}
-          className="fixed inset-0 z-[199] bg-black/50"
+          className={cn(
+            "fixed inset-0 z-[199] bg-black/50 transition-opacity duration-300 ease-in-out",
+            isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
           style={{ top: offsetPx }}
         />
-        {/* Drawer */}
+        {/* Drawer - slides in from left like sheets */}
         <aside
-          className="fixed bottom-0 left-0 z-[200] flex w-[280px] max-w-[85vw] flex-col border-r border-sidebar-border bg-sidebar"
+          className={cn(
+            "fixed bottom-0 left-0 z-[200] flex w-[280px] max-w-[85vw] flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300 ease-in-out",
+            isOpen ? "translate-x-0" : "-translate-x-full",
+          )}
           style={{ top: offsetPx, padding: "16px" }}
         >
           {/* Header slot for mobile */}
@@ -153,12 +149,6 @@ export function Sidebar({
               </div>
             ))}
           </nav>
-
-          {/* Support Card */}
-          <div className="mt-auto rounded-xl bg-primary px-4 py-4 text-primary-foreground">
-            <div className="body-small font-semibold">{supportTitle}</div>
-            <div className="body-small opacity-90">{supportText}</div>
-          </div>
         </aside>
       </>
     );
@@ -168,7 +158,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "flex flex-col overflow-visible border-r border-sidebar-border bg-sidebar transition-all duration-200 ease-out",
+        "flex flex-col overflow-visible border-r border-border bg-background/95 backdrop-blur-sm transition-all duration-200 ease-out",
         positionMode === "sticky" ? "sticky" : "relative",
       )}
       style={{
@@ -292,48 +282,6 @@ export function Sidebar({
           </div>
         ))}
       </nav>
-
-      {/* Support Card */}
-      <div
-        className="relative mt-auto"
-        onMouseEnter={() => setHoveredItem("help")}
-        onMouseLeave={() => setHoveredItem(null)}
-      >
-        {isCollapsed ? (
-          <>
-            <button
-              type="button"
-              className="flex w-full items-center justify-center rounded-lg bg-primary p-3 text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              <HelpCircleIcon className="size-[18px]" />
-            </button>
-            {hoveredItem === "help" && (
-              <div
-                className="pointer-events-none absolute left-full top-1/2 z-[1000] -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-3 py-2 body-small font-medium text-background shadow-lg"
-                style={{ marginLeft: "12px" }}
-              >
-                {supportTitle}
-                {/* Arrow */}
-                <div
-                  className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2"
-                  style={{
-                    width: 0,
-                    height: 0,
-                    borderTop: "6px solid transparent",
-                    borderBottom: "6px solid transparent",
-                    borderRight: "6px solid hsl(var(--foreground))",
-                  }}
-                />
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="rounded-xl bg-primary px-4 py-4 text-primary-foreground">
-            <div className="body-small font-semibold">{supportTitle}</div>
-            <div className="body-small opacity-90">{supportText}</div>
-          </div>
-        )}
-      </div>
     </aside>
   );
 }

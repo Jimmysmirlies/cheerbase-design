@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/shadcn/dialog";
@@ -188,13 +187,15 @@ export function BulkUploadDialog({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-3xl gap-0 rounded-2xl p-0 max-h-[85vh] overflow-hidden"
+        className="max-w-3xl gap-0 rounded-xl border-border/40 p-0 max-h-[85vh] overflow-hidden"
         onWheelCapture={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
       >
-        <DialogHeader className="px-6 pb-4 pt-6">
-          <DialogTitle>Bulk upload teams (CSV)</DialogTitle>
-          <DialogDescription>
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">
+            Bulk Upload Teams (CSV)
+          </DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
             Upload a single CSV with all teams and members. You can also still
             add teams individually or link existing teams.
           </DialogDescription>
@@ -398,7 +399,7 @@ export function BulkUploadDialog({
           ) : null}
         </div>
 
-        <DialogFooter className="flex items-center justify-between border-t px-6 py-4">
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-between">
           <Button type="button" variant="ghost" onClick={() => onClose(false)}>
             Cancel
           </Button>
@@ -408,10 +409,10 @@ export function BulkUploadDialog({
               onClick={handleConfirm}
               disabled={!groups.length}
             >
-              Import teams
+              Import Teams
             </Button>
           ) : null}
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

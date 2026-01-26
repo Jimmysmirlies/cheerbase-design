@@ -31,7 +31,6 @@ export default function OrganizerRegistrationsPage() {
     BrandGradient | undefined
   >(undefined);
 
-  // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
       if (organizerId) {
@@ -50,13 +49,11 @@ export default function OrganizerRegistrationsPage() {
           // Ignore storage errors
         }
       }
-      // Fall back to organizer's default gradient
       setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
     };
 
     loadGradient();
 
-    // Listen for settings changes
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
         setOrganizerGradient(event.detail.gradient as BrandGradient);
@@ -88,7 +85,6 @@ export default function OrganizerRegistrationsPage() {
     [organizerId],
   );
 
-  // Calculate summary stats
   const stats = useMemo(() => {
     const pending = registrations.filter((r) => r.status === "pending").length;
     const paid = registrations.filter((r) => r.status === "paid").length;
@@ -134,15 +130,12 @@ export default function OrganizerRegistrationsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <PageTitle
         title="Registrations"
         gradient={organizerGradient || organizer?.gradient}
       />
 
-      {/* Content Area */}
       <div className="flex flex-col gap-8 pt-8">
-        {/* Summary Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -194,7 +187,6 @@ export default function OrganizerRegistrationsPage() {
           </Card>
         </div>
 
-        {/* Registrations grouped by event */}
         {registrations.length > 0 ? (
           <div className="space-y-6">
             {Array.from(registrationsByEvent.entries()).map(

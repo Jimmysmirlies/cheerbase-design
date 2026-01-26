@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { MapPinIcon, ClockIcon, Share2Icon, DownloadIcon } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { Button } from "@workspace/ui/shadcn/button";
 
-import { HeroGallery, GradientAvatar } from "@/components/ui";
+import { HeroGallery } from "@/components/ui";
 import { PricingCard } from "@/components/ui/cards/PricingCard";
 import { Section } from "@/components/layout/Section";
-import { fadeInUp } from "@/lib/animations";
 import { formatCurrency } from "@/utils/format";
-import { brandGradients, type BrandGradient } from "@/lib/gradients";
+import type { BrandGradient } from "@/lib/gradients";
 
 import { ClubRegistrationSidebar } from "./ClubRegistrationSidebar";
-import type { InvoiceLineItem, DivisionPricingProp, DocumentResource } from "./types";
+import type {
+  InvoiceLineItem,
+  DivisionPricingProp,
+  DocumentResource,
+} from "./types";
 
 type EventPageTabContentProps = {
   // Event info
@@ -31,9 +33,6 @@ type EventPageTabContentProps = {
   eventTimezone?: string;
   // Organizer display
   organizerGradient?: BrandGradient;
-  organizerRegion?: string;
-  organizerEventsCount?: number;
-  organizerHostingLabel?: string;
   // Pricing display
   divisionPricing?: DivisionPricingProp[];
   // Documents
@@ -47,8 +46,6 @@ type EventPageTabContentProps = {
   paymentStatus: "Paid" | "Unpaid" | "Overdue";
   paymentDeadlineLabel?: string;
   paidAtLabel: string | null;
-  onEditRegistration?: () => void;
-  isLocked?: boolean;
 };
 
 function computeDateParts(dateString?: string) {
@@ -82,9 +79,6 @@ export function EventPageTabContent({
   eventEndTime,
   eventTimezone,
   organizerGradient = "teal",
-  organizerRegion,
-  organizerEventsCount,
-  organizerHostingLabel,
   divisionPricing = [],
   documents = [],
   invoiceLineItems,
@@ -95,8 +89,6 @@ export function EventPageTabContent({
   paymentStatus,
   paymentDeadlineLabel,
   paidAtLabel,
-  onEditRegistration,
-  isLocked,
 }: EventPageTabContentProps) {
   // Build Google Maps URL
   const googleMapsHref = locationLabel
@@ -105,14 +97,9 @@ export function EventPageTabContent({
 
   // Parse location for venue name
   const locationParts = locationLabel?.split(", ") || [];
-  const venueName = locationParts[0] || locationLabel || "Location to be announced";
+  const venueName =
+    locationParts[0] || locationLabel || "Location to be announced";
   const cityState = locationParts.slice(1, 3).join(", ");
-
-  // Get gradient styling for date badge
-  const gradient = brandGradients[organizerGradient];
-  const gradientCss = gradient?.css;
-  const firstGradientColor =
-    gradientCss?.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? "#0D9488";
 
   // Compute date parts for display
   const eventDateParts = computeDateParts(eventDate);
@@ -129,9 +116,10 @@ export function EventPageTabContent({
 
     return {
       label: division.name,
-      subtitle: hasEarlyBird && division.earlyBird?.deadline
-        ? `Early Bird until ${division.earlyBird.deadline}`
-        : undefined,
+      subtitle:
+        hasEarlyBird && division.earlyBird?.deadline
+          ? `Early Bird until ${division.earlyBird.deadline}`
+          : undefined,
       price: currentPrice,
       originalPrice,
       unit: "/ athlete",
@@ -152,38 +140,28 @@ export function EventPageTabContent({
       <div className="grid gap-10 pt-8 lg:grid-cols-[1fr_320px]">
         {/* Left Column: Event Info + Sections */}
         <div className="min-w-0">
-          {/* Event Header */}
-          <motion.div
-            id="event-header"
-            className="mb-8"
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-          >
-            <h1 className="heading-2 mb-2">{eventName}</h1>
-            <p className="body-text mb-3">
-              Hosted by{" "}
-              <Link href={eventPageHref} className="text-primary hover:underline">
+          {/* Organizer info inline */}
+          <div className="flex items-center justify-between gap-4 pb-6">
+            <p className="body-text">
+              Event hosted by{" "}
+              <Link
+                href={eventPageHref}
+                className="font-semibold hover:underline"
+              >
                 {organizerName}
               </Link>
             </p>
-            {locationLabel && googleMapsHref && (
-              <a
-                href={googleMapsHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="body-small flex items-center gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <MapPinIcon className="size-4 shrink-0" />
-                <span className="underline">{locationLabel}</span>
-              </a>
-            )}
-          </motion.div>
+            <Button variant="outline" size="sm">
+              Contact
+            </Button>
+          </div>
 
           {/* Overview Section */}
           {eventDescription && (
             <Section id="overview" title="Overview" showDivider>
-              <p className="body-text text-muted-foreground">{eventDescription}</p>
+              <p className="body-text text-muted-foreground">
+                {eventDescription}
+              </p>
             </Section>
           )}
 
@@ -191,28 +169,21 @@ export function EventPageTabContent({
           {eventDateParts.month && eventDateParts.day && (
             <Section id="date-time" title="Event Date & Time" showDivider>
               <div className="flex items-center gap-4">
-                <div
-                  className="relative flex size-16 flex-col items-center justify-center rounded-lg overflow-hidden border"
-                  style={{ borderColor: `${firstGradientColor}50` }}
-                >
-                  {/* Gradient background overlay */}
-                  <div
-                    className="absolute inset-0 opacity-[0.06]"
-                    style={{
-                      backgroundImage: gradientCss,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }}
-                  />
-                  <span className="relative z-10 label leading-none pt-1 text-foreground">
-                    {eventDateParts.month}
-                  </span>
-                  <span className="relative z-10 heading-3 leading-none pb-0.5 text-foreground">
-                    {eventDateParts.day}
-                  </span>
+                {/* Calendar badge */}
+                <div className="flex min-w-[72px] flex-col items-center overflow-hidden rounded-lg border bg-muted/30">
+                  <div className="w-full bg-muted px-4 py-1 text-center">
+                    <span className="label text-muted-foreground">
+                      {eventDateParts.month}
+                    </span>
+                  </div>
+                  <div className="px-4 py-2">
+                    <span className="heading-2 font-bold text-foreground">
+                      {eventDateParts.day}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="body-small font-semibold text-foreground">
+                  <span className="heading-4 text-foreground">
                     {eventDateParts.weekday}, {eventDateParts.fullDate}
                   </span>
                   <span className="body-small text-muted-foreground flex items-center gap-1.5">
@@ -265,7 +236,9 @@ export function EventPageTabContent({
                     {venueName}
                   </span>
                   {cityState && (
-                    <span className="text-sm text-muted-foreground">{cityState}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {cityState}
+                    </span>
                   )}
                 </div>
               </div>
@@ -274,7 +247,11 @@ export function EventPageTabContent({
 
           {/* Registration & Pricing Section */}
           {divisionPricing.length > 0 && (
-            <Section id="registration-pricing" title="Registration & Pricing" showDivider>
+            <Section
+              id="registration-pricing"
+              title="Registration & Pricing"
+              showDivider
+            >
               <div className="grid gap-4 sm:grid-cols-2">
                 {pricingCards.map((card) => (
                   <PricingCard key={card.label} {...card} />
@@ -282,41 +259,6 @@ export function EventPageTabContent({
               </div>
             </Section>
           )}
-
-          {/* Organizer Section */}
-          <Section id="organizer" title="Organizer" showDivider>
-            <Link
-              href={eventPageHref}
-              className="flex items-center gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/30"
-            >
-              <GradientAvatar
-                name={organizerName}
-                gradient={organizerGradient}
-                size="lg"
-              />
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="body-text font-semibold text-foreground truncate">
-                  {organizerName}
-                </span>
-                {organizerRegion && (
-                  <span className="body-small text-muted-foreground">
-                    {organizerRegion}
-                  </span>
-                )}
-                <div className="flex items-center gap-3 body-small text-muted-foreground">
-                  {organizerEventsCount !== undefined && (
-                    <span>{organizerEventsCount} events</span>
-                  )}
-                  {organizerHostingLabel && (
-                    <>
-                      <span>·</span>
-                      <span>{organizerHostingLabel} hosting</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </Link>
-          </Section>
 
           {/* Documents and Resources Section */}
           {documents.length > 0 && (
@@ -341,7 +283,12 @@ export function EventPageTabContent({
                           )}
                         </div>
                       </div>
-                      <Button asChild variant="outline" size="sm" className="self-start sm:self-center shrink-0">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="self-start sm:self-center shrink-0"
+                      >
                         <Link href={doc.href}>Download</Link>
                       </Button>
                     </div>
@@ -352,7 +299,7 @@ export function EventPageTabContent({
           )}
 
           {/* Results and Leaderboard Section */}
-          <Section id="results" title="Results & Leaderboard" showDivider={false}>
+          <Section id="results" title="Results & Leaderboard" showDivider>
             <div className="rounded-md border border-border/70 bg-card/60 p-6 transition-all hover:border-primary/20">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -380,8 +327,6 @@ export function EventPageTabContent({
           paymentStatus={paymentStatus}
           paymentDeadlineLabel={paymentDeadlineLabel}
           paidAtLabel={paidAtLabel}
-          onEditRegistration={onEditRegistration}
-          isLocked={isLocked}
         />
       </div>
     </>

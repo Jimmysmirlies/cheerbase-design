@@ -44,10 +44,8 @@ export default function OrganizerEventsPage() {
     BrandGradient | undefined
   >(undefined);
 
-  // Modal state
   const [showNewEventModal, setShowNewEventModal] = useState(false);
 
-  // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
       if (organizerId) {
@@ -92,13 +90,11 @@ export default function OrganizerEventsPage() {
   const organizerIdOrUndefined = organizerId ?? undefined;
   const { drafts, saveDraft } = useOrganizerEventDrafts(organizerIdOrUndefined);
 
-  // Memoize base events
   const baseEvents = useMemo(
     () => (organizerId ? getEventsByOrganizerId(organizerId) : []),
     [organizerId],
   );
 
-  // Merge drafts with base events
   const allEvents = useMemo(() => {
     const eventMap = new Map(baseEvents.map((e) => [e.id, e]));
     drafts.forEach((draft) => {
@@ -150,7 +146,6 @@ export default function OrganizerEventsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <PageTitle
         title="Events"
         gradient={organizerGradient}
@@ -178,7 +173,6 @@ export default function OrganizerEventsPage() {
 
             <div className="h-6 w-px bg-border" />
 
-            {/* View mode toggle */}
             <TooltipProvider delayDuration={120}>
               <div className="relative inline-flex shrink-0 items-center rounded-md border border-border bg-background p-1">
                 <div
@@ -225,12 +219,10 @@ export default function OrganizerEventsPage() {
         }
       />
 
-      {/* Season Filter */}
       <div className="pt-6">
         <SeasonDropdown />
       </div>
 
-      {/* Content Area */}
       <div className="flex flex-col gap-4 pt-8">
         {viewMode === "all" && (
           <PageTabs
@@ -264,7 +256,6 @@ export default function OrganizerEventsPage() {
         />
       </div>
 
-      {/* New Event Modal */}
       <NewEventModal
         open={showNewEventModal}
         onOpenChange={setShowNewEventModal}

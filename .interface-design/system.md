@@ -286,3 +286,73 @@ Fixed-position CTA bars that persist at the bottom of mobile screens for primary
 - Single-line layouts that cram too much text
 - Forgetting safe-area-inset — causes overlap with system UI
 - Height under 56px — feels cramped and hard to interact with
+
+## Modal / Dialog
+
+Standard structure for all modal dialogs with consistent spacing, borders, and footer styling.
+
+**DialogContent Base:**
+
+- `rounded-xl` — consistent border radius
+- `border-border/40` — subtle border
+- `p-0 gap-0` — reset default spacing
+- `overflow-hidden` — clean edge clipping
+
+**Sizes:**
+
+| Size     | Class       | Use Case                         |
+| -------- | ----------- | -------------------------------- |
+| Small    | `max-w-md`  | Confirmations, alerts            |
+| Standard | `max-w-2xl` | Forms, multi-step flows          |
+| Large    | `max-w-3xl` | Tables, bulk operations          |
+| Full     | Responsive  | Specialized editors (roster etc) |
+
+**Structure:**
+
+```tsx
+<DialogContent className="max-w-2xl rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+  {/* Header */}
+  <DialogHeader className="px-6 pt-6 pb-4">
+    <DialogTitle className="heading-3">Title</DialogTitle>
+    <DialogDescription className="body-small text-muted-foreground/80">
+      Description text
+    </DialogDescription>
+  </DialogHeader>
+
+  {/* Content */}
+  <div className="px-6 pb-6">{/* Main content here */}</div>
+
+  {/* Footer */}
+  <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-between">
+    <Button variant="ghost">Cancel</Button>
+    <Button>Primary Action</Button>
+  </div>
+</DialogContent>
+```
+
+**Footer Variants:**
+
+- **Split actions:** `flex items-center justify-between` (Cancel left, Submit right)
+- **Right-aligned:** `flex items-center justify-end gap-3` (all buttons right)
+- **With status:** Left side shows selection/status, right side has actions
+
+**Scrollable Content:**
+
+For modals with scrollable content areas:
+
+```tsx
+<div className="px-6 pb-6 max-h-80 overflow-y-auto pr-1">
+  {/* Scrollable content */}
+</div>
+```
+
+**Step Indicators (Multi-step):**
+
+Place between header and content with `px-6 pb-6` wrapper.
+
+**Avoid:**
+
+- `rounded-3xl` or `rounded-md` — use `rounded-xl` consistently
+- Direct padding on DialogContent (`p-6`) — use section-specific padding
+- Missing `gap-0` — causes unwanted spacing between sections
+- Footers without background — always use `bg-muted/30` for visual separation

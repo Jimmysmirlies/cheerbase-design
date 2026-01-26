@@ -79,8 +79,8 @@ export function RegistrationDetailSkeleton() {
       </div>
 
       {/* Mobile sticky bar placeholder */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden">
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-md backdrop-blur-sm lg:hidden pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
             <Skeleton className="size-12 rounded-md" />
             <div className="flex flex-col gap-1">
@@ -88,10 +88,13 @@ export function RegistrationDetailSkeleton() {
               <Skeleton className="h-3 w-20 rounded" />
             </div>
           </div>
-          <Skeleton className="h-9 w-24 rounded-md" />
+          <Skeleton className="h-10 w-28 rounded-md" />
         </div>
       </div>
-      <div className="h-20 lg:hidden" />
+      <div
+        className="h-24 lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      />
     </section>
   );
 }

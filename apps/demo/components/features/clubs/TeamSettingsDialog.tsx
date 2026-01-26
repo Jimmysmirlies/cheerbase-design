@@ -70,24 +70,20 @@ export default function TeamSettingsDialog({
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-3xl p-6">
-        <DialogHeader>
-          <DialogTitle>Edit team settings</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-md rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">Edit Team Settings</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
             Rename team, change division, and update COED count.
           </DialogDescription>
         </DialogHeader>
-        <form className="grid gap-4">
+        <form className="px-6 pb-6 grid gap-4">
           <div className="grid gap-1">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Team Name
-            </Label>
+            <Label className="label text-muted-foreground">Team Name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid gap-1">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Division
-            </Label>
+            <Label className="label text-muted-foreground">Division</Label>
             <Select value={division} onValueChange={setDivision}>
               <SelectTrigger className="w-full justify-between">
                 <SelectValue
@@ -124,28 +120,22 @@ export default function TeamSettingsDialog({
             </Select>
           </div>
           <div className="grid gap-1">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              COED Count
-            </Label>
+            <Label className="label text-muted-foreground">COED Count</Label>
             <Input
               type="number"
               value={coed}
               onChange={(e) => setCoed(Number(e.target.value))}
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="button" onClick={() => setOpen(false)}>
-              Save
-            </Button>
-          </div>
         </form>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end gap-3">
+          <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={() => setOpen(false)}>
+            Save
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

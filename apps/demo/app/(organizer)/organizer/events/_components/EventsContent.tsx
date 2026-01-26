@@ -38,7 +38,6 @@ export function EventsContent({
   collapsed,
   setCollapsed,
 }: EventsContentProps) {
-  // Transform events into card rows with parsed dates
   const rows = useMemo(() => {
     return events.map((event): EventRow => {
       const eventDate = parseEventDate(event.date);
@@ -73,7 +72,6 @@ export function EventsContent({
     );
   }, [rows, season, isAllSeasons]);
 
-  // Build month sections for month view
   const sections = useMemo(() => {
     if (isAllSeasons || !season) {
       return buildMonthSectionsFromRows(filteredRows);
@@ -81,7 +79,6 @@ export function EventsContent({
     return buildMonthSections(filteredRows, season);
   }, [filteredRows, season, isAllSeasons]);
 
-  // Split into upcoming/past/drafts for all view
   const bucketedRows = useMemo(() => {
     const now = new Date();
     const upcoming: EventRow[] = [];
@@ -115,7 +112,6 @@ export function EventsContent({
     return bucketedRows.upcoming;
   }, [allEventsBucket, bucketedRows]);
 
-  // Initialize collapse state for month sections
   useEffect(() => {
     const nextState: Record<string, boolean> = {};
     sections.forEach((section) => {
@@ -136,7 +132,6 @@ export function EventsContent({
 
   return (
     <section className="space-y-6">
-      {/* Upgrade banner when at limit */}
       {atLimit && (
         <motion.div
           className="w-full"
@@ -168,7 +163,6 @@ export function EventsContent({
         </motion.div>
       )}
 
-      {/* Month view */}
       {viewMode === "month" ? (
         <motion.div
           key={`month-view-${selectedSeasonId}`}
@@ -253,7 +247,6 @@ export function EventsContent({
           </motion.div>
         </motion.div>
       ) : (
-        /* All events view */
         <motion.div
           key={`list-view-${selectedSeasonId}-${allEventsBucket}`}
           className="w-full"

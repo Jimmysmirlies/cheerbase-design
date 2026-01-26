@@ -124,14 +124,14 @@ export function PaymentMethodsDialog({
 }: PaymentMethodsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-md sm:max-w-xl">
-        <DialogHeader>
+      <DialogContent className="max-w-xl rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="heading-3">Payment Methods</DialogTitle>
-          <DialogDescription className="body-small text-muted-foreground">
+          <DialogDescription className="body-small text-muted-foreground/80">
             Choose your preferred payment method below
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="px-6 pb-6 space-y-4">
           {methods.map((method) => {
             const Icon = method.icon;
             return (
@@ -167,6 +167,11 @@ export function PaymentMethodsDialog({
               </div>
             );
           })}
+        </div>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

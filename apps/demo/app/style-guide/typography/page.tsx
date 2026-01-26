@@ -75,7 +75,6 @@ export default function TypographyPage() {
       />
       <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-8">
         <div className="space-y-12">
-          {/* Type scale */}
           <div className="flex flex-col gap-4 px-1">
             <div className="flex flex-col gap-4">
               <p className="text-lg font-semibold">Type Scale</p>

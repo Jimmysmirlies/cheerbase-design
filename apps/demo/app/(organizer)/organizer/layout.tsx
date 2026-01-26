@@ -20,17 +20,10 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { LayoutProvider } from "@/components/providers/LayoutProvider";
 import { SeasonProvider } from "@/components/providers/SeasonProvider";
 
-/**
- * Check if the current route should use focus mode (no sidebar/navbar).
- * Matches: /organizer/events/new, /organizer/events/[eventId]/edit, /organizer/settings/subscription
- */
 function isFocusModeRoute(pathname: string | null): boolean {
   if (!pathname) return false;
-  // Match /organizer/events/new
   if (pathname === "/organizer/events/new") return true;
-  // Match /organizer/events/[eventId]/edit
   if (/^\/organizer\/events\/[^/]+\/edit$/.test(pathname)) return true;
-  // Match /organizer/settings/subscription
   if (pathname === "/organizer/settings/subscription") return true;
   return false;
 }
@@ -52,8 +45,7 @@ const navItems = [
     key: "registrations",
     label: "Registrations",
     icon: <ClipboardListIcon className="size-4" />,
-    disabled: true,
-    badge: "Coming soon",
+    href: "/organizer/registrations",
   },
   {
     key: "invoices",
@@ -86,8 +78,6 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
   const [isMobile, setIsMobile] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { user, status } = useAuth();
-
-  // Check if we're on a focus mode route (no sidebar/navbar)
   const isFocusMode = isFocusModeRoute(pathname);
 
   const organizerNavSections = useMemo(
@@ -162,7 +152,6 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeListener(handler);
   }, []);
 
-  // Focus mode pages (no sidebar/navbar, custom header)
   if (isFocusMode) {
     return (
       <FocusModeLayout>

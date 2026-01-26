@@ -10,6 +10,7 @@ import { useId, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -63,15 +64,18 @@ export default function EditMemberDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="rounded-3xl p-6">
-        <DialogHeader>
-          <DialogTitle>Edit Member</DialogTitle>
+      <DialogContent className="max-w-md rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">Edit Member</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
+            Update the member&apos;s information
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+        <div className="px-6 pb-6 grid gap-4">
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-first`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               First Name
             </Label>
@@ -84,7 +88,7 @@ export default function EditMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-last`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Last Name
             </Label>
@@ -97,7 +101,7 @@ export default function EditMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-dob`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Date of Birth
             </Label>
@@ -111,7 +115,7 @@ export default function EditMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-email`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Email
             </Label>
@@ -122,7 +126,7 @@ export default function EditMemberDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
             {!emailValid ? (
-              <span className="text-xs text-destructive">
+              <span className="body-small text-destructive">
                 Enter a valid email.
               </span>
             ) : null}
@@ -130,7 +134,7 @@ export default function EditMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-phone`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Phone
             </Label>
@@ -141,70 +145,70 @@ export default function EditMemberDialog({
               onChange={(e) => setPhone(e.target.value)}
             />
             {!phoneValid ? (
-              <span className="text-xs text-destructive">
+              <span className="body-small text-destructive">
                 Enter a valid phone.
               </span>
             ) : null}
           </div>
-          <div className="flex items-center justify-between">
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-              <AlertDialogTrigger asChild>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="bg-red-100 text-red-600 hover:bg-red-100/80"
+        </div>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-between">
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                Remove
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove member?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. The member will be removed from
+                  this team.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    onRemove(person.id);
+                    setConfirmOpen(false);
+                    setOpen(false);
+                  }}
                 >
                   Remove
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Remove member?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. The member will be removed
-                    from this team.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      onRemove(person.id);
-                      setConfirmOpen(false);
-                      setOpen(false);
-                    }}
-                  >
-                    Remove
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                disabled={!canSubmit}
-                onClick={() => {
-                  onSave({
-                    ...person,
-                    firstName: first,
-                    lastName: last,
-                    dob,
-                    email,
-                    phone,
-                  });
-                  setOpen(false);
-                }}
-              >
-                Save
-              </Button>
-            </div>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={!canSubmit}
+              onClick={() => {
+                onSave({
+                  ...person,
+                  firstName: first,
+                  lastName: last,
+                  dob,
+                  email,
+                  phone,
+                });
+                setOpen(false);
+              }}
+            >
+              Save
+            </Button>
           </div>
         </div>
       </DialogContent>

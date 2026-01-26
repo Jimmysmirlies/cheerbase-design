@@ -60,7 +60,6 @@ export default function OrganizerHomePage() {
     BrandGradient | undefined
   >(undefined);
 
-  // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
       if (organizerId) {
@@ -79,13 +78,11 @@ export default function OrganizerHomePage() {
           // Ignore storage errors
         }
       }
-      // Fall back to organizer's default gradient
       setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
     };
 
     loadGradient();
 
-    // Listen for settings changes
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
         setOrganizerGradient(event.detail.gradient as BrandGradient);
@@ -108,7 +105,6 @@ export default function OrganizerHomePage() {
   const gradient =
     brandGradients[gradientKey as BrandGradient] || brandGradients.primary;
 
-  // Get all analytics data
   const stats = useMemo(
     () => (organizerId ? getOrganizerStats(organizerId) : null),
     [organizerId],
@@ -130,7 +126,6 @@ export default function OrganizerHomePage() {
     [organizerId],
   );
 
-  // Check if there are attention items
   const hasAttentionItems = paymentHealth && paymentHealth.overdueCount > 0;
   const lowFillEvents = eventPerformance.filter((e) => e.fillRate < 25);
 
@@ -150,7 +145,6 @@ export default function OrganizerHomePage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
           <h1
@@ -167,7 +161,6 @@ export default function OrganizerHomePage() {
         </p>
       </div>
 
-      {/* Attention Required (below header, above stats) */}
       {(hasAttentionItems || lowFillEvents.length > 0) && (
         <div className="space-y-3 pt-6">
           {paymentHealth && paymentHealth.overdueCount > 0 && (
@@ -216,14 +209,12 @@ export default function OrganizerHomePage() {
         </div>
       )}
 
-      {/* Content Area */}
       <motion.div
         className="flex flex-col gap-8 pt-8"
         variants={staggerSections}
         initial="hidden"
         animate="visible"
       >
-        {/* Stats Grid */}
         <motion.div
           variants={fadeInUp}
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
@@ -250,7 +241,6 @@ export default function OrganizerHomePage() {
           />
         </motion.div>
 
-        {/* Quick Actions Section */}
         <motion.div variants={fadeInUp}>
           <Section title="Quick Actions">
             <div className="grid gap-3 xl:grid-cols-3">
@@ -279,7 +269,6 @@ export default function OrganizerHomePage() {
           </Section>
         </motion.div>
 
-        {/* Recent Registrations Section */}
         {recentRegistrations.length > 0 && (
           <motion.div variants={fadeInUp}>
             <Section
@@ -331,7 +320,6 @@ export default function OrganizerHomePage() {
           </motion.div>
         )}
 
-        {/* Empty State */}
         {!stats?.activeEvents && (
           <motion.div variants={fadeInUp}>
             <Section

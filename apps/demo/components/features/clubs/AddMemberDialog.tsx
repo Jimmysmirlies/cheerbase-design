@@ -9,6 +9,7 @@ import { useId, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -48,15 +49,18 @@ export default function AddMemberDialog({
           Add {roleLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-3xl p-6">
-        <DialogHeader>
-          <DialogTitle>Add {roleLabel}</DialogTitle>
+      <DialogContent className="max-w-md rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="heading-3">Add {roleLabel}</DialogTitle>
+          <DialogDescription className="body-small text-muted-foreground/80">
+            Enter the member&apos;s information below
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+        <div className="px-6 pb-6 grid gap-4">
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-first`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               First Name
             </Label>
@@ -69,7 +73,7 @@ export default function AddMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-last`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Last Name
             </Label>
@@ -82,7 +86,7 @@ export default function AddMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-dob`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Date of Birth
             </Label>
@@ -96,7 +100,7 @@ export default function AddMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-email`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Email
             </Label>
@@ -107,7 +111,7 @@ export default function AddMemberDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
             {!emailValid ? (
-              <span className="text-xs text-destructive">
+              <span className="body-small text-destructive">
                 Enter a valid email.
               </span>
             ) : null}
@@ -115,7 +119,7 @@ export default function AddMemberDialog({
           <div className="grid gap-1">
             <Label
               htmlFor={`${idPrefix}-phone`}
-              className="text-xs uppercase tracking-wide text-muted-foreground"
+              className="label text-muted-foreground"
             >
               Phone
             </Label>
@@ -126,43 +130,39 @@ export default function AddMemberDialog({
               onChange={(e) => setPhone(e.target.value)}
             />
             {!phoneValid ? (
-              <span className="text-xs text-destructive">
+              <span className="body-small text-destructive">
                 Enter a valid phone.
               </span>
             ) : null}
           </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={!canSubmit}
-              onClick={() => {
-                if (!first || !last) return;
-                onAdd({
-                  id: `${idPrefix}-${Date.now()}`,
-                  firstName: first,
-                  lastName: last,
-                  dob,
-                  email,
-                  phone,
-                });
-                setOpen(false);
-                setFirst("");
-                setLast("");
-                setDob("");
-                setEmail("");
-                setPhone("");
-              }}
-            >
-              Add
-            </Button>
-          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end gap-3">
+          <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={!canSubmit}
+            onClick={() => {
+              if (!first || !last) return;
+              onAdd({
+                id: `${idPrefix}-${Date.now()}`,
+                firstName: first,
+                lastName: last,
+                dob,
+                email,
+                phone,
+              });
+              setOpen(false);
+              setFirst("");
+              setLast("");
+              setDob("");
+              setEmail("");
+              setPhone("");
+            }}
+          >
+            Add
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

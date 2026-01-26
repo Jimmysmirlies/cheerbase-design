@@ -114,25 +114,19 @@ export default function OrganizerInvoicesPage() {
   >(undefined);
   const { selectedSeason, isAllSeasons } = useSeason();
 
-  // Tab state
   const [activeTab, setActiveTab] = useState<InvoicesTab>("registrations");
-
-  // History search state
   const [historySearch, setHistorySearch] = useState("");
 
-  // Get events and filter by season
   const organizerEvents = useMemo(
     () => (organizerId ? getEventsByOrganizerId(organizerId) : []),
     [organizerId],
   );
 
   const seasonEventIds = useMemo(() => {
-    // If "All Seasons" is selected, return all event IDs
     if (isAllSeasons) {
       return new Set(organizerEvents.map((event) => event.id));
     }
 
-    // Otherwise, filter by selected season
     if (!selectedSeason) return new Set<string>();
 
     const eventIds = new Set<string>();
@@ -150,13 +144,11 @@ export default function OrganizerInvoicesPage() {
   const overview = useMemo(() => {
     if (!organizerId) return null;
 
-    // Get all registrations and filter by season
     const allRegistrations = getOrganizerRegistrations(organizerId);
     const filteredRegistrations = allRegistrations.filter((reg) =>
       seasonEventIds.has(reg.eventId),
     );
 
-    // Recalculate overview from filtered registrations
     const now = new Date();
     let totalRegistrations = 0;
     let totalParticipants = 0;
@@ -195,14 +187,12 @@ export default function OrganizerInvoicesPage() {
     return allData.filter((row) => seasonEventIds.has(row.eventId));
   }, [organizerId, seasonEventIds]);
 
-  // History data
   const historyData = useMemo(() => {
     if (!organizerId) return [];
     const allHistory = getInvoiceHistory(organizerId);
     return allHistory.filter((entry) => seasonEventIds.has(entry.eventId));
   }, [organizerId, seasonEventIds]);
 
-  // History column sort state (must be declared before filteredHistoryData)
   const [historyTeamNameSort, setHistoryTeamNameSort] =
     useState<TableSortDirection>(null);
   const [historyEventSort, setHistoryEventSort] =
@@ -224,7 +214,6 @@ export default function OrganizerInvoicesPage() {
     ]),
   );
 
-  // History table column visibility state
   const [historyVisibleColumns, setHistoryVisibleColumns] = useState<
     Set<HistoryColumnKey>
   >(
@@ -239,7 +228,6 @@ export default function OrganizerInvoicesPage() {
     ]),
   );
 
-  // History column filter state
   const [historySelectedTeams, setHistorySelectedTeams] = useState<Set<string>>(
     new Set(),
   );
@@ -250,27 +238,23 @@ export default function OrganizerInvoicesPage() {
     Set<string>
   >(new Set());
 
-  // Column sort state
   const [teamNameSort, setTeamNameSort] = useState<TableSortDirection>(null);
   const [submittedSort, setSubmittedSort] =
     useState<TableSortDirection>("desc");
   const [eventSort, setEventSort] = useState<TableSortDirection>(null);
   const [statusSort, setStatusSort] = useState<TableSortDirection>(null);
 
-  // Column filter state - initialize with all selected
   const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
   const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
     new Set(["paid", "unpaid", "overdue"]),
   );
 
-  // Sync filter selections when tableData changes (select all by default)
   useEffect(() => {
     setSelectedTeams(new Set(tableData.map((row) => row.teamName)));
     setSelectedEvents(new Set(tableData.map((row) => row.eventName)));
   }, [tableData]);
 
-  // Unique options for filters
   const teamNameOptions = useMemo(
     () =>
       [...new Set(tableData.map((row) => row.teamName))]
@@ -294,7 +278,6 @@ export default function OrganizerInvoicesPage() {
     [],
   );
 
-  // Sync history filter selections when historyData changes (select all by default)
   useEffect(() => {
     setHistorySelectedTeams(
       new Set(historyData.map((entry) => entry.teamName)),
@@ -307,7 +290,6 @@ export default function OrganizerInvoicesPage() {
     );
   }, [historyData]);
 
-  // Unique options for history filters
   const historyTeamNameOptions = useMemo(
     () =>
       [...new Set(historyData.map((entry) => entry.teamName))]
@@ -330,18 +312,15 @@ export default function OrganizerInvoicesPage() {
     [historyData],
   );
 
-  // Filtered and sorted history data
   const filteredHistoryData = useMemo(() => {
     let data = [...historyData];
 
-    // Apply column filters
     data = data.filter((entry) => historySelectedTeams.has(entry.teamName));
     data = data.filter((entry) => historySelectedEvents.has(entry.eventName));
     data = data.filter((entry) =>
       historySelectedPaidBy.has(entry.paidByOrganizer),
     );
 
-    // Apply search filter
     if (historySearch.trim()) {
       const searchLower = historySearch.toLowerCase();
       data = data.filter(
@@ -353,7 +332,6 @@ export default function OrganizerInvoicesPage() {
       );
     }
 
-    // Apply sorting
     if (historyTeamNameSort) {
       data.sort((a, b) => {
         const diff = a.teamName.localeCompare(b.teamName);
@@ -389,16 +367,13 @@ export default function OrganizerInvoicesPage() {
     historyDateSort,
   ]);
 
-  // Filter and sort data
   const filteredData = useMemo(() => {
     let data = [...tableData];
 
-    // Apply column filters
     data = data.filter((row) => selectedTeams.has(row.teamName));
     data = data.filter((row) => selectedEvents.has(row.eventName));
     data = data.filter((row) => selectedStatuses.has(row.status));
 
-    // Apply sort (priority: most recently changed sort)
     if (teamNameSort) {
       data.sort((a, b) => {
         const diff = a.teamName.localeCompare(b.teamName);
@@ -434,7 +409,6 @@ export default function OrganizerInvoicesPage() {
     statusSort,
   ]);
 
-  // Handle sort change (clear other sorts when one is set)
   const handleTeamNameSort = (dir: TableSortDirection) => {
     setTeamNameSort(dir);
     if (dir) {
@@ -468,9 +442,7 @@ export default function OrganizerInvoicesPage() {
     }
   };
 
-  // Toggle column visibility
   const toggleColumn = (column: ColumnKey) => {
-    // Don't allow hiding teamName
     if (column === "teamName") return;
 
     setVisibleColumns((prev) => {
@@ -484,7 +456,6 @@ export default function OrganizerInvoicesPage() {
     });
   };
 
-  // Check if any filters or sorts are applied
   const hasActiveFilters = useMemo(() => {
     const allTeamsSelected = selectedTeams.size === teamNameOptions.length;
     const allEventsSelected = selectedEvents.size === eventOptions.length;
@@ -513,21 +484,16 @@ export default function OrganizerInvoicesPage() {
     statusSort,
   ]);
 
-  // Clear all filters and sorts
   const clearFilters = () => {
-    // Clear filters (select all options)
     setSelectedTeams(new Set(teamNameOptions.map((opt) => opt.value)));
     setSelectedEvents(new Set(eventOptions.map((opt) => opt.value)));
     setSelectedStatuses(new Set(statusOptions.map((opt) => opt.value)));
-
-    // Clear sorts (reset to default state)
     setTeamNameSort(null);
-    setSubmittedSort("desc"); // Reset to default
+    setSubmittedSort("desc");
     setEventSort(null);
     setStatusSort(null);
   };
 
-  // History sort handlers
   const handleHistoryTeamNameSort = (dir: TableSortDirection) => {
     setHistoryTeamNameSort(dir);
     if (dir) {
@@ -561,7 +527,6 @@ export default function OrganizerInvoicesPage() {
     }
   };
 
-  // Toggle history column visibility
   const toggleHistoryColumn = (column: HistoryColumnKey) => {
     if (column === "teamName") return;
     setHistoryVisibleColumns((prev) => {
@@ -575,7 +540,6 @@ export default function OrganizerInvoicesPage() {
     });
   };
 
-  // Check if history has active filters or sorts (non-default)
   const historyHasActiveFilters = useMemo(() => {
     const allTeamsSelected =
       historySelectedTeams.size === historyTeamNameOptions.length;
@@ -606,9 +570,7 @@ export default function OrganizerInvoicesPage() {
     historyPaidBySort,
   ]);
 
-  // Clear history filters and sorts
   const clearHistoryFilters = () => {
-    // Clear filters (select all options)
     setHistorySelectedTeams(
       new Set(historyTeamNameOptions.map((opt) => opt.value)),
     );
@@ -618,15 +580,12 @@ export default function OrganizerInvoicesPage() {
     setHistorySelectedPaidBy(
       new Set(historyPaidByOptions.map((opt) => opt.value)),
     );
-
-    // Clear sorts (reset to default state)
     setHistoryTeamNameSort(null);
     setHistoryEventSort(null);
     setHistoryDateSort("desc");
     setHistoryPaidBySort(null);
   };
 
-  // Load organizer gradient from settings or default
   useEffect(() => {
     const loadGradient = () => {
       if (organizerId) {
@@ -645,13 +604,11 @@ export default function OrganizerInvoicesPage() {
           // Ignore storage errors
         }
       }
-      // Fall back to organizer's default gradient
       setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
     };
 
     loadGradient();
 
-    // Listen for settings changes
     const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
       if (event.detail?.gradient) {
         setOrganizerGradient(event.detail.gradient as BrandGradient);
@@ -715,15 +672,12 @@ export default function OrganizerInvoicesPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      {/* Header */}
       <PageTitle title="Invoices" gradient={gradientValue} />
 
-      {/* Season Dropdown */}
       <div className="pt-6">
         <SeasonDropdown />
       </div>
 
-      {/* Tabs */}
       <div className="pt-6">
         <PageTabs
           tabs={[
@@ -740,11 +694,9 @@ export default function OrganizerInvoicesPage() {
         />
       </div>
 
-      {/* Content Area */}
       <div>
         {activeTab === "registrations" && (
           <>
-            {/* Statistics Section */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
@@ -833,7 +785,6 @@ export default function OrganizerInvoicesPage() {
               </Section>
             </motion.div>
 
-            {/* Registrations Table Section */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
@@ -844,7 +795,6 @@ export default function OrganizerInvoicesPage() {
                 title="Registrations"
                 titleRight={
                   <div className="flex items-center gap-3">
-                    {/* Clear Filters Button - appears when filters are applied */}
                     {hasActiveFilters && (
                       <Button
                         variant="ghost"
@@ -856,7 +806,6 @@ export default function OrganizerInvoicesPage() {
                         Clear Filters
                       </Button>
                     )}
-                    {/* Column Visibility */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
@@ -884,7 +833,6 @@ export default function OrganizerInvoicesPage() {
                   </div>
                 }
               >
-                {/* Table */}
                 <DataTable>
                   <DataTableHeader>
                     <tr>
@@ -1012,7 +960,6 @@ export default function OrganizerInvoicesPage() {
                   </DataTableBody>
                 </DataTable>
 
-                {/* Table Summary */}
                 {filteredData.length > 0 && (
                   <p className="text-sm text-muted-foreground">
                     Showing {filteredData.length} of {tableData.length}{" "}
@@ -1033,9 +980,7 @@ export default function OrganizerInvoicesPage() {
             viewport={{ once: true }}
             className="flex flex-col gap-6 py-8"
           >
-            {/* Search and Controls Row */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              {/* Search Input */}
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -1047,9 +992,7 @@ export default function OrganizerInvoicesPage() {
                 />
               </div>
 
-              {/* Controls */}
               <div className="flex items-center gap-3">
-                {/* Clear Filters Button */}
                 {historyHasActiveFilters && (
                   <Button
                     variant="ghost"
@@ -1061,7 +1004,6 @@ export default function OrganizerInvoicesPage() {
                     Clear Filters
                   </Button>
                 )}
-                {/* Column Visibility */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-2">
@@ -1089,7 +1031,6 @@ export default function OrganizerInvoicesPage() {
               </div>
             </div>
 
-            {/* History Table */}
             <DataTable>
               <DataTableHeader>
                 <tr>
@@ -1215,7 +1156,6 @@ export default function OrganizerInvoicesPage() {
               </DataTableBody>
             </DataTable>
 
-            {/* Table Summary */}
             {filteredHistoryData.length > 0 && (
               <p className="text-sm text-muted-foreground">
                 Showing {filteredHistoryData.length} of {historyData.length}{" "}
