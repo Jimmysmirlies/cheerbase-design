@@ -11,8 +11,6 @@ import {
   SettingsIcon,
 } from "lucide-react";
 
-import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
-
 import { Sidebar } from "@/components/layout/Sidebar";
 import { NavBar } from "@/components/layout/NavBar";
 import { FocusModeLayout } from "@/components/layout/FocusModeLayout";
@@ -46,6 +44,8 @@ const navItems = [
     label: "Registrations",
     icon: <ClipboardListIcon className="size-4" />,
     href: "/organizer/registrations",
+    disabled: true,
+    badge: "WIP",
   },
   {
     key: "invoices",
@@ -170,7 +170,7 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
           onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
         />
       </div>
-      <div className="flex w-full overflow-visible">
+      <div className="flex w-full overflow-hidden">
         <Sidebar
           active={active}
           navSections={organizerNavSections}
@@ -181,16 +181,16 @@ function OrganizerLayoutInner({ children }: { children: ReactNode }) {
           isCollapsed={isSidebarCollapsed}
           onCollapseChange={setIsSidebarCollapsed}
         />
-        <ScrollArea
-          className="flex-1"
+        <div
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-hide"
           style={{ height: `calc(100vh - ${navHeight}px)` }}
         >
-          <main className="p-8">
+          <main className="min-w-0 w-full p-4 sm:p-6 lg:p-8">
             <LayoutProvider layout="A">
               {status === "loading" ? null : children}
             </LayoutProvider>
           </main>
-        </ScrollArea>
+        </div>
       </div>
     </div>
   );

@@ -13,8 +13,6 @@ type ActionBarProps = {
   onTabChange?: (tab: string) => void;
   /** Tab visual style: 'underline' (default) or 'outline' (button style) */
   tabVariant?: "underline" | "outline";
-  /** Accent color for the active tab underline (CSS color or gradient) */
-  tabAccentColor?: string;
   /** Custom left content (filters, selects, etc.) - shown instead of tabs if no tabs provided */
   leftContent?: ReactNode;
   /** Action buttons or controls to display on the right side */
@@ -39,7 +37,6 @@ export function ActionBar({
   activeTab,
   onTabChange,
   tabVariant = "underline",
-  tabAccentColor,
   leftContent,
   actions,
   status,
@@ -79,7 +76,6 @@ export function ActionBar({
                 value={activeTab}
                 onValueChange={onTabChange}
                 variant={tabVariant}
-                accentColor={tabAccentColor}
               />
             ) : (
               leftContent
@@ -115,7 +111,6 @@ export function ActionBar({
               value={activeTab}
               onValueChange={onTabChange}
               variant={tabVariant}
-              accentColor={tabAccentColor}
             />
           ) : (
             leftContent
@@ -151,7 +146,6 @@ export function ActionBar({
               value={activeTab}
               onValueChange={onTabChange}
               variant={tabVariant}
-              accentColor={tabAccentColor}
             />
           ) : (
             leftContent

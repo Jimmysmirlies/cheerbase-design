@@ -28,30 +28,26 @@ import {
   getEventPerformance,
   getRegistrationTableData,
   formatCurrency,
-  type RegistrationStatus,
 } from "@/data/events/analytics";
 import { brandGradients, type BrandGradient } from "@/lib/gradients";
 import { Section } from "@/components/layout/Section";
 import { fadeInUp, staggerSections } from "@/lib/animations";
-import {
-  DataTable,
-  DataTableHeader,
-  DataTableBody,
-  DataTableRow,
-  DataTableHead,
-  DataTableCell,
-} from "@/components/ui/tables";
 import { QuickActionCard } from "@/components/ui/QuickActionCard";
+import { GradientAvatar } from "@/components/ui/GradientAvatar";
 
-function getStatusBadgeVariant(status: RegistrationStatus) {
-  switch (status) {
-    case "paid":
-      return "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800";
-    case "unpaid":
-      return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
-    case "overdue":
-      return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
-  }
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export default function OrganizerHomePage() {
@@ -282,40 +278,39 @@ export default function OrganizerHomePage() {
                 </Link>
               }
             >
-              <DataTable>
-                <DataTableHeader>
-                  <tr>
-                    <DataTableHead>Team</DataTableHead>
-                    <DataTableHead>Event</DataTableHead>
-                    <DataTableHead>Submitted</DataTableHead>
-                    <DataTableHead className="text-right">Status</DataTableHead>
-                  </tr>
-                </DataTableHeader>
-                <DataTableBody>
-                  {recentRegistrations.map((reg, index) => (
-                    <DataTableRow key={reg.id} animationDelay={index * 40}>
-                      <DataTableCell className="font-medium text-foreground">
-                        {reg.teamName}
-                      </DataTableCell>
-                      <DataTableCell className="text-muted-foreground">
-                        {reg.eventName}
-                      </DataTableCell>
-                      <DataTableCell className="text-muted-foreground">
-                        {reg.submittedAtFormatted}
-                      </DataTableCell>
-                      <DataTableCell className="text-right">
-                        <Badge
-                          variant="outline"
-                          className={getStatusBadgeVariant(reg.status)}
-                        >
-                          {reg.status.charAt(0).toUpperCase() +
-                            reg.status.slice(1)}
-                        </Badge>
-                      </DataTableCell>
-                    </DataTableRow>
-                  ))}
-                </DataTableBody>
-              </DataTable>
+              <div className="space-y-2">
+                {recentRegistrations.map((reg, index) => (
+                  <motion.div
+                    key={reg.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.04, duration: 0.2 }}
+                  >
+                    <Link href={reg.invoiceHref} className="block">
+                      <div className="flex items-center gap-3 rounded-lg border border-border/60 p-3 sm:p-4 transition-all hover:bg-muted/30 hover:-translate-y-0.5">
+                        <GradientAvatar name={reg.teamName} size="sm" />
+                        <div className="min-w-0 flex-1">
+                          <p className="body-text truncate">
+                            <span className="font-semibold text-foreground">
+                              {reg.teamName}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {" "}
+                              · {reg.clubName}
+                            </span>
+                          </p>
+                          <p className="body-small text-muted-foreground truncate">
+                            {reg.eventName} · {reg.division}
+                          </p>
+                        </div>
+                        <span className="body-small text-muted-foreground shrink-0 whitespace-nowrap">
+                          {formatRelativeTime(reg.submittedAt)}
+                        </span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
             </Section>
           </motion.div>
         )}

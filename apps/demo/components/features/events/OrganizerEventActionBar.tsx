@@ -17,8 +17,6 @@ type OrganizerEventActionBarProps = {
   variant?: "full-width" | "contained" | "unstyled";
   /** Additional class names */
   className?: string;
-  /** Accent color for the tab underline (CSS color or gradient) */
-  accentColor?: string;
 };
 
 const TABS: ActionBarTab[] = [
@@ -35,7 +33,6 @@ export function OrganizerEventActionBar({
   onEdit,
   variant = "contained",
   className,
-  accentColor,
 }: OrganizerEventActionBarProps) {
   void eventId;
   void isDraft;
@@ -63,7 +60,6 @@ export function OrganizerEventActionBar({
       tabs={TABS}
       activeTab={activeTab}
       onTabChange={onTabChange}
-      tabAccentColor={accentColor}
       variant={variant}
       className={className}
       actions={

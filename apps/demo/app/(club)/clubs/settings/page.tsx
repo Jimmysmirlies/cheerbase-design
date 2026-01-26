@@ -183,12 +183,7 @@ export default function ClubSettingsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl">
-      <h1
-        className="heading-2 bg-clip-text text-transparent"
-        style={{ backgroundImage: gradient.css }}
-      >
-        Settings
-      </h1>
+      <h1 className="heading-2">Settings</h1>
 
       <motion.div
         className="pt-8"

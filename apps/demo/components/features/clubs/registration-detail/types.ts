@@ -70,6 +70,17 @@ export type EditModeInvoice = {
   hasChanges: boolean;
 };
 
+// Track individual member additions/removals from rosters
+export type MemberChange = {
+  id: string;
+  type: "member-added" | "member-removed";
+  memberName: string;
+  teamName: string;
+  teamDivision: string;
+  previousCount: number;
+  newCount: number;
+};
+
 export type RegistrationDetailContentProps = {
   registration: {
     id: string;

@@ -358,9 +358,6 @@ function RegistrationsContent({
           onValueChange={(value) =>
             setAllEventsBucket(value as "upcoming" | "past")
           }
-          accentColor={
-            clubGradient ? getGradientStartColor(clubGradient) : undefined
-          }
         />
       )}
 

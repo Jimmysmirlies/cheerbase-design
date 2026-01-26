@@ -3,7 +3,6 @@
 import * as React from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/shadcn/button";
-import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -157,8 +156,7 @@ export function DataTableColumnHeader({
           align="start"
           className="min-w-56 max-w-80 overflow-hidden p-0 max-h-80"
         >
-          <ScrollArea className="!max-h-80">
-            <div className="p-1">
+          <div className="max-h-80 overflow-y-auto scrollbar-hide p-1">
               {/* Header with Sort Toggle */}
               <div className="flex items-center justify-between gap-3 px-2 py-2">
                 <p className="text-sm font-medium text-foreground">{title}</p>
@@ -283,8 +281,7 @@ export function DataTableColumnHeader({
                   </div>
                 </>
               )}
-            </div>
-          </ScrollArea>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
     </th>

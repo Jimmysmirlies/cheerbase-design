@@ -22,7 +22,7 @@ import {
 import { PageTitle } from "@/components/layout/PageTitle";
 import { SeasonDropdown } from "@/components/layout/SeasonDropdown";
 import { useSeason } from "@/components/providers/SeasonProvider";
-import { type BrandGradient, getGradientStartColor } from "@/lib/gradients";
+import { type BrandGradient } from "@/lib/gradients";
 import { CardSkeleton } from "@/components/ui";
 
 import {
@@ -234,11 +234,6 @@ export default function OrganizerEventsPage() {
             value={allEventsBucket}
             onValueChange={(value) =>
               setAllEventsBucket(value as AllEventsBucket)
-            }
-            accentColor={
-              organizerGradient
-                ? getGradientStartColor(organizerGradient)
-                : undefined
             }
           />
         )}

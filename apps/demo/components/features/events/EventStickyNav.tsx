@@ -57,36 +57,15 @@ export function EventStickyNav({
     [setContextActiveSection],
   );
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const scrollContainerRef = useRef<HTMLElement | null>(null);
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const navContainerRef = useRef<HTMLDivElement>(null);
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
 
-  // Find the scroll container (ScrollArea viewport or window)
-  const getScrollContainer = useCallback((): HTMLElement | Window => {
-    if (scrollContainerRef.current) return scrollContainerRef.current;
-
-    // Check if we're inside a ScrollArea component
-    const scrollAreaViewport = document.querySelector(
-      '[data-slot="scroll-area-viewport"]',
-    ) as HTMLElement | null;
-
-    if (scrollAreaViewport) {
-      scrollContainerRef.current = scrollAreaViewport;
-      return scrollAreaViewport;
-    }
-
-    return window;
-  }, []);
-
   // Check if we should show the sticky nav based on scroll position
   const updateVisibility = useCallback(() => {
-    const container = getScrollContainer();
-    const scrollTop =
-      container instanceof Window ? container.scrollY : container.scrollTop;
     // Show sticky nav as soon as user starts scrolling (small threshold to avoid flicker)
-    setIsVisible(scrollTop > 10);
-  }, [getScrollContainer]);
+    setIsVisible(window.scrollY > 10);
+  }, []);
 
   // Determine which section is currently in view
   const updateActiveSection = useCallback(() => {
@@ -150,17 +129,9 @@ export function EventStickyNav({
     // Initial check
     handleScroll();
 
-    // Get the scroll container and attach listener
-    const container = getScrollContainer();
-
-    if (container instanceof Window) {
-      container.addEventListener("scroll", handleScroll, { passive: true });
-      return () => container.removeEventListener("scroll", handleScroll);
-    } else {
-      container.addEventListener("scroll", handleScroll, { passive: true });
-      return () => container.removeEventListener("scroll", handleScroll);
-    }
-  }, [updateVisibility, updateActiveSection, getScrollContainer]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [updateVisibility, updateActiveSection]);
 
   // Scroll to section handler
   const scrollToSection = useCallback(
@@ -177,29 +148,16 @@ export function EventStickyNav({
         clearTimeout(scrollTimeoutRef.current);
       }
 
-      const container = getScrollContainer();
-
-      if (container instanceof Window) {
-        const top =
-          section.getBoundingClientRect().top +
-          container.scrollY -
-          SCROLL_OFFSET;
-        container.scrollTo({ top, behavior: "smooth" });
-      } else {
-        const containerRect = container.getBoundingClientRect();
-        const sectionRect = section.getBoundingClientRect();
-        const scrollTop = container.scrollTop;
-        const top =
-          sectionRect.top - containerRect.top + scrollTop - SCROLL_OFFSET;
-        container.scrollTo({ top, behavior: "smooth" });
-      }
+      const top =
+        section.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+      window.scrollTo({ top, behavior: "smooth" });
 
       // Allow scroll detection to resume after animation completes
       scrollTimeoutRef.current = setTimeout(() => {
         isScrollingToSection.current = false;
       }, 800);
     },
-    [getScrollContainer, setActiveSection],
+    [setActiveSection],
   );
 
   // Cleanup timeout on unmount

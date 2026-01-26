@@ -46,22 +46,27 @@ function DataTable({
   children,
   ...props
 }: DataTableProps) {
-  const table = (
-    <div className="overflow-x-auto">
+  if (variant === "minimal") {
+    return (
+      <div className="overflow-x-auto">
+        <table
+          className={cn("w-full table-auto text-left text-sm", className)}
+          {...props}
+        >
+          {children}
+        </table>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full min-w-0 overflow-x-auto rounded-md border border-border/70 bg-card/60">
       <table
         className={cn("w-full table-auto text-left text-sm", className)}
         {...props}
       >
         {children}
       </table>
-    </div>
-  );
-
-  if (variant === "minimal") return table;
-
-  return (
-    <div className="overflow-hidden rounded-md border border-border/70 bg-card/60">
-      {table}
     </div>
   );
 }
@@ -132,7 +137,13 @@ function DataTableRow({
 
 function DataTableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
-    <th className={cn("px-3 py-3 font-medium sm:px-4", className)} {...props} />
+    <th
+      className={cn(
+        "whitespace-nowrap px-3 py-3 font-medium sm:px-4",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
@@ -141,7 +152,12 @@ function DataTableHead({ className, ...props }: React.ComponentProps<"th">) {
 // ============================================================================
 
 function DataTableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return <td className={cn("px-3 py-3 sm:px-4", className)} {...props} />;
+  return (
+    <td
+      className={cn("whitespace-nowrap px-3 py-3 sm:px-4", className)}
+      {...props}
+    />
+  );
 }
 
 // ============================================================================

@@ -24,6 +24,7 @@ import type {
   TeamRosterData,
   EditModeInvoice,
   EditModeLineItem,
+  MemberChange,
 } from "./types";
 
 type UseRegistrationEditProps = {
@@ -64,6 +65,8 @@ export function useRegistrationEdit({
   const [modifiedRosters, setModifiedRosters] = useState<
     Map<string, TeamMember[]>
   >(new Map());
+  // Track individual member changes (additions/removals from rosters)
+  const [memberChanges, setMemberChanges] = useState<MemberChange[]>([]);
 
   // Persistent storage for registration changes
   const { isLoaded, savedChanges, saveChanges, clearChanges } =
@@ -399,6 +402,65 @@ export function useRegistrationEdit({
 
     const isAddedTeam = addedTeams.some((t) => t.id === team.id);
 
+    // Get the previous members for comparison
+    const previousMembers = team.members ?? [];
+    const previousMemberNames = new Set(
+      previousMembers.map(
+        (m) => m.name ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim(),
+      ),
+    );
+    const newMemberNames = new Set(members.map((m) => m.name ?? ""));
+
+    // Find removed members (in previous but not in new)
+    const removedMembers = previousMembers.filter((m) => {
+      const name = m.name ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim();
+      return !newMemberNames.has(name);
+    });
+
+    // Find added members (in new but not in previous)
+    const addedMembersList = members.filter((m) => {
+      return !previousMemberNames.has(m.name ?? "");
+    });
+
+    // Update member changes, removing old changes for this team and adding new ones
+    setMemberChanges((prev) => {
+      // Filter out old changes for this team
+      const filtered = prev.filter(
+        (c) => !c.id.startsWith(`member-change-${team.id}-`),
+      );
+
+      // Add new changes
+      const newChanges: MemberChange[] = [];
+
+      removedMembers.forEach((m, idx) => {
+        const memberName =
+          m.name ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim();
+        newChanges.push({
+          id: `member-change-${team.id}-removed-${idx}`,
+          type: "member-removed",
+          memberName,
+          teamName: team.name,
+          teamDivision: team.division,
+          previousCount: previousMembers.length,
+          newCount: members.length,
+        });
+      });
+
+      addedMembersList.forEach((m, idx) => {
+        newChanges.push({
+          id: `member-change-${team.id}-added-${idx}`,
+          type: "member-added",
+          memberName: m.name ?? "Unknown",
+          teamName: team.name,
+          teamDivision: team.division,
+          previousCount: previousMembers.length,
+          newCount: members.length,
+        });
+      });
+
+      return [...filtered, ...newChanges];
+    });
+
     if (isAddedTeam) {
       setAddedTeams((prev) =>
         prev.map((t) =>
@@ -475,6 +537,7 @@ export function useRegistrationEdit({
     setAddedTeams([]);
     setRemovedTeamIds(new Set());
     setModifiedRosters(new Map());
+    setMemberChanges([]);
     toast.success("Changes discarded", {
       description: "Your registration has been reset to its original state.",
     });
@@ -485,6 +548,7 @@ export function useRegistrationEdit({
     // State
     addedTeams,
     removedTeamIds,
+    memberChanges,
     teamsByDivision,
     editModeInvoice,
     savedChanges,

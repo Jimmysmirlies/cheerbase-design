@@ -209,7 +209,12 @@ export function buildInvoiceTeamEntries(
   const scopedRegistrations = clubData.registrations.filter((reg) => {
     if (reg.eventId !== eventId) return false;
     if (scope === "registration" && options?.registrationId) {
-      return reg.id === options.registrationId;
+      // Match by registration ID or by _parentRegistrationId for multi-team invoices
+      const targetId = options.registrationId;
+      return (
+        reg.id === targetId ||
+        reg._parentRegistrationId === targetId
+      );
     }
     return true;
   });
@@ -296,11 +301,19 @@ export function buildInvoiceDataFromEntries(
   options?: BuildInvoiceOptions,
 ): InvoiceData {
   const orderVersion = options?.orderVersion ?? 1;
-  const invoiceId = normalizeInvoiceId(
-    options?.invoiceId,
-    `${registration.id}:${registration.eventId}`,
-  );
-  const invoiceNumber = formatInvoiceNumber(invoiceId, orderVersion);
+
+  // Use explicit invoice number from registration if available,
+  // otherwise fall back to hash-based generation for backwards compatibility
+  let invoiceNumber: string;
+  if (registration.invoiceNumber) {
+    invoiceNumber = registration.invoiceNumber;
+  } else {
+    const invoiceId = normalizeInvoiceId(
+      options?.invoiceId,
+      `${registration.id}:${registration.eventId}`,
+    );
+    invoiceNumber = formatInvoiceNumber(invoiceId, orderVersion);
+  }
 
   const entriesByDivision = groupEntriesByDivision(entries);
   const divisionPricing = ensureDivisionPricing(

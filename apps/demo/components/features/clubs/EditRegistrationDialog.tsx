@@ -27,7 +27,7 @@ export function EditRegistrationDialog({
 
   const handleConfirm = () => {
     onOpenChange(false);
-    router.push(`/clubs/registrations/${registrationId}?mode=edit`);
+    router.push(`/clubs/registrations/${registrationId}/edit`);
   };
 
   return (

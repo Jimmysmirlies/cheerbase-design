@@ -5,12 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   ClipboardListIcon,
+  ReceiptTextIcon,
   Settings2Icon,
   UserIcon,
   UsersIcon,
 } from "lucide-react";
-
-import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
 
 import { NavBar } from "@/components/layout/NavBar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -42,6 +41,13 @@ const clubNavSections = [
         href: "/clubs/registrations",
         nickname: "registrations-hub",
       },
+      {
+        key: "invoices",
+        label: "Invoices",
+        icon: <ReceiptTextIcon className="size-4" />,
+        href: "/clubs/invoices",
+        nickname: "invoices-hub",
+      },
     ],
   },
   {
@@ -69,6 +75,7 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
 
   const active = useMemo(() => {
     if (!pathname) return "teams";
+    if (pathname.includes("/invoices")) return "invoices";
     if (pathname.includes("/registrations")) return "registrations";
     if (pathname.includes("/settings")) return "settings";
     return "teams";
@@ -130,7 +137,7 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
           onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
         />
       </div>
-      <div className="flex w-full overflow-visible">
+      <div className="flex w-full overflow-hidden">
         <Sidebar
           active={active}
           navSections={clubNavSections}
@@ -141,12 +148,12 @@ export default function ClubLayout({ children }: { children: ReactNode }) {
           isCollapsed={isSidebarCollapsed}
           onCollapseChange={setIsSidebarCollapsed}
         />
-        <ScrollArea
-          className="flex-1"
+        <div
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-hide"
           style={{ height: `calc(100vh - ${navHeight}px)` }}
         >
-          <main className="p-8">{children}</main>
-        </ScrollArea>
+          <main className="min-w-0 w-full p-4 sm:p-6 lg:p-8">{children}</main>
+        </div>
       </div>
     </div>
   );

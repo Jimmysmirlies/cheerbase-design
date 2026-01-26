@@ -37,6 +37,10 @@ export type Registration = {
   snapshotTakenAt?: string;
   snapshotSourceTeamId?: string;
   snapshotRosterHash?: string;
+  /** Invoice number in format ORG-YYEE-CNNN-VV (e.g., SAP-2602-C003-01) */
+  invoiceNumber?: string;
+  /** Parent registration ID for grouping multi-team registrations on same invoice */
+  _parentRegistrationId?: string;
 };
 
 export type MemberRole = "coach" | "athlete" | "reservist" | "chaperone";

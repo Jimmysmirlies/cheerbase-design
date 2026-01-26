@@ -23,8 +23,6 @@ import {
   ZapIcon,
 } from "lucide-react";
 
-import { ScrollArea } from "@workspace/ui/shadcn/scroll-area";
-
 import { Sidebar } from "@/components/layout/Sidebar";
 import { NavBar } from "@/components/layout/NavBar";
 
@@ -265,12 +263,12 @@ export default function StyleGuideLayout({
           isMobile={isMobile}
           onClose={() => setIsSidebarOpen(false)}
         />
-        <ScrollArea
-          className="flex-1"
+        <div
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-hide"
           style={{ height: `calc(100vh - ${navHeight}px)` }}
         >
-          <main>{children}</main>
-        </ScrollArea>
+          <main className="min-w-0 w-full">{children}</main>
+        </div>
       </div>
     </div>
   );

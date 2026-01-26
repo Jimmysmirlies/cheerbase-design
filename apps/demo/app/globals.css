@@ -173,6 +173,18 @@ body {
   color: #fecaca !important;
 }
 
+/* Global scrollbar hiding for body/html */
+html,
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
 /* Scrollbar hiding utility */
 .scrollbar-hide {
   -ms-overflow-style: none;

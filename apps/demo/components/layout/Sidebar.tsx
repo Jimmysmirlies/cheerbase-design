@@ -193,7 +193,12 @@ export function Sidebar({
       {!isCollapsed && headerSlot && <div className="mb-5">{headerSlot}</div>}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto">
+      <nav
+        className={cn(
+          "flex-1",
+          isCollapsed ? "overflow-visible" : "overflow-y-auto",
+        )}
+      >
         {navSections.map((section, index) => (
           <div
             key={section.label ?? section.nickname ?? `section-${index}`}

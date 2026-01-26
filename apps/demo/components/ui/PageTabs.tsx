@@ -16,8 +16,6 @@ interface PageTabsProps {
   className?: string;
   /** Visual variant: 'underline' (default) or 'outline' (button style) */
   variant?: "underline" | "outline";
-  /** Accent color for the active underline (CSS color value or gradient) */
-  accentColor?: string;
 }
 
 export function PageTabs({
@@ -26,7 +24,6 @@ export function PageTabs({
   onValueChange,
   className = "",
   variant = "underline",
-  accentColor,
 }: PageTabsProps) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -136,19 +133,11 @@ export function PageTabs({
                     )
                   : cn(
                       "relative px-1 pb-3",
-                      // Only use text-foreground class when no accentColor, otherwise use inline style
-                      isActive && !accentColor
+                      isActive
                         ? "text-foreground"
-                        : !isActive
-                          ? "text-muted-foreground hover:text-foreground"
-                          : "",
+                        : "text-muted-foreground hover:text-foreground",
                     ),
               )}
-              style={
-                !isOutline && isActive && accentColor
-                  ? { color: accentColor }
-                  : undefined
-              }
             >
               {tab.label}
             </button>
@@ -157,11 +146,10 @@ export function PageTabs({
         {/* Animated underline for active tab */}
         {!isOutline && underlineStyle.width > 0 && (
           <span
-            className="pointer-events-none absolute bottom-0 h-[3px] rounded-full transition-all duration-300 ease-out"
+            className="pointer-events-none absolute bottom-0 h-[3px] rounded-full bg-foreground transition-all duration-300 ease-out"
             style={{
               left: underlineStyle.left,
               width: underlineStyle.width,
-              background: accentColor || "currentColor",
             }}
           />
         )}

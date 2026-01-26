@@ -1,0 +1,1 @@
+export { EditRegistrationPageContent } from "./EditRegistrationPageContent";

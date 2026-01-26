@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@workspace/ui/shadcn/card";
 import { Badge } from "@workspace/ui/shadcn/badge";
 import { Button } from "@workspace/ui/shadcn/button";
@@ -33,7 +34,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { useOrganizer } from "@/hooks/useOrganizer";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useClubData } from "@/hooks/useClubData";
 import {
   DataTable,
   DataTableHeader,
@@ -44,63 +46,283 @@ import {
   DataTableColumnHeader,
   type SortDirection as TableSortDirection,
 } from "@/components/ui/tables";
-import {
-  getOrganizerRegistrations,
-  getRegistrationTableData,
-  getInvoiceHistory,
-  formatCurrency,
-  type RegistrationStatus,
-} from "@/data/events/analytics";
-import {
-  getEventsByOrganizerId,
-  parseEventDate,
-  isEventInSeason,
-} from "@/data/events/selectors";
-import { PageTitle } from "@/components/layout/PageTitle";
+import { formatCurrency, type RegistrationStatus } from "@/data/events/analytics";
 import { Section } from "@/components/layout/Section";
-import { SeasonDropdown } from "@/components/layout/SeasonDropdown";
-import { useSeason } from "@/components/providers/SeasonProvider";
 import { PageTabs } from "@/components/ui/PageTabs";
-import { type BrandGradient } from "@/lib/gradients";
+import { CardSkeleton } from "@/components/ui";
 import { fadeInUp } from "@/lib/animations";
-import { type InvoiceHistoryEntry } from "@/data/events/analytics";
+import type { ClubData, RegisteredTeamDTO } from "@/lib/club-data";
+import { formatHashBasedInvoiceNumber } from "@/lib/invoice-numbers";
 
 type InvoicesTab = "registrations" | "history";
 
+// Types for processed invoice data
+// Each invoice can have multiple teams (when registered together)
+type InvoiceTableRow = {
+  id: string; // Parent registration ID or single registration ID
+  teamNames: string[]; // All teams on this invoice
+  teamIds: string[];
+  eventName: string;
+  eventId: string;
+  organizer: string;
+  invoiceNumber: string;
+  invoiceHref: string;
+  invoiceTotal: number;
+  paymentDeadline: Date;
+  paymentDeadlineFormatted: string;
+  status: RegistrationStatus;
+  teamCount: number;
+};
+
+type InvoiceHistoryEntry = {
+  id: string;
+  invoiceNumber: string;
+  teamNames: string[];
+  teamIds: string[];
+  eventName: string;
+  eventId: string;
+  organizer: string;
+  paidAt: Date;
+  paidAtFormatted: string;
+  invoiceTotal: number;
+  paidByOrganizer: string;
+  paymentNote: string;
+  teamCount: number;
+};
+
+type OverviewData = {
+  totalRegistrations: number;
+  totalParticipants: number;
+  revenuePaid: number;
+  revenueOutstanding: number;
+  overdueAmount: number;
+};
+
+// Process club data into invoice table rows
+function processClubDataForInvoices(data: ClubData | null): {
+  overview: OverviewData;
+  tableData: InvoiceTableRow[];
+  historyData: InvoiceHistoryEntry[];
+} {
+  if (!data) {
+    return {
+      overview: { totalRegistrations: 0, totalParticipants: 0, revenuePaid: 0, revenueOutstanding: 0, overdueAmount: 0 },
+      tableData: [],
+      historyData: [],
+    };
+  }
+
+  const { registrations, registeredTeams } = data;
+  const now = new Date();
+
+  // Build team lookup from registered teams
+  const teamMap = new Map<string, RegisteredTeamDTO>();
+  registeredTeams.forEach((rt) => {
+    teamMap.set(rt.id, rt);
+    if (rt.sourceTeamId) {
+      teamMap.set(`rt-${rt.sourceTeamId}`, rt);
+    }
+  });
+
+  // Calculate overview
+  let totalRegistrations = 0;
+  let totalParticipants = 0;
+  let revenuePaid = 0;
+  let revenueOutstanding = 0;
+  let overdueAmount = 0;
+
+  registrations.forEach((reg) => {
+    totalRegistrations++;
+    totalParticipants += reg.athletes ?? 0;
+    const amount = reg.invoiceTotal;
+
+    if (reg.status === "paid") {
+      revenuePaid += amount;
+    } else {
+      revenueOutstanding += amount;
+      if (reg.paymentDeadline) {
+        const deadline = new Date(reg.paymentDeadline);
+        if (deadline < now) {
+          overdueAmount += amount;
+        }
+      }
+    }
+  });
+
+  // Group registrations by parent registration ID (for multi-team invoices)
+  // If no parent, the registration is its own group
+  const invoiceGroups = new Map<string, typeof registrations>();
+
+  registrations.forEach((reg) => {
+    const groupKey = reg._parentRegistrationId ?? reg.id;
+    const existing = invoiceGroups.get(groupKey) ?? [];
+    existing.push(reg);
+    invoiceGroups.set(groupKey, existing);
+  });
+
+  // Build table rows from grouped registrations
+  const tableRows: InvoiceTableRow[] = [];
+
+  invoiceGroups.forEach((groupRegs, groupId) => {
+    // Skip empty groups (should not happen but TypeScript requires check)
+    if (groupRegs.length === 0) return;
+
+    // Use the first registration for shared data (event, organizer, deadline)
+    const firstReg = groupRegs[0]!;
+    const paymentDeadline = firstReg.paymentDeadline ? new Date(firstReg.paymentDeadline) : new Date();
+
+    // Collect all team names and IDs
+    const teamNames: string[] = [];
+    const teamIds: string[] = [];
+    let totalAmount = 0;
+
+    groupRegs.forEach((reg) => {
+      const registeredTeamId = reg.registeredTeamId ?? `rt-${reg.teamId}`;
+      const registeredTeam = teamMap.get(registeredTeamId);
+      const teamName = registeredTeam?.name ?? reg.teamId ?? "Unknown Team";
+      teamNames.push(teamName);
+      teamIds.push(reg.teamId ?? "");
+      totalAmount += reg.invoiceTotal;
+    });
+
+    // Determine status based on payment state
+    let status: RegistrationStatus = "unpaid";
+    const allPaid = groupRegs.every((r) => r.status === "paid");
+    if (allPaid) {
+      status = "paid";
+    } else if (paymentDeadline < now) {
+      status = "overdue";
+    }
+
+    // Use stored invoice number if available, otherwise fall back to legacy hash-based
+    const invoiceNumber =
+      firstReg.invoiceNumber ?? formatHashBasedInvoiceNumber(groupId, firstReg.eventId);
+
+    tableRows.push({
+      id: groupId,
+      teamNames,
+      teamIds,
+      eventName: firstReg.eventName,
+      eventId: firstReg.eventId,
+      organizer: firstReg.organizer,
+      invoiceNumber,
+      invoiceHref: `/clubs/registrations/${groupId}/invoice`,
+      invoiceTotal: totalAmount,
+      paymentDeadline,
+      paymentDeadlineFormatted: paymentDeadline.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      status,
+      teamCount: teamNames.length,
+    });
+  });
+
+  // Sort: unpaid/overdue first, then by deadline
+  tableRows.sort((a, b) => {
+    if (a.status !== "paid" && b.status === "paid") return -1;
+    if (a.status === "paid" && b.status !== "paid") return 1;
+    return a.paymentDeadline.getTime() - b.paymentDeadline.getTime();
+  });
+
+  // Build history rows (paid invoices only) - grouped by parent registration
+  const historyRows: InvoiceHistoryEntry[] = [];
+
+  invoiceGroups.forEach((groupRegs, groupId) => {
+    // Skip empty groups
+    if (groupRegs.length === 0) return;
+
+    // Only include fully paid invoices
+    const allPaid = groupRegs.every((r) => r.status === "paid" && r.paidAt);
+    if (!allPaid) return;
+
+    const firstReg = groupRegs[0]!;
+    const paidAt = new Date(firstReg.paidAt!);
+
+    // Collect all team names and IDs
+    const teamNames: string[] = [];
+    const teamIds: string[] = [];
+    let totalAmount = 0;
+
+    groupRegs.forEach((reg) => {
+      const registeredTeamId = reg.registeredTeamId ?? `rt-${reg.teamId}`;
+      const registeredTeam = teamMap.get(registeredTeamId);
+      const teamName = registeredTeam?.name ?? reg.teamId ?? "Unknown Team";
+      teamNames.push(teamName);
+      teamIds.push(reg.teamId ?? "");
+      totalAmount += reg.invoiceTotal;
+    });
+
+    // Use stored invoice number if available, otherwise fall back to legacy hash-based
+    const invoiceNumber =
+      firstReg.invoiceNumber ?? formatHashBasedInvoiceNumber(groupId, firstReg.eventId);
+
+    historyRows.push({
+      id: groupId,
+      invoiceNumber,
+      teamNames,
+      teamIds,
+      eventName: firstReg.eventName,
+      eventId: firstReg.eventId,
+      organizer: firstReg.organizer,
+      paidAt,
+      paidAtFormatted: paidAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      invoiceTotal: totalAmount,
+      paidByOrganizer: "Unknown", // Not available in RegistrationDTO
+      paymentNote: "", // Not available in RegistrationDTO
+      teamCount: teamNames.length,
+    });
+  });
+
+  // Sort by paid date (newest first)
+  historyRows.sort((a, b) => b.paidAt.getTime() - a.paidAt.getTime());
+
+  return {
+    overview: { totalRegistrations, totalParticipants, revenuePaid, revenueOutstanding, overdueAmount },
+    tableData: tableRows,
+    historyData: historyRows,
+  };
+}
+
 type ColumnKey =
-  | "teamName"
-  | "clubName"
-  | "submittedAt"
   | "event"
+  | "teamName"
+  | "organizer"
   | "invoice"
+  | "dueDate"
+  | "amount"
   | "status";
 
 const COLUMN_LABELS: Record<ColumnKey, string> = {
-  teamName: "Team Name",
-  clubName: "Club",
-  submittedAt: "Submitted",
   event: "Event",
+  teamName: "Team",
+  organizer: "Organizer",
   invoice: "Invoice",
+  dueDate: "Due Date",
+  amount: "Amount",
   status: "Status",
 };
 
 type HistoryColumnKey =
-  | "teamName"
-  | "clubOwner"
   | "event"
+  | "teamName"
+  | "organizer"
   | "invoice"
-  | "paidBy"
-  | "note"
-  | "date";
+  | "amount"
+  | "paidDate";
 
 const HISTORY_COLUMN_LABELS: Record<HistoryColumnKey, string> = {
-  teamName: "Team Name",
-  clubOwner: "Club Owner",
   event: "Event",
+  teamName: "Team",
+  organizer: "Organizer",
   invoice: "Invoice",
-  paidBy: "Paid By",
-  note: "Note",
-  date: "Date",
+  amount: "Amount",
+  paidDate: "Paid Date",
 };
 
 function getStatusBadgeVariant(status: RegistrationStatus) {
@@ -114,102 +336,37 @@ function getStatusBadgeVariant(status: RegistrationStatus) {
   }
 }
 
-export default function OrganizerInvoicesPage() {
-  const { organizer, organizerId, isLoading } = useOrganizer();
-  const [organizerGradient, setOrganizerGradient] = useState<
-    BrandGradient | undefined
-  >(undefined);
-  const { selectedSeason, isAllSeasons } = useSeason();
+export default function ClubInvoicesPage() {
+  const { user, status: authStatus } = useAuth();
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<InvoicesTab>("registrations");
   const [historySearch, setHistorySearch] = useState("");
   const [selectedPayment, setSelectedPayment] =
     useState<InvoiceHistoryEntry | null>(null);
+  const [selectedRegistration, setSelectedRegistration] =
+    useState<InvoiceTableRow | null>(null);
 
-  const organizerEvents = useMemo(
-    () => (organizerId ? getEventsByOrganizerId(organizerId) : []),
-    [organizerId],
-  );
-
-  const seasonEventIds = useMemo(() => {
-    if (isAllSeasons) {
-      return new Set(organizerEvents.map((event) => event.id));
+  // Auth check
+  useEffect(() => {
+    if (authStatus === "loading") return;
+    if (!user) {
+      router.replace("/");
+      return;
     }
+    if (user.role !== "club_owner") {
+      router.replace(user.role === "organizer" ? "/organizer" : "/");
+    }
+  }, [user, authStatus, router]);
 
-    if (!selectedSeason) return new Set<string>();
+  // Use the same data source as the registrations page
+  const { data: clubData, loading: clubDataLoading } = useClubData(user?.id);
 
-    const eventIds = new Set<string>();
-    organizerEvents.forEach((event) => {
-      const eventDate = parseEventDate(event.date);
-      if (
-        isEventInSeason(eventDate, selectedSeason.start, selectedSeason.end)
-      ) {
-        eventIds.add(event.id);
-      }
-    });
-    return eventIds;
-  }, [organizerEvents, selectedSeason, isAllSeasons]);
-
-  const overview = useMemo(() => {
-    if (!organizerId) return null;
-
-    const allRegistrations = getOrganizerRegistrations(organizerId);
-    const filteredRegistrations = allRegistrations.filter((reg) =>
-      seasonEventIds.has(reg.eventId),
-    );
-
-    const now = new Date();
-    let totalRegistrations = 0;
-    let totalParticipants = 0;
-    let revenuePaid = 0;
-    let revenueOutstanding = 0;
-    let overdueAmount = 0;
-
-    filteredRegistrations.forEach((reg) => {
-      totalRegistrations++;
-      totalParticipants += reg.athletes;
-      const amount = parseFloat(reg.invoiceTotal) || 0;
-
-      if (reg.status === "paid") {
-        revenuePaid += amount;
-      } else {
-        revenueOutstanding += amount;
-        const deadline = new Date(reg.paymentDeadline);
-        if (deadline < now) {
-          overdueAmount += amount;
-        }
-      }
-    });
-
-    return {
-      totalRegistrations,
-      totalParticipants,
-      revenuePaid,
-      revenueOutstanding,
-      overdueAmount,
-    };
-  }, [organizerId, seasonEventIds]);
-
-  const tableData = useMemo(() => {
-    if (!organizerId) return [];
-    const allData = getRegistrationTableData(organizerId);
-    return allData.filter((row) => seasonEventIds.has(row.eventId));
-  }, [organizerId, seasonEventIds]);
-
-  const historyData = useMemo(() => {
-    if (!organizerId) return [];
-    const allHistory = getInvoiceHistory(organizerId);
-    return allHistory.filter((entry) => seasonEventIds.has(entry.eventId));
-  }, [organizerId, seasonEventIds]);
-
-  const [historyTeamNameSort, setHistoryTeamNameSort] =
-    useState<TableSortDirection>(null);
-  const [historyEventSort, setHistoryEventSort] =
-    useState<TableSortDirection>(null);
-  const [historyDateSort, setHistoryDateSort] =
-    useState<TableSortDirection>("desc");
-  const [historyPaidBySort, setHistoryPaidBySort] =
-    useState<TableSortDirection>(null);
+  // Process club data into invoice format
+  const { overview, tableData, historyData } = useMemo(
+    () => processClubDataForInvoices(clubData),
+    [clubData],
+  );
 
   // Screen size detection for responsive columns
   const [screenSize, setScreenSize] = useState<"sm" | "md" | "lg">("lg");
@@ -237,38 +394,46 @@ export default function OrganizerInvoicesPage() {
   const getResponsiveColumns = useCallback((): Set<ColumnKey> => {
     if (screenSize === "lg") {
       return new Set([
-        "teamName",
-        "clubName",
-        "submittedAt",
         "event",
+        "teamName",
+        "organizer",
         "invoice",
+        "dueDate",
+        "amount",
         "status",
       ]);
     }
     if (screenSize === "md") {
-      return new Set(["teamName", "event", "invoice", "status"]);
+      return new Set(["event", "teamName", "invoice", "amount", "status"]);
     }
-    return new Set(["teamName", "invoice", "status"]);
+    return new Set(["event", "amount", "status"]);
   }, [screenSize]);
 
   const getResponsiveHistoryColumns = useCallback((): Set<HistoryColumnKey> => {
     if (screenSize === "lg") {
-      return new Set(["teamName", "event", "invoice", "note", "date"]);
+      return new Set([
+        "event",
+        "teamName",
+        "organizer",
+        "invoice",
+        "amount",
+        "paidDate",
+      ]);
     }
     if (screenSize === "md") {
-      return new Set(["teamName", "event", "invoice"]);
+      return new Set(["event", "teamName", "invoice", "amount"]);
     }
-    return new Set(["teamName", "invoice"]);
+    return new Set(["event", "amount"]);
   }, [screenSize]);
 
   // Table state - synced with screen size
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
-    new Set(["teamName", "invoice", "status"]),
+    new Set(["event", "amount", "status"]),
   );
 
   const [historyVisibleColumns, setHistoryVisibleColumns] = useState<
     Set<HistoryColumnKey>
-  >(new Set(["teamName", "invoice"]));
+  >(new Set(["event", "amount"]));
 
   // Sync visible columns with screen size on mount and resize
   useEffect(() => {
@@ -279,36 +444,54 @@ export default function OrganizerInvoicesPage() {
     setHistoryVisibleColumns(getResponsiveHistoryColumns());
   }, [getResponsiveHistoryColumns]);
 
-  const [historySelectedTeams, setHistorySelectedTeams] = useState<Set<string>>(
-    new Set(),
-  );
-  const [historySelectedEvents, setHistorySelectedEvents] = useState<
-    Set<string>
-  >(new Set());
-  const [historySelectedPaidBy, setHistorySelectedPaidBy] = useState<
-    Set<string>
-  >(new Set());
-
+  // Sorting state
   const [teamNameSort, setTeamNameSort] = useState<TableSortDirection>(null);
-  const [submittedSort, setSubmittedSort] =
-    useState<TableSortDirection>("desc");
   const [eventSort, setEventSort] = useState<TableSortDirection>(null);
+  const [invoiceSort, setInvoiceSort] = useState<TableSortDirection>(null);
+  const [dueDateSort, setDueDateSort] = useState<TableSortDirection>("asc");
   const [statusSort, setStatusSort] = useState<TableSortDirection>(null);
 
+  const [historyTeamNameSort, setHistoryTeamNameSort] =
+    useState<TableSortDirection>(null);
+  const [historyEventSort, setHistoryEventSort] =
+    useState<TableSortDirection>(null);
+  const [historyPaidDateSort, setHistoryPaidDateSort] =
+    useState<TableSortDirection>("desc");
+
+  // Filter state
   const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
   const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
     new Set(["paid", "unpaid", "overdue"]),
   );
 
+  const [historySelectedTeams, setHistorySelectedTeams] = useState<Set<string>>(
+    new Set(),
+  );
+  const [historySelectedEvents, setHistorySelectedEvents] = useState<
+    Set<string>
+  >(new Set());
+
+  // Initialize filters
   useEffect(() => {
-    setSelectedTeams(new Set(tableData.map((row) => row.teamName)));
+    // Flatten all team names from all invoices
+    const allTeamNames = tableData.flatMap((row) => row.teamNames);
+    setSelectedTeams(new Set(allTeamNames));
     setSelectedEvents(new Set(tableData.map((row) => row.eventName)));
   }, [tableData]);
 
+  useEffect(() => {
+    const allHistoryTeamNames = historyData.flatMap((entry) => entry.teamNames);
+    setHistorySelectedTeams(new Set(allHistoryTeamNames));
+    setHistorySelectedEvents(
+      new Set(historyData.map((entry) => entry.eventName)),
+    );
+  }, [historyData]);
+
+  // Filter options
   const teamNameOptions = useMemo(
     () =>
-      [...new Set(tableData.map((row) => row.teamName))]
+      [...new Set(tableData.flatMap((row) => row.teamNames))]
         .sort()
         .map((name) => ({ value: name, label: name })),
     [tableData],
@@ -329,21 +512,9 @@ export default function OrganizerInvoicesPage() {
     [],
   );
 
-  useEffect(() => {
-    setHistorySelectedTeams(
-      new Set(historyData.map((entry) => entry.teamName)),
-    );
-    setHistorySelectedEvents(
-      new Set(historyData.map((entry) => entry.eventName)),
-    );
-    setHistorySelectedPaidBy(
-      new Set(historyData.map((entry) => entry.paidByOrganizer)),
-    );
-  }, [historyData]);
-
   const historyTeamNameOptions = useMemo(
     () =>
-      [...new Set(historyData.map((entry) => entry.teamName))]
+      [...new Set(historyData.flatMap((entry) => entry.teamNames))]
         .sort()
         .map((name) => ({ value: name, label: name })),
     [historyData],
@@ -355,93 +526,40 @@ export default function OrganizerInvoicesPage() {
         .map((name) => ({ value: name, label: name })),
     [historyData],
   );
-  const historyPaidByOptions = useMemo(
-    () =>
-      [...new Set(historyData.map((entry) => entry.paidByOrganizer))]
-        .sort()
-        .map((name) => ({ value: name, label: name })),
-    [historyData],
-  );
 
-  const filteredHistoryData = useMemo(() => {
-    let data = [...historyData];
-
-    data = data.filter((entry) => historySelectedTeams.has(entry.teamName));
-    data = data.filter((entry) => historySelectedEvents.has(entry.eventName));
-    data = data.filter((entry) =>
-      historySelectedPaidBy.has(entry.paidByOrganizer),
-    );
-
-    if (historySearch.trim()) {
-      const searchLower = historySearch.toLowerCase();
-      data = data.filter(
-        (entry) =>
-          entry.invoiceNumber.toLowerCase().includes(searchLower) ||
-          entry.teamName.toLowerCase().includes(searchLower) ||
-          entry.clubOwner.toLowerCase().includes(searchLower) ||
-          entry.eventName.toLowerCase().includes(searchLower),
-      );
-    }
-
-    if (historyTeamNameSort) {
-      data.sort((a, b) => {
-        const diff = a.teamName.localeCompare(b.teamName);
-        return historyTeamNameSort === "asc" ? diff : -diff;
-      });
-    } else if (historyEventSort) {
-      data.sort((a, b) => {
-        const diff = a.eventName.localeCompare(b.eventName);
-        return historyEventSort === "asc" ? diff : -diff;
-      });
-    } else if (historyPaidBySort) {
-      data.sort((a, b) => {
-        const diff = a.paidByOrganizer.localeCompare(b.paidByOrganizer);
-        return historyPaidBySort === "asc" ? diff : -diff;
-      });
-    } else if (historyDateSort) {
-      data.sort((a, b) => {
-        const diff = a.changeDate.getTime() - b.changeDate.getTime();
-        return historyDateSort === "asc" ? diff : -diff;
-      });
-    }
-
-    return data;
-  }, [
-    historyData,
-    historySelectedTeams,
-    historySelectedEvents,
-    historySelectedPaidBy,
-    historySearch,
-    historyTeamNameSort,
-    historyEventSort,
-    historyPaidBySort,
-    historyDateSort,
-  ]);
-
+  // Filtered and sorted data
   const filteredData = useMemo(() => {
     let data = [...tableData];
 
-    data = data.filter((row) => selectedTeams.has(row.teamName));
+    // Show invoice if ANY of its teams match the selected teams
+    data = data.filter((row) => row.teamNames.some((name) => selectedTeams.has(name)));
     data = data.filter((row) => selectedEvents.has(row.eventName));
     data = data.filter((row) => selectedStatuses.has(row.status));
 
     if (teamNameSort) {
       data.sort((a, b) => {
-        const diff = a.teamName.localeCompare(b.teamName);
+        // Sort by first team name in the group
+        const diff = (a.teamNames[0] ?? "").localeCompare(b.teamNames[0] ?? "");
         return teamNameSort === "asc" ? diff : -diff;
-      });
-    } else if (submittedSort) {
-      data.sort((a, b) => {
-        const diff = a.submittedAt.getTime() - b.submittedAt.getTime();
-        return submittedSort === "asc" ? diff : -diff;
       });
     } else if (eventSort) {
       data.sort((a, b) => {
         const diff = a.eventName.localeCompare(b.eventName);
         return eventSort === "asc" ? diff : -diff;
       });
+    } else if (invoiceSort) {
+      data.sort((a, b) => {
+        const diff = a.invoiceNumber.localeCompare(b.invoiceNumber);
+        return invoiceSort === "asc" ? diff : -diff;
+      });
+    } else if (dueDateSort) {
+      data.sort((a, b) => {
+        const diff =
+          a.paymentDeadline.getTime() - b.paymentDeadline.getTime();
+        return dueDateSort === "asc" ? diff : -diff;
+      });
     } else if (statusSort) {
-      const statusOrder = { paid: 0, unpaid: 1, overdue: 2 };
+      const statusOrder = { overdue: 0, unpaid: 1, paid: 2 };
       data.sort((a, b) => {
         const diff = statusOrder[a.status] - statusOrder[b.status];
         return statusSort === "asc" ? diff : -diff;
@@ -455,24 +573,65 @@ export default function OrganizerInvoicesPage() {
     selectedEvents,
     selectedStatuses,
     teamNameSort,
-    submittedSort,
     eventSort,
+    invoiceSort,
+    dueDateSort,
     statusSort,
   ]);
 
+  const filteredHistoryData = useMemo(() => {
+    let data = [...historyData];
+
+    // Show invoice if ANY of its teams match the selected teams
+    data = data.filter((entry) => entry.teamNames.some((name) => historySelectedTeams.has(name)));
+    data = data.filter((entry) => historySelectedEvents.has(entry.eventName));
+
+    if (historySearch.trim()) {
+      const searchLower = historySearch.toLowerCase();
+      data = data.filter(
+        (entry) =>
+          entry.invoiceNumber.toLowerCase().includes(searchLower) ||
+          entry.teamNames.some((name) => name.toLowerCase().includes(searchLower)) ||
+          entry.eventName.toLowerCase().includes(searchLower) ||
+          entry.organizer.toLowerCase().includes(searchLower),
+      );
+    }
+
+    if (historyTeamNameSort) {
+      data.sort((a, b) => {
+        const diff = (a.teamNames[0] ?? "").localeCompare(b.teamNames[0] ?? "");
+        return historyTeamNameSort === "asc" ? diff : -diff;
+      });
+    } else if (historyEventSort) {
+      data.sort((a, b) => {
+        const diff = a.eventName.localeCompare(b.eventName);
+        return historyEventSort === "asc" ? diff : -diff;
+      });
+    } else if (historyPaidDateSort) {
+      data.sort((a, b) => {
+        const diff = a.paidAt.getTime() - b.paidAt.getTime();
+        return historyPaidDateSort === "asc" ? diff : -diff;
+      });
+    }
+
+    return data;
+  }, [
+    historyData,
+    historySelectedTeams,
+    historySelectedEvents,
+    historySearch,
+    historyTeamNameSort,
+    historyEventSort,
+    historyPaidDateSort,
+  ]);
+
+  // Sort handlers
   const handleTeamNameSort = (dir: TableSortDirection) => {
     setTeamNameSort(dir);
     if (dir) {
-      setSubmittedSort(null);
       setEventSort(null);
-      setStatusSort(null);
-    }
-  };
-  const handleSubmittedSort = (dir: TableSortDirection) => {
-    setSubmittedSort(dir);
-    if (dir) {
-      setTeamNameSort(null);
-      setEventSort(null);
+      setInvoiceSort(null);
+      setDueDateSort(null);
       setStatusSort(null);
     }
   };
@@ -480,7 +639,26 @@ export default function OrganizerInvoicesPage() {
     setEventSort(dir);
     if (dir) {
       setTeamNameSort(null);
-      setSubmittedSort(null);
+      setInvoiceSort(null);
+      setDueDateSort(null);
+      setStatusSort(null);
+    }
+  };
+  const handleInvoiceSort = (dir: TableSortDirection) => {
+    setInvoiceSort(dir);
+    if (dir) {
+      setTeamNameSort(null);
+      setEventSort(null);
+      setDueDateSort(null);
+      setStatusSort(null);
+    }
+  };
+  const handleDueDateSort = (dir: TableSortDirection) => {
+    setDueDateSort(dir);
+    if (dir) {
+      setTeamNameSort(null);
+      setEventSort(null);
+      setInvoiceSort(null);
       setStatusSort(null);
     }
   };
@@ -488,13 +666,37 @@ export default function OrganizerInvoicesPage() {
     setStatusSort(dir);
     if (dir) {
       setTeamNameSort(null);
-      setSubmittedSort(null);
       setEventSort(null);
+      setInvoiceSort(null);
+      setDueDateSort(null);
     }
   };
 
+  const handleHistoryTeamNameSort = (dir: TableSortDirection) => {
+    setHistoryTeamNameSort(dir);
+    if (dir) {
+      setHistoryEventSort(null);
+      setHistoryPaidDateSort(null);
+    }
+  };
+  const handleHistoryEventSort = (dir: TableSortDirection) => {
+    setHistoryEventSort(dir);
+    if (dir) {
+      setHistoryTeamNameSort(null);
+      setHistoryPaidDateSort(null);
+    }
+  };
+  const handleHistoryPaidDateSort = (dir: TableSortDirection) => {
+    setHistoryPaidDateSort(dir);
+    if (dir) {
+      setHistoryTeamNameSort(null);
+      setHistoryEventSort(null);
+    }
+  };
+
+  // Column toggle
   const toggleColumn = (column: ColumnKey) => {
-    if (column === "teamName") return;
+    if (column === "event") return; // Event is always visible
 
     setVisibleColumns((prev) => {
       const next = new Set(prev);
@@ -507,79 +709,8 @@ export default function OrganizerInvoicesPage() {
     });
   };
 
-  const hasActiveFilters = useMemo(() => {
-    const allTeamsSelected = selectedTeams.size === teamNameOptions.length;
-    const allEventsSelected = selectedEvents.size === eventOptions.length;
-    const allStatusesSelected = selectedStatuses.size === statusOptions.length;
-    const hasActiveFilters =
-      !allTeamsSelected || !allEventsSelected || !allStatusesSelected;
-
-    // Check if any column is sorted (excluding default submittedSort of "desc")
-    const hasActiveSorts =
-      teamNameSort !== null ||
-      (submittedSort !== null && submittedSort !== "desc") ||
-      eventSort !== null ||
-      statusSort !== null;
-
-    return hasActiveFilters || hasActiveSorts;
-  }, [
-    selectedTeams,
-    selectedEvents,
-    selectedStatuses,
-    teamNameOptions.length,
-    eventOptions.length,
-    statusOptions.length,
-    teamNameSort,
-    submittedSort,
-    eventSort,
-    statusSort,
-  ]);
-
-  const clearFilters = () => {
-    setSelectedTeams(new Set(teamNameOptions.map((opt) => opt.value)));
-    setSelectedEvents(new Set(eventOptions.map((opt) => opt.value)));
-    setSelectedStatuses(new Set(statusOptions.map((opt) => opt.value)));
-    setTeamNameSort(null);
-    setSubmittedSort("desc");
-    setEventSort(null);
-    setStatusSort(null);
-  };
-
-  const handleHistoryTeamNameSort = (dir: TableSortDirection) => {
-    setHistoryTeamNameSort(dir);
-    if (dir) {
-      setHistoryEventSort(null);
-      setHistoryDateSort(null);
-      setHistoryPaidBySort(null);
-    }
-  };
-  const handleHistoryEventSort = (dir: TableSortDirection) => {
-    setHistoryEventSort(dir);
-    if (dir) {
-      setHistoryTeamNameSort(null);
-      setHistoryDateSort(null);
-      setHistoryPaidBySort(null);
-    }
-  };
-  const handleHistoryDateSort = (dir: TableSortDirection) => {
-    setHistoryDateSort(dir);
-    if (dir) {
-      setHistoryTeamNameSort(null);
-      setHistoryEventSort(null);
-      setHistoryPaidBySort(null);
-    }
-  };
-  const handleHistoryPaidBySort = (dir: TableSortDirection) => {
-    setHistoryPaidBySort(dir);
-    if (dir) {
-      setHistoryTeamNameSort(null);
-      setHistoryEventSort(null);
-      setHistoryDateSort(null);
-    }
-  };
-
   const toggleHistoryColumn = (column: HistoryColumnKey) => {
-    if (column === "teamName") return;
+    if (column === "event") return; // Event is always visible
     setHistoryVisibleColumns((prev) => {
       const next = new Set(prev);
       if (next.has(column)) {
@@ -591,34 +722,68 @@ export default function OrganizerInvoicesPage() {
     });
   };
 
+  // Filter status
+  const hasActiveFilters = useMemo(() => {
+    const allTeamsSelected = selectedTeams.size === teamNameOptions.length;
+    const allEventsSelected = selectedEvents.size === eventOptions.length;
+    const allStatusesSelected = selectedStatuses.size === statusOptions.length;
+    const hasActiveFilters =
+      !allTeamsSelected || !allEventsSelected || !allStatusesSelected;
+
+    const hasActiveSorts =
+      teamNameSort !== null ||
+      eventSort !== null ||
+      invoiceSort !== null ||
+      (dueDateSort !== null && dueDateSort !== "asc") ||
+      statusSort !== null;
+
+    return hasActiveFilters || hasActiveSorts;
+  }, [
+    selectedTeams,
+    selectedEvents,
+    selectedStatuses,
+    teamNameOptions.length,
+    eventOptions.length,
+    statusOptions.length,
+    teamNameSort,
+    eventSort,
+    invoiceSort,
+    dueDateSort,
+    statusSort,
+  ]);
+
+  const clearFilters = () => {
+    setSelectedTeams(new Set(teamNameOptions.map((opt) => opt.value)));
+    setSelectedEvents(new Set(eventOptions.map((opt) => opt.value)));
+    setSelectedStatuses(new Set(statusOptions.map((opt) => opt.value)));
+    setTeamNameSort(null);
+    setEventSort(null);
+    setInvoiceSort(null);
+    setDueDateSort("asc");
+    setStatusSort(null);
+  };
+
   const historyHasActiveFilters = useMemo(() => {
     const allTeamsSelected =
       historySelectedTeams.size === historyTeamNameOptions.length;
     const allEventsSelected =
       historySelectedEvents.size === historyEventOptions.length;
-    const allPaidBySelected =
-      historySelectedPaidBy.size === historyPaidByOptions.length;
-    const hasActiveFilters =
-      !allTeamsSelected || !allEventsSelected || !allPaidBySelected;
+    const hasActiveFilters = !allTeamsSelected || !allEventsSelected;
 
     const hasActiveSorts =
       historyTeamNameSort !== null ||
       historyEventSort !== null ||
-      (historyDateSort !== null && historyDateSort !== "desc") ||
-      historyPaidBySort !== null;
+      (historyPaidDateSort !== null && historyPaidDateSort !== "desc");
 
     return hasActiveFilters || hasActiveSorts;
   }, [
     historySelectedTeams,
     historySelectedEvents,
-    historySelectedPaidBy,
     historyTeamNameOptions.length,
     historyEventOptions.length,
-    historyPaidByOptions.length,
     historyTeamNameSort,
     historyEventSort,
-    historyDateSort,
-    historyPaidBySort,
+    historyPaidDateSort,
   ]);
 
   const clearHistoryFilters = () => {
@@ -628,69 +793,24 @@ export default function OrganizerInvoicesPage() {
     setHistorySelectedEvents(
       new Set(historyEventOptions.map((opt) => opt.value)),
     );
-    setHistorySelectedPaidBy(
-      new Set(historyPaidByOptions.map((opt) => opt.value)),
-    );
     setHistoryTeamNameSort(null);
     setHistoryEventSort(null);
-    setHistoryDateSort("desc");
-    setHistoryPaidBySort(null);
+    setHistoryPaidDateSort("desc");
   };
 
-  useEffect(() => {
-    const loadGradient = () => {
-      if (organizerId) {
-        try {
-          const stored = localStorage.getItem(
-            `cheerbase-organizer-settings-${organizerId}`,
-          );
-          if (stored) {
-            const settings = JSON.parse(stored);
-            if (settings.gradient) {
-              setOrganizerGradient(settings.gradient);
-              return;
-            }
-          }
-        } catch {
-          // Ignore storage errors
-        }
-      }
-      setOrganizerGradient(organizer?.gradient as BrandGradient | undefined);
-    };
-
-    loadGradient();
-
-    const handleSettingsChange = (event: CustomEvent<{ gradient: string }>) => {
-      if (event.detail?.gradient) {
-        setOrganizerGradient(event.detail.gradient as BrandGradient);
-      }
-    };
-
-    window.addEventListener(
-      "organizer-settings-changed",
-      handleSettingsChange as EventListener,
-    );
-    return () => {
-      window.removeEventListener(
-        "organizer-settings-changed",
-        handleSettingsChange as EventListener,
-      );
-    };
-  }, [organizerId, organizer?.gradient]);
-
-  const gradientValue = organizerGradient || organizer?.gradient;
-
-  if (isLoading) {
+  if (authStatus === "loading" || clubDataLoading) {
     return (
       <section className="mx-auto min-w-0 w-full max-w-6xl">
-        <PageTitle title="Invoices" gradient={gradientValue} />
-        <div className="pt-6">
-          <SeasonDropdown />
-        </div>
+        <h1 className="heading-2">Invoices</h1>
         <div className="flex flex-col gap-4 pt-8">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-28 animate-pulse rounded-lg bg-muted" />
+            ))}
+          </div>
+          <div className="pt-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <CardSkeleton key={i} rows={3} />
             ))}
           </div>
         </div>
@@ -698,42 +818,19 @@ export default function OrganizerInvoicesPage() {
     );
   }
 
-  if (!overview) {
-    return (
-      <section className="mx-auto min-w-0 w-full max-w-6xl">
-        <PageTitle title="Invoices" gradient={gradientValue} />
-        <div className="pt-6">
-          <SeasonDropdown />
-        </div>
-        <div className="flex flex-col gap-4 pt-8">
-          <Card className="border-dashed border-border/70">
-            <CardHeader>
-              <p className="text-base font-semibold">No Data Available</p>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Invoices will appear here once you have events and registrations.
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    );
-  }
+  if (!user || user.role !== "club_owner") return null;
 
   const hasOverdue = overview.overdueAmount > 0;
 
   return (
     <section className="mx-auto min-w-0 w-full max-w-6xl">
-      <PageTitle title="Invoices" gradient={gradientValue} />
-
-      <div className="pt-6">
-        <SeasonDropdown />
-      </div>
+      <h1 className="heading-2">Invoices</h1>
 
       <div className="pt-6">
         <PageTabs
           tabs={[
             { id: "registrations", label: "Registrations" },
-            { id: "history", label: "History" },
+            { id: "history", label: "Payment History" },
           ]}
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as InvoicesTab)}
@@ -749,7 +846,7 @@ export default function OrganizerInvoicesPage() {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              <Section title="Statistics" showDivider={false}>
+              <Section title="Overview" showDivider={false}>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -770,7 +867,7 @@ export default function OrganizerInvoicesPage() {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Total Participants
+                        Total Athletes
                       </p>
                       <UsersIcon className="size-4 text-emerald-500" />
                     </CardHeader>
@@ -786,7 +883,7 @@ export default function OrganizerInvoicesPage() {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Revenue Collected
+                        Total Paid
                       </p>
                       <DollarSignIcon className="size-4 text-green-500" />
                     </CardHeader>
@@ -795,7 +892,7 @@ export default function OrganizerInvoicesPage() {
                         {formatCurrency(overview.revenuePaid)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        From paid registrations
+                        Payments completed
                       </p>
                     </CardContent>
                   </Card>
@@ -868,7 +965,7 @@ export default function OrganizerInvoicesPage() {
                               key={column}
                               checked={visibleColumns.has(column)}
                               onCheckedChange={() => toggleColumn(column)}
-                              disabled={column === "teamName"}
+                              disabled={column === "event"}
                             >
                               {COLUMN_LABELS[column]}
                             </DropdownMenuCheckboxItem>
@@ -882,29 +979,6 @@ export default function OrganizerInvoicesPage() {
                 <DataTable>
                   <DataTableHeader>
                     <tr>
-                      {visibleColumns.has("teamName") && (
-                        <DataTableColumnHeader
-                          title="Team Name"
-                          sortable
-                          sortDirection={teamNameSort}
-                          onSortChange={handleTeamNameSort}
-                          filterable
-                          filterOptions={teamNameOptions}
-                          selectedFilters={selectedTeams}
-                          onFilterChange={setSelectedTeams}
-                        />
-                      )}
-                      {visibleColumns.has("clubName") && (
-                        <DataTableHead>Club</DataTableHead>
-                      )}
-                      {visibleColumns.has("submittedAt") && (
-                        <DataTableColumnHeader
-                          title="Submitted"
-                          sortable
-                          sortDirection={submittedSort}
-                          onSortChange={handleSubmittedSort}
-                        />
-                      )}
                       {visibleColumns.has("event") && (
                         <DataTableColumnHeader
                           title="Event"
@@ -917,8 +991,39 @@ export default function OrganizerInvoicesPage() {
                           onFilterChange={setSelectedEvents}
                         />
                       )}
+                      {visibleColumns.has("teamName") && (
+                        <DataTableColumnHeader
+                          title="Team"
+                          sortable
+                          sortDirection={teamNameSort}
+                          onSortChange={handleTeamNameSort}
+                          filterable
+                          filterOptions={teamNameOptions}
+                          selectedFilters={selectedTeams}
+                          onFilterChange={setSelectedTeams}
+                        />
+                      )}
+                      {visibleColumns.has("organizer") && (
+                        <DataTableHead>Organizer</DataTableHead>
+                      )}
                       {visibleColumns.has("invoice") && (
-                        <DataTableHead>Invoice</DataTableHead>
+                        <DataTableColumnHeader
+                          title="Invoice"
+                          sortable
+                          sortDirection={invoiceSort}
+                          onSortChange={handleInvoiceSort}
+                        />
+                      )}
+                      {visibleColumns.has("dueDate") && (
+                        <DataTableColumnHeader
+                          title="Due Date"
+                          sortable
+                          sortDirection={dueDateSort}
+                          onSortChange={handleDueDateSort}
+                        />
+                      )}
+                      {visibleColumns.has("amount") && (
+                        <DataTableHead>Amount</DataTableHead>
                       )}
                       {visibleColumns.has("status") && (
                         <DataTableColumnHeader
@@ -938,32 +1043,32 @@ export default function OrganizerInvoicesPage() {
                   <DataTableBody>
                     {filteredData.length > 0 ? (
                       filteredData.map((row, index) => (
-                        <DataTableRow key={row.id} animationDelay={index * 40}>
-                          {visibleColumns.has("teamName") && (
-                            <DataTableCell className="font-medium text-foreground">
-                              {row.teamName}
-                            </DataTableCell>
-                          )}
-                          {visibleColumns.has("clubName") && (
-                            <DataTableCell className="text-muted-foreground">
-                              {row.clubName}
-                            </DataTableCell>
-                          )}
-                          {visibleColumns.has("submittedAt") && (
-                            <DataTableCell className="text-muted-foreground">
-                              {row.submittedAtFormatted}
-                            </DataTableCell>
-                          )}
+                        <DataTableRow
+                          key={row.id}
+                          animationDelay={index * 40}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => setSelectedRegistration(row)}
+                        >
                           {visibleColumns.has("event") && (
+                            <DataTableCell className="font-medium text-foreground">
+                              {row.eventName}
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("teamName") && (
                             <DataTableCell>
-                              <div className="flex flex-col">
-                                <span className="text-foreground">
-                                  {row.eventName}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {row.eventId}
-                                </span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-foreground">{row.teamNames[0]}</span>
+                                {row.teamCount > 1 && (
+                                  <span className="text-xs text-muted-foreground">
+                                    +{row.teamCount - 1} more team{row.teamCount > 2 ? "s" : ""}
+                                  </span>
+                                )}
                               </div>
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("organizer") && (
+                            <DataTableCell className="text-muted-foreground">
+                              {row.organizer}
                             </DataTableCell>
                           )}
                           {visibleColumns.has("invoice") && (
@@ -971,10 +1076,21 @@ export default function OrganizerInvoicesPage() {
                               <Link
                                 href={row.invoiceHref}
                                 className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 #{row.invoiceNumber}
                                 <ExternalLinkIcon className="size-3" />
                               </Link>
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("dueDate") && (
+                            <DataTableCell className="text-muted-foreground">
+                              {row.paymentDeadlineFormatted}
+                            </DataTableCell>
+                          )}
+                          {visibleColumns.has("amount") && (
+                            <DataTableCell className="text-foreground font-medium">
+                              {formatCurrency(row.invoiceTotal)}
                             </DataTableCell>
                           )}
                           {visibleColumns.has("status") && (
@@ -1031,7 +1147,7 @@ export default function OrganizerInvoicesPage() {
                 <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search by invoice number, club name, team name, or event name..."
+                  placeholder="Search by invoice number, team name, event, or organizer..."
                   value={historySearch}
                   onChange={(e) => setHistorySearch(e.target.value)}
                   className="pl-10"
@@ -1067,7 +1183,7 @@ export default function OrganizerInvoicesPage() {
                         key={column}
                         checked={historyVisibleColumns.has(column)}
                         onCheckedChange={() => toggleHistoryColumn(column)}
-                        disabled={column === "teamName"}
+                        disabled={column === "event"}
                       >
                         {HISTORY_COLUMN_LABELS[column]}
                       </DropdownMenuCheckboxItem>
@@ -1080,21 +1196,6 @@ export default function OrganizerInvoicesPage() {
             <DataTable>
               <DataTableHeader>
                 <tr>
-                  {historyVisibleColumns.has("teamName") && (
-                    <DataTableColumnHeader
-                      title="Team Name"
-                      sortable
-                      sortDirection={historyTeamNameSort}
-                      onSortChange={handleHistoryTeamNameSort}
-                      filterable
-                      filterOptions={historyTeamNameOptions}
-                      selectedFilters={historySelectedTeams}
-                      onFilterChange={setHistorySelectedTeams}
-                    />
-                  )}
-                  {historyVisibleColumns.has("clubOwner") && (
-                    <DataTableHead>Club Owner</DataTableHead>
-                  )}
                   {historyVisibleColumns.has("event") && (
                     <DataTableColumnHeader
                       title="Event"
@@ -1107,31 +1208,34 @@ export default function OrganizerInvoicesPage() {
                       onFilterChange={setHistorySelectedEvents}
                     />
                   )}
+                  {historyVisibleColumns.has("teamName") && (
+                    <DataTableColumnHeader
+                      title="Team"
+                      sortable
+                      sortDirection={historyTeamNameSort}
+                      onSortChange={handleHistoryTeamNameSort}
+                      filterable
+                      filterOptions={historyTeamNameOptions}
+                      selectedFilters={historySelectedTeams}
+                      onFilterChange={setHistorySelectedTeams}
+                    />
+                  )}
+                  {historyVisibleColumns.has("organizer") && (
+                    <DataTableHead>Organizer</DataTableHead>
+                  )}
                   {historyVisibleColumns.has("invoice") && (
                     <DataTableHead>Invoice</DataTableHead>
                   )}
-                  {historyVisibleColumns.has("paidBy") && (
-                    <DataTableColumnHeader
-                      title="Paid By"
-                      sortable
-                      sortDirection={historyPaidBySort}
-                      onSortChange={handleHistoryPaidBySort}
-                      filterable
-                      filterOptions={historyPaidByOptions}
-                      selectedFilters={historySelectedPaidBy}
-                      onFilterChange={setHistorySelectedPaidBy}
-                    />
+                  {historyVisibleColumns.has("amount") && (
+                    <DataTableHead>Amount</DataTableHead>
                   )}
-                  {historyVisibleColumns.has("note") && (
-                    <DataTableHead>Note</DataTableHead>
-                  )}
-                  {historyVisibleColumns.has("date") && (
+                  {historyVisibleColumns.has("paidDate") && (
                     <DataTableColumnHeader
-                      title="Date"
+                      title="Paid Date"
                       className="text-right"
                       sortable
-                      sortDirection={historyDateSort}
-                      onSortChange={handleHistoryDateSort}
+                      sortDirection={historyPaidDateSort}
+                      onSortChange={handleHistoryPaidDateSort}
                     />
                   )}
                 </tr>
@@ -1145,23 +1249,26 @@ export default function OrganizerInvoicesPage() {
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => setSelectedPayment(entry)}
                     >
-                      {historyVisibleColumns.has("teamName") && (
-                        <DataTableCell className="font-medium text-foreground">
-                          {entry.teamName}
-                        </DataTableCell>
-                      )}
-                      {historyVisibleColumns.has("clubOwner") && (
-                        <DataTableCell className="text-muted-foreground">
-                          {entry.clubOwner}
-                        </DataTableCell>
-                      )}
                       {historyVisibleColumns.has("event") && (
+                        <DataTableCell className="font-medium text-foreground">
+                          {entry.eventName}
+                        </DataTableCell>
+                      )}
+                      {historyVisibleColumns.has("teamName") && (
                         <DataTableCell>
-                          <div className="flex flex-col">
-                            <span className="text-foreground">
-                              {entry.eventName}
-                            </span>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-foreground">{entry.teamNames[0]}</span>
+                            {entry.teamCount > 1 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{entry.teamCount - 1} more team{entry.teamCount > 2 ? "s" : ""}
+                              </span>
+                            )}
                           </div>
+                        </DataTableCell>
+                      )}
+                      {historyVisibleColumns.has("organizer") && (
+                        <DataTableCell className="text-muted-foreground">
+                          {entry.organizer}
                         </DataTableCell>
                       )}
                       {historyVisibleColumns.has("invoice") && (
@@ -1169,19 +1276,14 @@ export default function OrganizerInvoicesPage() {
                           #{entry.invoiceNumber}
                         </DataTableCell>
                       )}
-                      {historyVisibleColumns.has("paidBy") && (
-                        <DataTableCell className="text-foreground">
-                          {entry.paidByOrganizer}
+                      {historyVisibleColumns.has("amount") && (
+                        <DataTableCell className="text-foreground font-medium">
+                          {formatCurrency(entry.invoiceTotal)}
                         </DataTableCell>
                       )}
-                      {historyVisibleColumns.has("note") && (
-                        <DataTableCell className="max-w-[200px] truncate text-muted-foreground">
-                          {entry.paymentNote || "—"}
-                        </DataTableCell>
-                      )}
-                      {historyVisibleColumns.has("date") && (
+                      {historyVisibleColumns.has("paidDate") && (
                         <DataTableCell className="text-right text-muted-foreground">
-                          {entry.changeDateFormatted}
+                          {entry.paidAtFormatted}
                         </DataTableCell>
                       )}
                     </DataTableRow>
@@ -1235,12 +1337,16 @@ export default function OrganizerInvoicesPage() {
                 </p>
               </div>
 
-              {/* Team Name */}
+              {/* Team Names */}
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Team
+                  {selectedPayment.teamCount > 1 ? "Teams" : "Team"}
                 </p>
-                <p className="body-text">{selectedPayment.teamName}</p>
+                <div className="body-text">
+                  {selectedPayment.teamNames.map((name, idx) => (
+                    <p key={idx}>{name}</p>
+                  ))}
+                </div>
               </div>
 
               {/* Event */}
@@ -1251,18 +1357,28 @@ export default function OrganizerInvoicesPage() {
                 <p className="body-text">{selectedPayment.eventName}</p>
               </div>
 
-              {/* Club Owner */}
+              {/* Organizer */}
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Club Owner
+                  Organizer
                 </p>
-                <p className="body-text">{selectedPayment.clubOwner}</p>
+                <p className="body-text">{selectedPayment.organizer}</p>
+              </div>
+
+              {/* Amount */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Amount
+                </p>
+                <p className="body-text font-medium">
+                  {formatCurrency(selectedPayment.invoiceTotal)}
+                </p>
               </div>
 
               {/* Received By */}
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Payment Received By
+                  Received By
                 </p>
                 <p className="body-text">{selectedPayment.paidByOrganizer}</p>
               </div>
@@ -1270,27 +1386,120 @@ export default function OrganizerInvoicesPage() {
               {/* Date */}
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Date
+                  Paid Date
                 </p>
-                <p className="body-text">
-                  {selectedPayment.changeDateFormatted}
+                <p className="body-text">{selectedPayment.paidAtFormatted}</p>
+              </div>
+
+              {/* Note */}
+              {selectedPayment.paymentNote && (
+                <div className="space-y-2 pt-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Note
+                  </p>
+                  <div className="rounded-lg bg-muted/50 border border-border/40 p-4">
+                    <p className="body-text text-foreground whitespace-pre-wrap">
+                      {selectedPayment.paymentNote}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-end">
+            <Button variant="ghost" onClick={() => setSelectedPayment(null)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Registration Detail Modal */}
+      <Dialog
+        open={selectedRegistration !== null}
+        onOpenChange={(open) => !open && setSelectedRegistration(null)}
+      >
+        <DialogContent className="max-w-md rounded-xl border-border/40 p-0 gap-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/40">
+            <DialogTitle className="heading-3">Registration Details</DialogTitle>
+          </DialogHeader>
+
+          {selectedRegistration && (
+            <div className="px-6 py-5 space-y-4">
+              {/* Invoice Number */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Invoice
+                </p>
+                <p className="body-text font-medium">
+                  #{selectedRegistration.invoiceNumber}
                 </p>
               </div>
 
-              {/* Note - Prominent display */}
-              <div className="space-y-2 pt-2">
+              {/* Event */}
+              <div className="space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Note
+                  Event
                 </p>
-                <div className="rounded-lg bg-muted/50 border border-border/40 p-4">
-                  <p className="body-text text-foreground whitespace-pre-wrap">
-                    {selectedPayment.paymentNote || (
-                      <span className="text-muted-foreground italic">
-                        No note provided
-                      </span>
-                    )}
-                  </p>
+                <p className="body-text">{selectedRegistration.eventName}</p>
+              </div>
+
+              {/* Team Names */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {selectedRegistration.teamCount > 1 ? "Teams" : "Team"}
+                </p>
+                <div className="body-text">
+                  {selectedRegistration.teamNames.map((name, idx) => (
+                    <p key={idx}>{name}</p>
+                  ))}
                 </div>
+              </div>
+
+              {/* Organizer */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Organizer
+                </p>
+                <p className="body-text">{selectedRegistration.organizer}</p>
+              </div>
+
+              {/* Due Date */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Due Date
+                </p>
+                <p className="body-text">
+                  {selectedRegistration.paymentDeadlineFormatted}
+                </p>
+              </div>
+
+              {/* Amount */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Amount
+                </p>
+                <p className="body-text font-medium">
+                  {formatCurrency(selectedRegistration.invoiceTotal)}
+                </p>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Status
+                </p>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "font-medium",
+                    getStatusBadgeVariant(selectedRegistration.status),
+                  )}
+                >
+                  {selectedRegistration.status.charAt(0).toUpperCase() +
+                    selectedRegistration.status.slice(1)}
+                </Badge>
               </div>
             </div>
           )}
@@ -1298,12 +1507,12 @@ export default function OrganizerInvoicesPage() {
           <div className="px-6 py-4 border-t border-border/40 bg-muted/30 flex items-center justify-between">
             <Button
               variant="ghost"
-              onClick={() => setSelectedPayment(null)}
+              onClick={() => setSelectedRegistration(null)}
             >
               Close
             </Button>
             <Button asChild>
-              <Link href={`/organizer/invoices/invoice/${selectedPayment?.id}`}>
+              <Link href={selectedRegistration?.invoiceHref ?? "#"}>
                 View Invoice
               </Link>
             </Button>

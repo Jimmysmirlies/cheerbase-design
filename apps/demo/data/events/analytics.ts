@@ -11,6 +11,7 @@ import {
   listEvents,
 } from "./selectors";
 import type { Registration } from "@/types/club";
+import { formatHashBasedInvoiceNumber } from "@/lib/invoice-numbers";
 
 // ============================================================================
 // Types
@@ -82,6 +83,7 @@ export type RegistrationTableRow = {
   invoiceHref: string;
   status: RegistrationStatus;
   invoiceTotal: number;
+  division: string;
 };
 
 export type InvoiceHistoryEntry = {
@@ -115,30 +117,6 @@ function getSubmittedDate(reg: Registration): Date {
 
 function formatMonthKey(date: Date): string {
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-}
-
-/**
- * Compute a 6-digit invoice ID from a seed string (matches lib/invoices.ts logic)
- */
-function computeSixDigitId(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-  const sixDigit = (hash % 900000) + 100000; // ensures 100000–999999
-  return String(sixDigit).padStart(6, "0");
-}
-
-/**
- * Format invoice number consistently (e.g., "733814-001")
- */
-function formatInvoiceNumber(
-  registrationId: string,
-  eventId: string,
-  version = 1,
-): string {
-  const invoiceId = computeSixDigitId(`${registrationId}:${eventId}`);
-  return `${invoiceId}-${String(version).padStart(3, "0")}`;
 }
 
 // ============================================================================
@@ -420,8 +398,9 @@ export function getRegistrationTableData(
       status = "overdue";
     }
 
-    // Generate invoice number (format: {6-digit-hash}-001)
-    const invoiceNumber = formatInvoiceNumber(reg.id, reg.eventId);
+    // Use stored invoice number if available, otherwise fall back to legacy hash-based
+    const invoiceNumber =
+      reg.invoiceNumber ?? formatHashBasedInvoiceNumber(reg.id, reg.eventId);
 
     return {
       id: reg.id,
@@ -442,6 +421,7 @@ export function getRegistrationTableData(
       invoiceHref: `/organizer/invoices/invoice/${reg.id}`,
       status,
       invoiceTotal: parseAmount(reg.invoiceTotal),
+      division: reg.division,
     };
   });
 
@@ -493,8 +473,9 @@ export function getInvoiceHistory(organizerId: string): InvoiceHistoryEntry[] {
     const team = teamMap.get(reg.teamId);
     const changeDate = new Date(reg.paidAt!);
 
-    // Generate invoice number
-    const invoiceNumber = formatInvoiceNumber(reg.id, reg.eventId);
+    // Use stored invoice number if available, otherwise fall back to legacy hash-based
+    const invoiceNumber =
+      reg.invoiceNumber ?? formatHashBasedInvoiceNumber(reg.id, reg.eventId);
 
     return {
       id: reg.id,
@@ -520,6 +501,205 @@ export function getInvoiceHistory(organizerId: string): InvoiceHistoryEntry[] {
 
   // Sort by change date (newest first)
   entries.sort((a, b) => b.changeDate.getTime() - a.changeDate.getTime());
+
+  return entries;
+}
+
+// ============================================================================
+// Club-specific Selectors (for club owner invoice view)
+// ============================================================================
+
+export type ClubInvoiceTableRow = {
+  id: string;
+  teamName: string;
+  teamId: string;
+  eventName: string;
+  eventId: string;
+  organizer: string;
+  invoiceNumber: string;
+  invoiceHref: string;
+  invoiceTotal: number;
+  paymentDeadline: Date;
+  paymentDeadlineFormatted: string;
+  submittedAt: Date;
+  submittedAtFormatted: string;
+  status: RegistrationStatus;
+  division: string;
+};
+
+export type ClubInvoiceHistoryEntry = {
+  id: string;
+  invoiceNumber: string;
+  teamName: string;
+  teamId: string;
+  eventName: string;
+  eventId: string;
+  organizer: string;
+  paidAt: Date;
+  paidAtFormatted: string;
+  invoiceTotal: number;
+  paidByOrganizer: string;
+  paymentNote: string;
+};
+
+/**
+ * Get all registrations for the club (all demo registrations)
+ * In a real app, this would filter by club ID
+ */
+export function getClubRegistrations(): Registration[] {
+  return demoRegistrations;
+}
+
+/**
+ * Get club overview KPIs (what the club owes)
+ */
+export function getClubOverview(): OrganizerOverview {
+  const registrations = getClubRegistrations();
+  const now = new Date();
+
+  let totalRegistrations = 0;
+  let totalParticipants = 0;
+  let revenuePaid = 0;
+  let revenueOutstanding = 0;
+  let overdueAmount = 0;
+
+  for (const reg of registrations) {
+    totalRegistrations++;
+    totalParticipants += reg.athletes;
+    const amount = parseAmount(reg.invoiceTotal);
+
+    if (reg.status === "paid") {
+      revenuePaid += amount;
+    } else {
+      revenueOutstanding += amount;
+      const deadline = new Date(reg.paymentDeadline);
+      if (deadline < now) {
+        overdueAmount += amount;
+      }
+    }
+  }
+
+  return {
+    totalRegistrations,
+    totalParticipants,
+    revenuePaid,
+    revenueOutstanding,
+    overdueAmount,
+  };
+}
+
+/**
+ * Get invoice table data for club view
+ * Returns enriched registration rows with team names, formatted dates, and status
+ */
+export function getClubInvoiceTableData(): ClubInvoiceTableRow[] {
+  const registrations = getClubRegistrations();
+  const now = new Date();
+
+  // Build team lookup
+  const teamMap = new Map(demoTeams.map((t) => [t.id, t]));
+
+  const rows: ClubInvoiceTableRow[] = registrations.map((reg) => {
+    const team = teamMap.get(reg.teamId);
+    const submittedAt = getSubmittedDate(reg);
+    const paymentDeadline = new Date(reg.paymentDeadline);
+
+    // Compute status
+    let status: RegistrationStatus = "unpaid";
+    if (reg.status === "paid") {
+      status = "paid";
+    } else if (paymentDeadline < now) {
+      status = "overdue";
+    }
+
+    // Use stored invoice number if available, otherwise fall back to legacy hash-based
+    const invoiceNumber =
+      reg.invoiceNumber ?? formatHashBasedInvoiceNumber(reg.id, reg.eventId);
+
+    return {
+      id: reg.id,
+      teamName: team?.name ?? reg.teamId,
+      teamId: reg.teamId,
+      eventName: reg.eventName,
+      eventId: reg.eventId,
+      organizer: reg.organizer,
+      invoiceNumber,
+      invoiceHref: `/clubs/invoices/invoice/${reg.id}`,
+      invoiceTotal: parseAmount(reg.invoiceTotal),
+      paymentDeadline,
+      paymentDeadlineFormatted: paymentDeadline.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      submittedAt,
+      submittedAtFormatted: submittedAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      status,
+      division: reg.division,
+    };
+  });
+
+  // Sort by payment deadline (soonest first for unpaid, then by submitted date)
+  rows.sort((a, b) => {
+    // Unpaid/overdue first, then paid
+    if (a.status !== "paid" && b.status === "paid") return -1;
+    if (a.status === "paid" && b.status !== "paid") return 1;
+
+    // Within same status group, sort by deadline
+    return a.paymentDeadline.getTime() - b.paymentDeadline.getTime();
+  });
+
+  return rows;
+}
+
+/**
+ * Get payment history for club (paid registrations)
+ */
+export function getClubInvoiceHistory(): ClubInvoiceHistoryEntry[] {
+  const registrations = getClubRegistrations();
+
+  // Build team lookup
+  const teamMap = new Map(demoTeams.map((t) => [t.id, t]));
+
+  // Filter to only paid registrations
+  const paidRegistrations = registrations.filter(
+    (reg) => reg.status === "paid" && reg.paidAt,
+  );
+
+  const entries: ClubInvoiceHistoryEntry[] = paidRegistrations.map((reg) => {
+    const team = teamMap.get(reg.teamId);
+    const paidAt = new Date(reg.paidAt!);
+
+    // Use stored invoice number if available, otherwise fall back to legacy hash-based
+    const invoiceNumber =
+      reg.invoiceNumber ?? formatHashBasedInvoiceNumber(reg.id, reg.eventId);
+
+    return {
+      id: reg.id,
+      invoiceNumber,
+      teamName: team?.name ?? reg.teamId,
+      teamId: reg.teamId,
+      eventName: reg.eventName,
+      eventId: reg.eventId,
+      organizer: reg.organizer,
+      paidAt,
+      paidAtFormatted: paidAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      invoiceTotal: parseAmount(reg.invoiceTotal),
+      paidByOrganizer: reg.paidByOrganizer ?? "Unknown",
+      paymentNote: reg.paymentNote ?? "",
+    };
+  });
+
+  // Sort by paid date (newest first)
+  entries.sort((a, b) => b.paidAt.getTime() - a.paidAt.getTime());
 
   return entries;
 }

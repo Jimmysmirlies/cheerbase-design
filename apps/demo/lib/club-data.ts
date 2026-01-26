@@ -45,6 +45,8 @@ export type RegistrationDTO = {
   status?: "pending" | "paid";
   paidAt?: string | null;
   createdAt?: string | null;
+  /** Invoice number in format ORG-YYEE-CNNN-VV (e.g., SAP-2602-C003-01) */
+  invoiceNumber?: string;
   /** Parent registration ID for multi-team localStorage registrations */
   _parentRegistrationId?: string;
 };
@@ -127,6 +129,8 @@ export async function getClubData(clubOwnerId?: string): Promise<ClubData> {
       createdAt: reg.snapshotTakenAt
         ? new Date(reg.snapshotTakenAt).toISOString()
         : undefined,
+      invoiceNumber: reg.invoiceNumber,
+      _parentRegistrationId: reg._parentRegistrationId,
     };
   });
 
